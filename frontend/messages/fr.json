@@ -1,0 +1,500 @@
+{
+  "auth": {
+    "loginTitle": "Bon Retour",
+    "loginSubtitle": "Connectez-vous pour acceder a votre tableau de bord HBCT",
+    "registerTitle": "Creer un Compte",
+    "registerSubtitle": "Rejoignez l'ecosysteme HBCT aujourd'hui",
+    "email": "E-mail",
+    "emailPlaceholder": "Entrez votre e-mail",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "Entrez votre mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "confirmPasswordPlaceholder": "Confirmez votre mot de passe",
+    "firstName": "Prenom",
+    "firstNamePlaceholder": "Jean",
+    "lastName": "Nom",
+    "lastNamePlaceholder": "Dupont",
+    "referralCode": "Code de parrainage (Optionnel)",
+    "referralCodePlaceholder": "Entrez le code de parrainage",
+    "login": "Se Connecter",
+    "loggingIn": "Connexion...",
+    "register": "Creer un Compte",
+    "registering": "Creation du compte...",
+    "noAccount": "Pas encore de compte?",
+    "registerLink": "S'inscrire",
+    "hasAccount": "Deja un compte?",
+    "loginLink": "Se connecter",
+    "loginError": "E-mail ou mot de passe invalide",
+    "loginSuccess": "Connexion reussie!",
+    "registerError": "Echec de la creation du compte",
+    "registerSuccess": "Compte cree avec succes!",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "passwordTooShort": "Le mot de passe doit avoir au moins 8 caracteres",
+    "forgotPassword": "Mot de passe oublié?",
+    "continueWithGoogle": "Continuer avec Google",
+    "continueWithFacebook": "Continuer avec Facebook",
+    "connectWallet": "Connecter le portefeuille",
+    "orContinueWith": "ou continuer avec e-mail"
+  },
+  "dashboard": {
+    "title": "Tableau de Bord",
+    "welcome": "Bon retour",
+    "overview": "Apercu",
+    "tokenBalance": "Solde de Tokens",
+    "availableBalance": "Disponible",
+    "lockedBalance": "Verrouille",
+    "totalBalance": "Total",
+    "referrals": "Parrainages",
+    "friends": "Amis invites",
+    "recentTransactions": "Transactions Recentes",
+    "recentActivity": "Activite Recente",
+    "viewAll": "Voir Tout",
+    "noTransactions": "Aucune transaction pour le moment",
+    "noTransactionsDescription": "Votre historique de transactions apparaitra ici une fois que vous commencerez a utiliser la plateforme.",
+    "quickActions": "Actions Rapides",
+    "buyTokens": "Acheter des Tokens",
+    "lockTokens": "Verrouiller des Tokens",
+    "inviteFriends": "Inviter des Amis",
+    "viewAirdrops": "Voir les Airdrops",
+    "browseProducts": "Parcourir les Produits"
+  },
+  "tokenSales": {
+    "title": "Acheter des Tokens HBCT",
+    "subtitle": "Achetez des tokens au prix du marche actuel",
+    "currentPrice": "Prix Actuel",
+    "amountToBuy": "Montant a Acheter (USD)",
+    "youWillReceive": "Vous Recevrez",
+    "tokens": "tokens",
+    "getQuote": "Obtenir un Devis",
+    "buyNow": "Acheter Maintenant",
+    "processing": "Traitement...",
+    "purchaseSuccess": "Achat reussi!",
+    "purchaseError": "Echec de l'achat. Veuillez reessayer.",
+    "minPurchase": "Achat minimum: 10$",
+    "maxPurchase": "Achat maximum: 100 000$"
+  },
+  "locking": {
+    "title": "Verrouillage de Tokens",
+    "subtitle": "Verrouillez vos tokens pour gagner des recompenses bonus",
+    "availableTiers": "Niveaux Disponibles",
+    "months": "mois",
+    "bonus": "Bonus",
+    "minAmount": "Montant Min",
+    "lockTokens": "Verrouiller des Tokens",
+    "amountToLock": "Montant a Verrouiller",
+    "selectTier": "Selectionner le Niveau",
+    "estimatedReward": "Recompense Estimee",
+    "lockNow": "Verrouiller Maintenant",
+    "locking": "Verrouillage...",
+    "myLocks": "Mes Verrouillages",
+    "noLocks": "Vous n'avez aucun verrouillage actif",
+    "status": "Statut",
+    "active": "Actif",
+    "completed": "Termine",
+    "unlockDate": "Date de Deverrouillage",
+    "reward": "Recompense",
+    "unlock": "Deverrouiller",
+    "unlocking": "Deverrouillage...",
+    "lockSuccess": "Tokens verrouilles avec succes!",
+    "unlockSuccess": "Tokens deverrouilles avec succes!",
+    "lockError": "Echec du verrouillage",
+    "unlockError": "Echec du deverrouillage"
+  },
+  "airdrops": {
+    "title": "Airdrops",
+    "subtitle": "Participez aux campagnes pour gagner des tokens gratuits",
+    "activeCampaigns": "Campagnes Actives",
+    "noCampaigns": "Aucune campagne active pour le moment",
+    "allocation": "Allocation",
+    "participants": "Participants",
+    "endsIn": "Se Termine Dans",
+    "tasks": "Taches",
+    "participate": "Participer",
+    "participating": "Participation...",
+    "completeTask": "Completer",
+    "completed": "Termine",
+    "myEntries": "Mes Participations",
+    "noEntries": "Vous n'avez rejoint aucune campagne",
+    "eligibility": "Eligibilite",
+    "eligible": "Eligible",
+    "notEligible": "Non Eligible",
+    "pendingDistribution": "Distribution en Attente",
+    "distributed": "Distribue"
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "subtitle": "Achetez des produits de protection incendie avec HBCT",
+    "categories": "Categories",
+    "allProducts": "Tous les Produits",
+    "searchProducts": "Rechercher des produits...",
+    "noProducts": "Aucun produit disponible",
+    "price": "Prix",
+    "inStock": "En Stock",
+    "outOfStock": "Rupture de Stock",
+    "addToCart": "Ajouter au Panier",
+    "viewDetails": "Voir les Details",
+    "cart": "Panier",
+    "emptyCart": "Votre panier est vide",
+    "checkout": "Commander",
+    "shippingInfo": "Informations de Livraison",
+    "address": "Adresse",
+    "city": "Ville",
+    "country": "Pays",
+    "postalCode": "Code Postal",
+    "placeOrder": "Passer la Commande",
+    "orderSuccess": "Commande passee avec succes!",
+    "myOrders": "Mes Commandes",
+    "noOrders": "Vous n'avez aucune commande",
+    "orderStatus": "Statut de Commande",
+    "pending": "En Attente",
+    "paid": "Paye",
+    "shipped": "Expedie",
+    "delivered": "Livre"
+  },
+  "affiliates": {
+    "title": "Programme d'Affiliation",
+    "subtitle": "Gagnez des commissions en parrainant de nouveaux utilisateurs",
+    "joinProgram": "Rejoindre le Programme d'Affiliation",
+    "joinCta": "Rejoindre & Commencer à Gagner",
+    "alreadyAffiliate": "Vous êtes déjà affilié!",
+    "viewDashboard": "Voir le Tableau de Bord",
+    "whyJoin": "Pourquoi Rejoindre Notre Programme d'Affiliation?",
+    "benefits": {
+      "passiveIncome": "Revenu Passif",
+      "passiveIncomeDesc": "Gagnez des commissions sur chaque achat de vos filleuls",
+      "tieredRewards": "Récompenses par Niveau",
+      "tieredRewardsDesc": "Débloquez des taux de commission plus élevés en grandissant",
+      "realTimeTracking": "Suivi en Temps Réel",
+      "realTimeTrackingDesc": "Surveillez vos gains et parrainages instantanément",
+      "fastPayouts": "Paiements Rapides",
+      "fastPayoutsDesc": "Paiements hebdomadaires directement sur votre portefeuille"
+    },
+    "tabs": {
+      "overview": "Aperçu",
+      "referrals": "Parrainages",
+      "commissions": "Commissions"
+    },
+    "referralLink": {
+      "title": "Votre Lien de Parrainage",
+      "subtitle": "Partagez ce lien pour gagner des commissions",
+      "yourCode": "Votre Code de Parrainage",
+      "copyLink": "Copier le Lien",
+      "copyCode": "Copier le Code",
+      "copied": "Copié!",
+      "showQr": "Afficher le QR Code",
+      "hideQr": "Masquer le QR Code",
+      "shareOn": "Partager sur",
+      "customCampaign": "Campagne Personnalisée",
+      "campaignPlaceholder": "ex: twitter_bio",
+      "utmSource": "Source UTM",
+      "generateLink": "Générer le Lien"
+    },
+    "tier": {
+      "title": "Votre Niveau",
+      "currentTier": "Niveau Actuel",
+      "nextTier": "Niveau Suivant",
+      "progressToNext": "Progression vers le Niveau Suivant",
+      "referralsNeeded": "parrainages nécessaires",
+      "volumeNeeded": "volume nécessaire",
+      "benefits": "Avantages",
+      "commissionRate": "Taux de Commission",
+      "levels": {
+        "bronze": "Bronze",
+        "silver": "Argent",
+        "gold": "Or",
+        "platinum": "Platine",
+        "diamond": "Diamant"
+      }
+    },
+    "stats": {
+      "title": "Statistiques",
+      "totalReferrals": "Total des Parrainages",
+      "totalEarnings": "Gains Totaux",
+      "pendingEarnings": "Gains en Attente",
+      "paidEarnings": "Gains Payés",
+      "totalVolume": "Volume Total",
+      "conversionRate": "Taux de Conversion",
+      "avgOrderValue": "Valeur Moyenne Commande",
+      "thisMonth": "Ce Mois",
+      "fromLastMonth": "du mois dernier",
+      "increase": "augmentation",
+      "decrease": "diminution"
+    },
+    "referrals": {
+      "title": "Vos Parrainages",
+      "searchPlaceholder": "Rechercher des parrainages...",
+      "noReferrals": "Aucun parrainage trouvé",
+      "shareToStart": "Partagez votre lien de parrainage pour commencer à gagner!",
+      "status": {
+        "all": "Tous",
+        "pending": "En Attente",
+        "active": "Actif",
+        "converted": "Converti",
+        "inactive": "Inactif"
+      },
+      "joined": "Inscrit",
+      "firstPurchase": "Premier achat",
+      "purchases": "achats",
+      "earned": "gagné"
+    },
+    "commissions": {
+      "title": "Historique des Commissions",
+      "noCommissions": "Aucune commission trouvée",
+      "claim": "Réclamer",
+      "claiming": "Réclamation...",
+      "totalEarned": "Total Gagné",
+      "pending": "En Attente",
+      "paid": "Payé",
+      "status": {
+        "all": "Tous",
+        "pending": "En Attente",
+        "paid": "Payé"
+      },
+      "types": {
+        "signupBonus": "Bonus d'Inscription",
+        "purchase": "Commission d'Achat",
+        "recurring": "Commission Récurrente",
+        "bonus": "Bonus",
+        "tierBonus": "Bonus de Niveau"
+      },
+      "from": "de",
+      "viewTx": "Voir la Transaction"
+    },
+    "leaderboard": {
+      "title": "Classement",
+      "periods": {
+        "week": "Semaine",
+        "month": "Mois",
+        "allTime": "Tout Temps"
+      },
+      "you": "Vous",
+      "yourPosition": "Votre Position",
+      "referrals": "parrainages",
+      "rank": "Rang",
+      "volume": "Volume"
+    },
+    "tierPreview": {
+      "title": "Niveaux de Commission",
+      "subtitle": "Débloquez des taux plus élevés en grandissant",
+      "startAt": "Commencer à",
+      "upTo": "Jusqu'à"
+    }
+  },
+  "navigation": {
+    "home": "Accueil",
+    "about": "A Propos",
+    "dashboard": "Tableau de Bord",
+    "buyTokens": "Acheter des Tokens",
+    "locking": "Verrouillage",
+    "airdrops": "Airdrops",
+    "marketplace": "Marketplace",
+    "affiliates": "Affilies",
+    "admin": "Admin",
+    "login": "Connexion",
+    "register": "Inscription",
+    "logout": "Deconnexion",
+    "profile": "Profil"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "retry": "Reessayer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "back": "Retour",
+    "next": "Suivant",
+    "submit": "Soumettre",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "sort": "Trier",
+    "noResults": "Aucun resultat trouve"
+  },
+  "metadata": {
+    "title": "HBCT - La Protection Incendie Rencontre la Blockchain",
+    "description": "L'innovation qui protege. Technologie de protection incendie soutenue par HBC Group et la transparence blockchain."
+  },
+  "hero": {
+    "title": "L'Innovation Qui Protege",
+    "subtitle": "La Protection Incendie Rencontre la Blockchain — Soutenu par",
+    "company": "HBC GROUP",
+    "ctaToken": "Token HBCT",
+    "ctaWhitepaper": "Livre Blanc",
+    "cards": {
+      "labCertified": {
+        "label": "Certifie Labo",
+        "description": "Resistance au feu prouvee de 5+ heures"
+      },
+      "realUtility": {
+        "label": "Utilite Reelle",
+        "description": "Achetez des produits de protection incendie avec HBCT"
+      },
+      "incomingToken": {
+        "label": "Token en Prevente",
+        "description": "Prevente HBCT a partir de 0,03$"
+      }
+    }
+  },
+  "aboutTechnology": {
+    "label": "Notre Technologie",
+    "title": "Concu pour la Securite",
+    "subtitle": "Quatre approches innovantes de la protection incendie, certifiees selon les normes internationales.",
+    "woodPreservation": {
+      "title": "Preservation du Bois",
+      "description": "Revetements speciaux appliques aux elements structurels en bois pour reduire significativement l'inflammabilite et prolonger leur duree de vie.",
+      "features": ["Revetements retardateurs de carbonisation", "Impregnation ignifuge", "Conforme NFPA & EN"]
+    },
+    "filmProtection": {
+      "title": "Protection par Film",
+      "description": "Films protecteurs transparents pour fenetres, murs et portes qui ralentissent la propagation des flammes.",
+      "features": ["Technologie thermoreflective", "Protection barriere anti-fumee", "Formats personnalises"]
+    },
+    "facadeSystems": {
+      "title": "Systemes de Facade",
+      "description": "Materiaux architecturaux empechant la propagation des flammes sur les exterieurs des batiments.",
+      "features": ["Panneaux refractaires", "Conception de compartimentage", "Transparence visuelle"]
+    },
+    "textileProtection": {
+      "title": "Protection Textile Incendie",
+      "description": "Barrieres non invasives en fibre de verre revetues de silicone qui contiennent les flammes et reduisent la chaleur sans eau ni mousse. Technologie de couverture EV certifiee, sans entretien, reutilisable et resistante aux intemperies.",
+      "features": ["Technologie de couverture EV certifiee", "Sans entretien & reutilisable", "Materiaux resistants aux intemperies"]
+    }
+  },
+  "whyHbct": {
+    "label": "Avantages du Token",
+    "title": "Pourquoi le Token HBCT",
+    "subtitle": "Plus qu'un simple token—c'est le pont entre la technologie blockchain et la protection incendie reelle.",
+    "features": {
+      "realUtility": {
+        "title": "Utilite Reelle",
+        "description": "Connectez-vous directement aux produits de protection incendie verifies. Achats reels, adoption reelle et impact mesurable—pas seulement de la speculation."
+      },
+      "blockchainTransparency": {
+        "title": "Transparence Blockchain",
+        "description": "Chaque certification, test de produit et transaction est enregistre de maniere immuable—creant une confiance totale pour les investisseurs et les clients."
+      },
+      "longTermValue": {
+        "title": "Valeur a Long Terme",
+        "description": "A mesure que la demande de l'ecosysteme augmente, la valeur du token se stabilise grace a une base adossee a des actifs pour une expansion future."
+      }
+    },
+    "tokenInfo": {
+      "tokenName": "Nom du Token",
+      "tokenNameValue": "HBC Fire Protection Token",
+      "symbol": "Symbole",
+      "symbolValue": "HBCT",
+      "totalSupply": "Offre Totale",
+      "totalSupplyValue": "250 000 000"
+    }
+  },
+  "tokenDistribution": {
+    "label": "Tokenomics",
+    "title": "Distribution des Tokens",
+    "subtitle": "Une allocation equilibree concue pour la stabilite a long terme, la croissance et la confiance de la communaute.",
+    "distribution": {
+      "companyReserve": {
+        "label": "Reserve Entreprise",
+        "percentage": "35",
+        "tokens": "87 500 000",
+        "description": "Bloquee pendant 12 mois puis liberee progressivement pour soutenir l'expansion strategique"
+      },
+      "publicPresale": {
+        "label": "Prevente Publique",
+        "percentage": "25",
+        "tokens": "62 500 000",
+        "description": "Offre principale aux investisseurs a 0,03$ par token"
+      },
+      "ecosystemRewards": {
+        "label": "Ecosysteme & Recompenses",
+        "percentage": "15",
+        "tokens": "37 500 000",
+        "description": "Incitations partenaires et developpement du protocole"
+      },
+      "rdCertifications": {
+        "label": "R&D & Certifications",
+        "percentage": "10",
+        "tokens": "25 000 000",
+        "description": "Tests en laboratoire et infrastructure de verification"
+      },
+      "teamAdvisors": {
+        "label": "Equipe & Conseillers",
+        "percentage": "10",
+        "tokens": "25 000 000",
+        "description": "Blocage de 1 an, puis acquisition lineaire sur 4 ans"
+      },
+      "liquidity": {
+        "label": "Liquidite",
+        "percentage": "5",
+        "tokens": "12 500 000",
+        "description": "Support des paires de trading en bourse"
+      }
+    },
+    "vesting": {
+      "title": "Calendrier d'Acquisition",
+      "presale": {
+        "title": "Prevente",
+        "description": "20% au TGE, le reste acquis lineairement sur 6-8 mois"
+      },
+      "rdEcosystem": {
+        "title": "R&D & Ecosysteme",
+        "description": "Liberation trimestrielle a l'achevement des jalons"
+      },
+      "companyReserve": {
+        "title": "Reserve Entreprise",
+        "description": "Blocage de 12 mois, puis liberation progressive"
+      }
+    }
+  },
+  "projectTimeline": {
+    "label": "Feuille de Route",
+    "title": "Chronologie du Projet",
+    "subtitle": "Notre feuille de route strategique pour revolutionner la protection incendie grace a la technologie blockchain.",
+    "phases": {
+      "phase1": {
+        "phase": "Phase 1",
+        "title": "Fondation",
+        "description": "Finalisation du livre blanc, tokenomics et architecture des smart contracts. Lancement du site web et du systeme de marque. Debut de la prevente du token HBCT."
+      },
+      "phase2": {
+        "phase": "Phase 2",
+        "title": "Technologie & Certification",
+        "description": "Tests independants de resistance au feu 5h+ avec hachages de rapports sur la blockchain. Registre de certification v1 reliant les produits aux rapports verifies."
+      },
+      "phase3": {
+        "phase": "Phase 3",
+        "title": "Utilite & Ecosysteme",
+        "description": "Permettre l'achat de produits avec des tokens HBCT. Lancement des recompenses partenaires et des tableaux de bord de verification."
+      },
+      "phase4": {
+        "phase": "Phase 4",
+        "title": "Lancement du Token & Gouvernance",
+        "description": "Deploiement de HBCT avec acquisition et distribution publique. Etablissement de la liquidite DEX et preparation des listings CEX."
+      },
+      "phase5": {
+        "phase": "Phase 5",
+        "title": "Expansion & Partenariats",
+        "description": "Partenariats mondiaux avec les fabricants. Suivi des garanties sur blockchain et marketplace de certification."
+      },
+      "phase6": {
+        "phase": "Phase 6",
+        "title": "Durabilite & Croissance",
+        "description": "Noeuds de verification decentralises. Application mobile pour scanner les certificats et garanties."
+      }
+    }
+  },
+  "joinRevolution": {
+    "badge": "Prevente en Cours",
+    "title": "Rejoignez La",
+    "titleHighlight": "Revolution",
+    "subtitle": "Faites partie de l'avenir ou la protection incendie rencontre l'innovation blockchain. Securisez vos tokens HBCT aujourd'hui.",
+    "ctaBuy": "Acheter Token HBCT",
+    "ctaWhitepaper": "Livre Blanc",
+    "trust": {
+      "auditedContract": "Smart Contract Audite",
+      "verifiedTeam": "Equipe Verifiee",
+      "securePayments": "Paiements Securises"
+    }
+  }
+}

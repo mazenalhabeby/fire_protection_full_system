@@ -1,0 +1,237 @@
+# ============================================
+# Dependencies
+# ============================================
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# ============================================
+# Environment Variables (CRITICAL - NEVER COMMIT)
+# ============================================
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.staging
+*.env
+
+# Keep example files
+!.env.example
+!.env.sample
+
+# ============================================
+# Build Outputs
+# ============================================
+# Next.js
+frontend/.next/
+frontend/out/
+
+# NestJS
+backend/dist/
+
+# TypeScript
+*.tsbuildinfo
+
+# Generic build folders
+build/
+dist/
+.build/
+
+# ============================================
+# Testing & Coverage
+# ============================================
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# ============================================
+# Logs
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ============================================
+# OS Generated Files
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ============================================
+# IDE & Editors
+# ============================================
+# VS Code (keep settings but ignore local history)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+# JetBrains (WebStorm, IntelliJ, etc.)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
+*.swp
+*.swo
+*.swn
+*~
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# ============================================
+# Package Manager Locks (keep one, ignore others)
+# ============================================
+# Uncomment the ones you don't use:
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ============================================
+# Database
+# ============================================
+# SQLite
+*.sqlite
+*.sqlite3
+*.db
+
+# Prisma
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# ============================================
+# Secrets & Credentials
+# ============================================
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+secrets/
+.secrets/
+credentials.json
+service-account.json
+firebase-adminsdk*.json
+
+# ============================================
+# Cache & Temporary Files
+# ============================================
+.cache/
+.temp/
+.tmp/
+tmp/
+temp/
+*.cache
+
+# Next.js cache
+.next/cache/
+
+# ESLint & Prettier cache
+.eslintcache
+.prettiercache
+
+# Turbo
+.turbo/
+
+# ============================================
+# Vercel
+# ============================================
+.vercel/
+
+# ============================================
+# Docker
+# ============================================
+# Ignore docker override files
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.yml
+!docker-compose.prod.yml
+
+# ============================================
+# Claude Code / AI Tools
+# ============================================
+.claude/
+
+# ============================================
+# Miscellaneous
+# ============================================
+# Storybook
+storybook-static/
+
+# Debug files
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# TypeDoc
+docs/api/
+
+# Sentry
+.sentryclirc
+
+# Local Netlify folder
+.netlify/
+
+# Parcel cache
+.parcel-cache/
+
+# PWA files
+**/public/sw.js
+**/public/workbox-*.js
+
+# Uploaded files (if storing locally during development)
+uploads/
+public/uploads/
+
+# ============================================
+# Project Specific
+# ============================================
+# Prisma generated client (regenerated on install)
+backend/generated/
+**/generated/prisma/
+

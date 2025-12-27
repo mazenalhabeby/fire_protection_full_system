@@ -1,0 +1,36 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="goldBase" cx="50%" cy="30%" r="70%" fx="50%" fy="30%">
+      <stop offset="0%" stop-color="#FFE566"/>
+      <stop offset="30%" stop-color="#F8E67E"/>
+      <stop offset="60%" stop-color="#DAA520"/>
+      <stop offset="100%" stop-color="#B8860B"/>
+    </radialGradient>
+    <radialGradient id="goldInner" cx="50%" cy="35%" r="60%" fx="50%" fy="35%">
+      <stop offset="0%" stop-color="#FFEB99"/>
+      <stop offset="40%" stop-color="#F5E27B"/>
+      <stop offset="100%" stop-color="#CC9900"/>
+    </radialGradient>
+    <radialGradient id="goldCenter" cx="50%" cy="40%" r="50%" fx="50%" fy="40%">
+      <stop offset="0%" stop-color="#FFE88A"/>
+      <stop offset="50%" stop-color="#E6B800"/>
+      <stop offset="100%" stop-color="#B8860B"/>
+    </radialGradient>
+    <linearGradient id="goldRim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="50%" stop-color="#B8860B"/>
+      <stop offset="100%" stop-color="#8B6914"/>
+    </linearGradient>
+    <filter id="goldShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#8B6914" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <ellipse cx="100" cy="104" rx="82" ry="82" fill="#8B6914" opacity="0.35" filter="url(#goldShadow)"/>
+  <circle cx="100" cy="100" r="88" fill="url(#goldRim)"/>
+  <circle cx="100" cy="100" r="85" fill="url(#goldBase)"/>
+  <circle cx="100" cy="100" r="78" fill="none" stroke="#DAA520" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="100" cy="100" r="72" fill="url(#goldInner)"/>
+  <circle cx="100" cy="100" r="65" fill="none" stroke="#E6B800" stroke-width="1" opacity="0.5"/>
+  <circle cx="100" cy="100" r="58" fill="url(#goldCenter)"/>
+  <ellipse cx="100" cy="168" rx="55" ry="10" fill="#8B6914" opacity="0.2"/>
+</svg>

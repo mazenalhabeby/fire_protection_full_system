@@ -1,0 +1,1564 @@
+// HBCT Fire Protection Token Platform - Production Schema
+// Version 2.0 - Complete Ecosystem
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum TransactionType {
+  // New production types
+  BUY_WEBSITE
+  BUY_DEX
+  SELL_DEX
+  TRANSFER
+  LOCK
+  UNLOCK
+  REWARD_DISTRIBUTION
+  AIRDROP
+  AFFILIATE_BONUS
+  MARKETPLACE_PURCHASE
+  MARKETPLACE_REFUND
+  LIQUIDITY_ADD
+  FEE_CASHBACK
+  // Legacy types (for backward compatibility)
+  BUY
+  SELL
+  STAKE
+  UNSTAKE
+  REWARD
+  REFERRAL_BONUS
+}
+
+enum StakeStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum LockStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum AirdropStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+// Support System Enums
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  AWAITING_REPLY
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketCategory {
+  GENERAL
+  TECHNICAL
+  BILLING
+  ACCOUNT
+  TOKEN_PURCHASE
+  LOCKING
+  MARKETPLACE
+  AFFILIATE
+  OTHER
+}
+
+enum SenderType {
+  USER
+  ADMIN
+  SYSTEM
+}
+
+// Auth Provider Enum
+enum AuthProvider {
+  CREDENTIALS
+  WALLET
+  GOOGLE
+  FACEBOOK
+}
+
+// ============================================
+// WALLET SYSTEM ENUMS
+// ============================================
+
+enum Currency {
+  HBCT
+  BNB
+  USDT
+  USDC
+}
+
+enum WalletTransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  INTERNAL_TRANSFER_SEND
+  INTERNAL_TRANSFER_RECEIVE
+  TOKEN_PURCHASE
+  TOKEN_SALE
+  LOCK
+  UNLOCK
+  REWARD
+  AIRDROP
+  AFFILIATE_COMMISSION
+  FEE
+  REFUND
+}
+
+enum WalletTransactionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum WithdrawalStatus {
+  PENDING_CONFIRMATION
+  PENDING_APPROVAL
+  APPROVED
+  PROCESSING
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum TransferMethod {
+  USERNAME
+  EMAIL
+  WALLET_ADDRESS
+  USER_ID
+  QR_CODE
+}
+
+// Token Purchase System Enums
+enum TokenDeliveryMethod {
+  OFF_CHAIN    // Store in platform WalletBalance
+  ON_CHAIN     // Transfer to linked external wallet
+}
+
+enum TokenPurchaseStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// Notification System Enums
+enum NotificationType {
+  TRANSACTION      // Deposits, withdrawals, purchases, transfers
+  SECURITY         // Login alerts, password changes, 2FA
+  LOCKING          // Lock created, matured, rewards claimed
+  SYSTEM           // Maintenance, updates, announcements
+  MARKETING        // Promotions, new features
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  BOTH
+  NONE
+}
+
+// ============================================
+// CORE USER & AUTH
+// ============================================
+
+model User {
+  id            String       @id @default(cuid())
+  email         String?      @unique
+  username      String?      @unique  // Unique username for transfers (e.g., john123)
+  passwordHash  String?
+  firstName     String?
+  lastName      String?
+  phoneNumber   String?      // User's phone number
+  walletAddress String?      @unique
+  walletNonce   String?      // Nonce for wallet signature verification
+  authProvider  AuthProvider @default(CREDENTIALS)
+  role          UserRole     @default(USER)
+
+  // Email verification
+  isEmailVerified Boolean   @default(false)
+  emailVerifiedAt DateTime?
+
+  // Account security
+  isActive            Boolean   @default(true)
+  lastLoginAt         DateTime?
+  lastLoginIp         String?
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+
+  // Legacy field for backward compatibility
+  isVerified    Boolean   @default(false)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Token & Financial Relations
+  tokenBalance      TokenBalance?
+  transactions      Transaction[]
+  tokenSales        TokenSale[]
+  locks             TokenLock[]
+  rewards           Reward[]
+
+  // Airdrop Relations
+  airdropEntries    AirdropEntry[]
+
+  // Marketplace Relations
+  marketplaceOrders MarketplaceOrder[]
+
+  // Affiliate Relations
+  affiliate         Affiliate?
+  referredBy        Affiliate?    @relation("ReferredUsers", fields: [referredById], references: [id])
+  referredById      String?
+
+  // Legacy Staking (keep for future DeFi)
+  stakes            Stake[]
+
+  // Support System Relations
+  tickets           SupportTicket[]   @relation("UserTickets")
+  assignedTickets   SupportTicket[]   @relation("AssignedTickets")
+  ticketMessages    TicketMessage[]
+
+  // NEW: Auth System Relations
+  sessions                  Session[]
+  passwordResetTokens       PasswordResetToken[]
+  emailVerificationTokens   EmailVerificationToken[]
+  oauthAccounts             OAuthAccount[]
+  loginHistory              LoginHistory[]
+  twoFactorAuth             TwoFactorAuth?
+
+  // Multi-wallet support
+  wallets                   UserWallet[]
+
+  // Off-chain wallet system
+  walletBalances            WalletBalance[]
+  walletTransactions        WalletTransaction[]
+  sentTransfers             InternalTransfer[]    @relation("SentTransfers")
+  receivedTransfers         InternalTransfer[]    @relation("ReceivedTransfers")
+  transferLimit             TransferLimit?
+  transferQRCodes           TransferQRCode[]
+  depositAddresses          DepositAddress[]
+  withdrawalRequests        WithdrawalRequest[]
+  withdrawalWhitelist       WithdrawalWhitelist[]
+
+  // On-chain deposit/withdrawal system
+  onchainDeposits           OnchainDeposit[]
+  withdrawals               Withdrawal[]
+
+  // Token purchase system
+  tokenPurchases            TokenPurchase[]
+  purchaseLimits            PurchaseLimits?
+
+  // Notification system
+  notifications             Notification[]
+  notificationPreference    NotificationPreference?
+
+  @@map("users")
+}
+
+// ============================================
+// MULTI-WALLET SUPPORT
+// ============================================
+
+model UserWallet {
+  id              String    @id @default(cuid())
+  userId          String
+  walletAddress   String    // Normalized to lowercase
+
+  // Wallet metadata
+  label           String?   // User-defined label (e.g., "Main Wallet", "Trading")
+  isPrimary       Boolean   @default(false)  // Only one can be primary
+
+  // Security & Verification
+  verifiedAt      DateTime  // When ownership was verified via signature
+  verificationSig String    // The signature used to verify (hashed)
+  lastUsedAt      DateTime?
+
+  // Audit trail
+  linkedIp        String?   // IP address when wallet was linked
+  linkedDevice    String?   // Device info when linked
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([walletAddress])  // One wallet can only be linked to one account
+  @@unique([userId, walletAddress])
+  @@index([userId, isPrimary])
+  @@map("user_wallets")
+}
+
+// ============================================
+// SESSION MANAGEMENT
+// ============================================
+
+model Session {
+  id              String    @id @default(cuid())
+  userId          String
+
+  // Token tracking
+  refreshToken    String    @unique  // Hashed refresh token
+  tokenFamily     String    // For refresh token rotation detection
+
+  // Device/Session fingerprinting
+  deviceId        String?
+  deviceType      String?   // desktop, mobile, tablet
+  deviceName      String?   // "Chrome on Windows", "Safari on iPhone"
+  browser         String?
+  browserVersion  String?
+  os              String?
+  osVersion       String?
+
+  // Location tracking
+  ipAddress       String?
+  country         String?
+  city            String?
+
+  // Session status
+  isValid         Boolean   @default(true)
+  revokedAt       DateTime?
+  revokedReason   String?   // logout, password_change, security, admin, expired
+
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  lastActivityAt  DateTime  @default(now())
+  expiresAt       DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isValid])
+  @@index([refreshToken])
+  @@index([tokenFamily])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// ============================================
+// PASSWORD RESET
+// ============================================
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique  // Hashed token
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  // Security tracking
+  ipAddress String?
+  userAgent String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+// ============================================
+// EMAIL VERIFICATION
+// ============================================
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  email     String    // The email being verified
+  token     String    @unique  // Hashed token
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("email_verification_tokens")
+}
+
+// ============================================
+// OAUTH ACCOUNTS
+// ============================================
+
+model OAuthAccount {
+  id                String    @id @default(cuid())
+  userId            String
+  provider          String    // google, facebook
+  providerAccountId String
+  email             String?
+  name              String?
+  avatarUrl         String?
+  accessToken       String?   @db.Text  // Encrypted
+  refreshToken      String?   @db.Text  // Encrypted
+  tokenExpiresAt    DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+// ============================================
+// LOGIN HISTORY
+// ============================================
+
+model LoginHistory {
+  id            String   @id @default(cuid())
+  userId        String
+
+  // Auth method
+  authMethod    String   // credentials, wallet, google, facebook
+  success       Boolean
+  failureReason String?
+
+  // Device info
+  ipAddress     String?
+  userAgent     String?
+  deviceType    String?
+  browser       String?
+  os            String?
+
+  // Location
+  country       String?
+  city          String?
+
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([ipAddress, createdAt])
+  @@map("login_history")
+}
+
+// ============================================
+// TWO-FACTOR AUTHENTICATION
+// ============================================
+
+model TwoFactorAuth {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+
+  // TOTP Secret (encrypted at rest using AES-256-GCM)
+  encryptedSecret    String    @db.Text
+  secretIv           String    // Initialization vector for decryption
+
+  // 2FA State
+  isEnabled          Boolean   @default(false)
+  enabledAt          DateTime?
+  isVerified         Boolean   @default(false) // Must verify TOTP before enabling
+  verifiedAt         DateTime?
+
+  // Recovery codes (hashed, comma-separated)
+  recoveryCodesHash  String?   @db.Text
+  recoveryCodesCount Int       @default(0)
+
+  // Rate limiting for 2FA attempts
+  failedAttempts     Int       @default(0)
+  lockedUntil        DateTime?
+  lastAttemptAt      DateTime?
+
+  // Audit
+  lastUsedAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("two_factor_auth")
+}
+
+model TwoFactorAuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  event     String   // setup_initiated, setup_completed, disabled, login_success, login_failed, recovery_code_used, locked
+  ipAddress String?
+  userAgent String?
+  metadata  Json?    // Additional context (recovery code index, failure reason, etc.)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([event, createdAt])
+  @@map("two_factor_audit_logs")
+}
+
+// ============================================
+// REQUEST LOGGING (For API Monitoring)
+// ============================================
+
+model RequestLog {
+  id           String   @id @default(cuid())
+
+  // Request details
+  endpoint     String
+  method       String   // GET, POST, PUT, DELETE, PATCH
+  statusCode   Int
+
+  // User tracking (optional for public endpoints)
+  userId       String?
+  sessionId    String?
+
+  // Request metadata
+  ipAddress    String?
+  userAgent    String?
+
+  // Performance
+  responseTime Int?     // milliseconds
+
+  // Timestamps
+  createdAt    DateTime @default(now())
+
+  // For aggregation queries (truncated to hour)
+  dateHour     DateTime
+
+  @@index([endpoint, method, dateHour])
+  @@index([userId, createdAt])
+  @@index([dateHour])
+  @@index([createdAt])
+  @@map("request_logs")
+}
+
+model TokenBalance {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  availableBalance Decimal  @default(0) @db.Decimal(36, 18)
+  lockedBalance    Decimal  @default(0) @db.Decimal(36, 18)
+  totalBalance     Decimal  @default(0) @db.Decimal(36, 18)
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("token_balances")
+}
+
+// ============================================
+// TRANSACTIONS
+// ============================================
+
+model Transaction {
+  id               String            @id @default(cuid())
+  userId           String?
+  type             TransactionType
+  amount           Decimal           @db.Decimal(36, 18)
+  priceUsd         Decimal?          @db.Decimal(18, 8)
+  totalUsd         Decimal?          @db.Decimal(18, 8)
+  status           TransactionStatus @default(PENDING)
+  txHash           String?
+  metadata         Json?
+  relatedLockId    String?
+  relatedAirdropId String?
+  relatedOrderId   String?
+  relatedSaleId    String?
+  createdAt        DateTime          @default(now())
+  completedAt      DateTime?
+
+  user           User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  relatedLock    TokenLock?        @relation(fields: [relatedLockId], references: [id])
+  relatedAirdrop AirdropCampaign?  @relation(fields: [relatedAirdropId], references: [id])
+  relatedOrder   MarketplaceOrder? @relation(fields: [relatedOrderId], references: [id])
+  relatedSale    TokenSale?        @relation(fields: [relatedSaleId], references: [id])
+  commissions    Commission[]
+
+  @@index([userId, createdAt])
+  @@index([type, status])
+  @@map("transactions")
+}
+
+// ============================================
+// AFFILIATE SYSTEM
+// ============================================
+
+model Affiliate {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  referralCode   String   @unique
+  commissionRate Decimal  @default(0.05) @db.Decimal(5, 4)
+  totalEarnings  Decimal  @default(0) @db.Decimal(36, 18)
+  totalReferrals Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referredUsers User[]       @relation("ReferredUsers")
+  commissions   Commission[]
+  tokenSales    TokenSale[]
+
+  @@map("affiliates")
+}
+
+model Commission {
+  id            String    @id @default(cuid())
+  affiliateId   String
+  transactionId String
+  saleId        String?
+  amount        Decimal   @db.Decimal(36, 18)
+  isPaid        Boolean   @default(false)
+  paidTxHash    String?
+  createdAt     DateTime  @default(now())
+  paidAt        DateTime?
+
+  affiliate   Affiliate    @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  transaction Transaction  @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  sale        TokenSale?   @relation(fields: [saleId], references: [id])
+
+  @@index([affiliateId, createdAt])
+  @@index([isPaid])
+  @@map("commissions")
+}
+
+// ============================================
+// TOKEN LOCKING SYSTEM
+// ============================================
+
+model LockTier {
+  id                 String   @id @default(cuid())
+  name               String
+  lockMonths         Int
+  bonusPercent       Decimal  @db.Decimal(5, 2)
+  feeDiscountPercent Decimal  @db.Decimal(5, 2)
+  minAmount          Decimal  @default(0) @db.Decimal(36, 18)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  locks TokenLock[]
+
+  @@map("lock_tiers")
+}
+
+model TokenLock {
+  id             String     @id @default(cuid())
+  userId         String
+  lockTierId     String
+  amount         Decimal    @db.Decimal(36, 18)
+  status         LockStatus @default(ACTIVE)
+  startDate      DateTime   @default(now())
+  endDate        DateTime
+  rewardAmount   Decimal    @default(0) @db.Decimal(36, 18)
+  claimedReward  Decimal    @default(0) @db.Decimal(36, 18)
+  lockTxHash     String?
+  unlockTxHash   String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lockTier     LockTier      @relation(fields: [lockTierId], references: [id])
+  rewards      Reward[]
+  transactions Transaction[]
+
+  @@index([userId, status])
+  @@index([endDate])
+  @@map("token_locks")
+}
+
+// ============================================
+// REWARD POOLS (Ecosystem Tracking)
+// ============================================
+
+model RewardPool {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  allocation  Decimal  @db.Decimal(36, 18)
+  reserved    Decimal  @default(0) @db.Decimal(36, 18)
+  distributed Decimal  @default(0) @db.Decimal(36, 18)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("reward_pools")
+}
+
+model Reward {
+  id          String    @id @default(cuid())
+  userId      String
+  lockId      String?
+  stakeId     String?
+  poolName    String?
+  amount      Decimal   @db.Decimal(36, 18)
+  isClaimed   Boolean   @default(false)
+  claimTxHash String?
+  createdAt   DateTime  @default(now())
+  claimedAt   DateTime?
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lock  TokenLock? @relation(fields: [lockId], references: [id])
+  stake Stake?     @relation(fields: [stakeId], references: [id])
+
+  @@index([userId, isClaimed])
+  @@map("rewards")
+}
+
+// ============================================
+// TOKEN SALES & LIQUIDITY
+// ============================================
+
+model TokenSale {
+  id              String            @id @default(cuid())
+  userId          String?
+  affiliateId     String?
+  amountHbct      Decimal           @db.Decimal(36, 18)
+  priceUsd        Decimal           @db.Decimal(18, 8)
+  totalUsd        Decimal           @db.Decimal(18, 8)
+  paymentToken    String
+  paymentAmount   Decimal           @db.Decimal(36, 18)
+  treasuryAmount  Decimal           @db.Decimal(36, 18)
+  liquidityAmount Decimal           @db.Decimal(36, 18)
+  status          TransactionStatus @default(PENDING)
+  saleTxHash      String?
+  createdAt       DateTime          @default(now())
+  completedAt     DateTime?
+
+  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  affiliate       Affiliate?       @relation(fields: [affiliateId], references: [id], onDelete: SetNull)
+  liquidityEvents LiquidityEvent[]
+  transactions    Transaction[]
+  commissions     Commission[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@map("token_sales")
+}
+
+model LiquidityEvent {
+  id            String   @id @default(cuid())
+  sourceSaleId  String?
+  amountUsd     Decimal  @db.Decimal(18, 8)
+  amountHbct    Decimal  @db.Decimal(36, 18)
+  amountBnb     Decimal  @db.Decimal(36, 18)
+  lpTokenAmount Decimal? @db.Decimal(36, 18)
+  txHash        String?
+  createdAt     DateTime @default(now())
+
+  sourceSale TokenSale? @relation(fields: [sourceSaleId], references: [id])
+
+  @@map("liquidity_events")
+}
+
+// ============================================
+// AIRDROP SYSTEM
+// ============================================
+
+model AirdropCampaign {
+  id              String        @id @default(cuid())
+  title           String
+  description     String?
+  status          AirdropStatus @default(DRAFT)
+  totalAllocation Decimal       @db.Decimal(36, 18)
+  reserved        Decimal       @default(0) @db.Decimal(36, 18)
+  distributed     Decimal       @default(0) @db.Decimal(36, 18)
+  perUserAmount   Decimal?      @db.Decimal(36, 18)
+  maxParticipants Int?
+  startAt         DateTime?
+  endAt           DateTime?
+  tasks           Json?
+  eligibility     Json?
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  entries      AirdropEntry[]
+  transactions Transaction[]
+
+  @@index([status])
+  @@map("airdrop_campaigns")
+}
+
+model AirdropEntry {
+  id                 String    @id @default(cuid())
+  campaignId         String
+  userId             String?
+  walletAddress      String
+  allocatedAmount    Decimal   @db.Decimal(36, 18)
+  isEligible         Boolean   @default(false)
+  isDistributed      Boolean   @default(false)
+  distributionTxHash String?
+  tasksCompleted     Json?
+  metadata           Json?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  campaign AirdropCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user     User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([campaignId, walletAddress])
+  @@index([campaignId, isEligible])
+  @@map("airdrop_entries")
+}
+
+// ============================================
+// MARKETPLACE
+// ============================================
+
+model ProductCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products Product[]
+
+  @@map("product_categories")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  categoryId  String
+  name        String
+  slug        String   @unique
+  description String?
+  priceHbct   Decimal  @db.Decimal(36, 18)
+  priceFiat   Decimal? @db.Decimal(18, 2)
+  currency    String   @default("USD")
+  isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category   ProductCategory   @relation(fields: [categoryId], references: [id])
+  images     ProductImage[]
+  inventory  ProductInventory?
+  orderItems OrderItem[]
+
+  @@index([categoryId, isActive])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  url       String
+  alt       String?
+  isPrimary Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model ProductInventory {
+  id        String   @id @default(cuid())
+  productId String   @unique
+  stock     Int      @default(0)
+  reserved  Int      @default(0)
+  lowStock  Int      @default(5)
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_inventories")
+}
+
+model MarketplaceOrder {
+  id              String      @id @default(cuid())
+  userId          String?
+  orderNumber     String      @unique
+  status          OrderStatus @default(PENDING)
+  totalHbct       Decimal     @db.Decimal(36, 18)
+  totalFiat       Decimal?    @db.Decimal(18, 2)
+  currency        String      @default("USD")
+  paymentMethod   String
+  paymentTxHash   String?
+  // Shipping Info
+  shippingName    String?
+  shippingEmail   String?
+  shippingPhone   String?
+  shippingAddress String?
+  shippingCity    String?
+  shippingState   String?
+  shippingZip     String?
+  shippingCountry String?
+  // Tracking
+  trackingNumber  String?
+  trackingUrl     String?
+  notes           String?
+  metadata        Json?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  paidAt          DateTime?
+  shippedAt       DateTime?
+  completedAt     DateTime?
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items        OrderItem[]
+  transactions Transaction[]
+
+  @@index([userId, status])
+  @@index([orderNumber])
+  @@map("marketplace_orders")
+}
+
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  productId     String
+  quantity      Int
+  unitPriceHbct Decimal @db.Decimal(36, 18)
+  unitPriceFiat Decimal? @db.Decimal(18, 2)
+
+  order   MarketplaceOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product          @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("order_items")
+}
+
+// ============================================
+// LEGACY STAKING (Keep for future DeFi)
+// ============================================
+
+model Stake {
+  id             String      @id @default(cuid())
+  userId         String
+  amount         Decimal     @db.Decimal(36, 18)
+  lockPeriod     Int
+  apy            Decimal     @db.Decimal(5, 2)
+  status         StakeStatus @default(ACTIVE)
+  startDate      DateTime    @default(now())
+  endDate        DateTime
+  totalRewards   Decimal     @default(0) @db.Decimal(36, 18)
+  claimedRewards Decimal     @default(0) @db.Decimal(36, 18)
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewards Reward[]
+
+  @@index([userId, status])
+  @@map("stakes")
+}
+
+// ============================================
+// TOKEN CONFIGURATION
+// ============================================
+
+model TokenConfig {
+  id           String   @id @default(cuid())
+  symbol       String   @default("HBCT")
+  name         String   @default("HBC Fire Protection Token")
+  totalSupply  Decimal  @db.Decimal(36, 0)
+  currentPrice Decimal  @db.Decimal(18, 8)
+  isPresale    Boolean  @default(false)
+  presalePrice Decimal? @db.Decimal(18, 8)
+  updatedAt    DateTime @updatedAt
+
+  @@map("token_config")
+}
+
+// ============================================
+// SUPPORT SYSTEM
+// ============================================
+
+model FAQCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  icon        String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  items FAQItem[]
+
+  @@map("faq_categories")
+}
+
+model FAQItem {
+  id         String   @id @default(cuid())
+  categoryId String
+  question   String
+  answer     String   @db.Text
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  viewCount  Int      @default(0)
+  helpful    Int      @default(0)
+  notHelpful Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  category FAQCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId, isActive])
+  @@map("faq_items")
+}
+
+model SupportTicket {
+  id           String         @id @default(cuid())
+  ticketNumber String         @unique
+  userId       String
+  assignedTo   String?
+  subject      String
+  category     TicketCategory @default(GENERAL)
+  priority     TicketPriority @default(MEDIUM)
+  status       TicketStatus   @default(OPEN)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  resolvedAt   DateTime?
+  closedAt     DateTime?
+
+  user     User            @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
+  assignee User?           @relation("AssignedTickets", fields: [assignedTo], references: [id], onDelete: SetNull)
+  messages TicketMessage[]
+
+  @@index([userId, status])
+  @@index([status, priority])
+  @@index([ticketNumber])
+  @@map("support_tickets")
+}
+
+model TicketMessage {
+  id         String     @id @default(cuid())
+  ticketId   String
+  senderId   String?
+  senderType SenderType
+  content    String     @db.Text
+  isInternal Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender User?         @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId, createdAt])
+  @@map("ticket_messages")
+}
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  isReplied Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([isRead, createdAt])
+  @@map("contact_submissions")
+}
+
+// ============================================
+// OFF-CHAIN WALLET SYSTEM
+// ============================================
+
+model WalletBalance {
+  id               String    @id @default(cuid())
+  userId           String
+  currency         Currency
+  availableBalance Decimal   @default(0) @db.Decimal(36, 18)
+  lockedBalance    Decimal   @default(0) @db.Decimal(36, 18)
+  pendingBalance   Decimal   @default(0) @db.Decimal(36, 18)
+  lastActivityAt   DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, currency])
+  @@index([userId])
+  @@map("wallet_balances")
+}
+
+model WalletTransaction {
+  id                String                  @id @default(cuid())
+  userId            String
+  currency          Currency
+  type              WalletTransactionType
+  amount            Decimal                 @db.Decimal(36, 18)
+  fee               Decimal?                @db.Decimal(36, 18)
+  netAmount         Decimal                 @db.Decimal(36, 18)
+  balanceBefore     Decimal                 @db.Decimal(36, 18)
+  balanceAfter      Decimal                 @db.Decimal(36, 18)
+  status            WalletTransactionStatus @default(PENDING)
+  failureReason     String?
+  relatedTransferId String?
+  externalTxHash    String?
+  description       String?
+  metadata          Json?
+  ipAddress         String?
+  createdAt         DateTime                @default(now())
+  completedAt       DateTime?
+
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  relatedTransfer InternalTransfer? @relation(fields: [relatedTransferId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([userId, currency])
+  @@index([type, status])
+  @@index([status, createdAt])
+  @@map("wallet_transactions")
+}
+
+model InternalTransfer {
+  id                    String                  @id @default(cuid())
+  senderId              String
+  receiverId            String
+  currency              Currency
+  amount                Decimal                 @db.Decimal(36, 18)
+  fee                   Decimal                 @default(0) @db.Decimal(36, 18)
+  transferMethod        TransferMethod
+  recipientIdentifier   String
+  status                WalletTransactionStatus @default(PENDING)
+  confirmationCode      String?
+  confirmationExpiresAt DateTime?
+  confirmedAt           DateTime?
+  note                  String?
+  ipAddress             String?
+  createdAt             DateTime                @default(now())
+  completedAt           DateTime?
+
+  sender       User                @relation("SentTransfers", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver     User                @relation("ReceivedTransfers", fields: [receiverId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@index([senderId, createdAt])
+  @@index([receiverId, createdAt])
+  @@index([status])
+  @@index([confirmationCode])
+  @@map("internal_transfers")
+}
+
+model TransferLimit {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  singleTransferMax Decimal  @default(10000) @db.Decimal(36, 18)
+  dailyLimit        Decimal  @default(50000) @db.Decimal(36, 18)
+  dailyUsed         Decimal  @default(0) @db.Decimal(36, 18)
+  dailyResetAt      DateTime @default(now())
+  weeklyLimit       Decimal  @default(250000) @db.Decimal(36, 18)
+  weeklyUsed        Decimal  @default(0) @db.Decimal(36, 18)
+  weeklyResetAt     DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transfer_limits")
+}
+
+model TransferQRCode {
+  id         String    @id @default(cuid())
+  userId     String
+  code       String    @unique
+  currency   Currency?
+  amount     Decimal?  @db.Decimal(36, 18)
+  isActive   Boolean   @default(true)
+  usageCount Int       @default(0)
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([code])
+  @@map("transfer_qr_codes")
+}
+
+// Future on-chain integration models
+
+model DepositAddress {
+  id             String    @id @default(cuid())
+  userId         String
+  currency       Currency
+  address        String    @unique
+  totalDeposited Decimal   @default(0) @db.Decimal(36, 18)
+  lastDepositAt  DateTime?
+  createdAt      DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, currency])
+  @@index([address])
+  @@map("deposit_addresses")
+}
+
+model WithdrawalRequest {
+  id                    String           @id @default(cuid())
+  userId                String
+  currency              Currency
+  amount                Decimal          @db.Decimal(36, 18)
+  fee                   Decimal          @db.Decimal(36, 18)
+  netAmount             Decimal          @db.Decimal(36, 18)
+  toAddress             String
+  status                WithdrawalStatus @default(PENDING_CONFIRMATION)
+  confirmationCode      String?
+  confirmationExpiresAt DateTime?
+  confirmedAt           DateTime?
+  requiresApproval      Boolean          @default(false)
+  approvedBy            String?
+  approvedAt            DateTime?
+  rejectionReason       String?
+  txHash                String?
+  createdAt             DateTime         @default(now())
+  completedAt           DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@map("withdrawal_requests")
+}
+
+model WithdrawalWhitelist {
+  id         String    @id @default(cuid())
+  userId     String
+  address    String
+  label      String?
+  isVerified Boolean   @default(false)
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, address])
+  @@index([userId])
+  @@map("withdrawal_whitelist")
+}
+
+model WalletAuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  oldValue   Json?
+  newValue   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@index([action, createdAt])
+  @@map("wallet_audit_logs")
+}
+
+// ============================================
+// ON-CHAIN DEPOSIT SYSTEM
+// ============================================
+
+enum OnchainDepositStatus {
+  PENDING          // Transaction detected, awaiting confirmations
+  CONFIRMED        // Sufficient confirmations, ready to credit
+  CREDITED         // Balance credited to user
+  FAILED           // Failed to process
+  UNMAPPED         // No user found for wallet address
+}
+
+model OnchainDeposit {
+  id             String               @id @default(cuid())
+  userId         String?              // Null if unmapped
+  txHash         String
+  logIndex       Int                  // Log index within transaction
+  fromAddress    String               // User's wallet that sent tokens
+  toAddress      String               // Platform deposit address
+  amount         Decimal              @db.Decimal(36, 18)
+  tokenAddress   String               // HBCT contract address
+  blockNumber    BigInt
+  blockTimestamp DateTime?
+  chainId        Int                  @default(56) // BSC mainnet
+  status         OnchainDepositStatus @default(PENDING)
+  confirmations  Int                  @default(0)
+  creditedAt     DateTime?
+  failureReason  String?
+  metadata       Json?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([txHash, logIndex])
+  @@index([userId, status])
+  @@index([fromAddress])
+  @@index([status, createdAt])
+  @@index([blockNumber])
+  @@map("onchain_deposits")
+}
+
+// Prevent double processing of blockchain events
+model ProcessedBlockchainEvent {
+  id        String   @id @default(cuid())
+  txHash    String
+  logIndex  Int
+  eventType String   // DEPOSIT, WITHDRAWAL, etc.
+  chainId   Int      @default(56)
+  createdAt DateTime @default(now())
+
+  @@unique([txHash, logIndex, eventType, chainId])
+  @@index([eventType, createdAt])
+  @@map("processed_blockchain_events")
+}
+
+// ============================================
+// ON-CHAIN WITHDRAWAL SYSTEM
+// ============================================
+
+enum WithdrawalRequestStatus {
+  PENDING_CONFIRMATION  // Awaiting email confirmation
+  PENDING_APPROVAL      // Awaiting admin approval (if required)
+  APPROVED              // Approved, ready for processing
+  PROCESSING            // Being sent on-chain
+  COMPLETED             // Successfully sent
+  REJECTED              // Rejected by admin
+  CANCELLED             // Cancelled by user
+  FAILED                // On-chain transaction failed
+}
+
+model Withdrawal {
+  id                    String                  @id @default(cuid())
+  userId                String
+  currency              Currency                @default(HBCT)
+  amount                Decimal                 @db.Decimal(36, 18)
+  feeAmount             Decimal                 @db.Decimal(36, 18)
+  netAmount             Decimal                 @db.Decimal(36, 18)
+  toAddress             String
+  status                WithdrawalRequestStatus @default(PENDING_CONFIRMATION)
+
+  // Confirmation
+  confirmationCode      String?
+  confirmationExpiresAt DateTime?
+  confirmedAt           DateTime?
+
+  // Approval workflow
+  requiresApproval      Boolean                 @default(false)
+  approvedBy            String?
+  approvedAt            DateTime?
+  rejectionReason       String?
+
+  // On-chain transaction
+  txHash                String?
+  gasUsed               BigInt?
+  gasPrice              BigInt?
+  blockNumber           BigInt?
+
+  // Processing
+  processingStartedAt   DateTime?
+  retryCount            Int                     @default(0)
+  lastError             String?
+
+  // Timestamps
+  requestedAt           DateTime                @default(now())
+  completedAt           DateTime?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@index([toAddress])
+  @@index([txHash])
+  @@map("withdrawals")
+}
+
+// Track withdrawal processing attempts for debugging
+model WithdrawalProcessingLog {
+  id           String   @id @default(cuid())
+  withdrawalId String
+  action       String   // STARTED, TX_SENT, TX_CONFIRMED, FAILED, RETRY
+  txHash       String?
+  details      Json?
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  @@index([withdrawalId, createdAt])
+  @@map("withdrawal_processing_logs")
+}
+
+// ============================================
+// TOKEN PURCHASE SYSTEM
+// ============================================
+
+model TokenPurchase {
+  id                   String              @id @default(cuid())
+  userId               String
+
+  // Payment details
+  paymentCurrency      Currency            // BNB, USDT, USDC
+  paymentAmount        Decimal             @db.Decimal(36, 18)
+
+  // Token details
+  hbctAmount           Decimal             @db.Decimal(36, 18)
+  tokenPrice           Decimal             @db.Decimal(18, 8)  // Price at time of purchase
+
+  // Delivery
+  deliveryMethod       TokenDeliveryMethod
+  destinationWalletId  String?             // UserWallet ID for ON_CHAIN
+  destinationAddress   String?             // Wallet address for ON_CHAIN
+
+  // Fees
+  platformFee          Decimal             @default(0) @db.Decimal(36, 18)
+  networkFee           Decimal?            @db.Decimal(36, 18)  // Only for ON_CHAIN
+
+  // Status tracking
+  status               TokenPurchaseStatus @default(PENDING)
+  failureReason        String?
+
+  // Blockchain info (for ON_CHAIN only)
+  txHash               String?
+
+  // Related wallet transactions
+  paymentTransactionId String?             // WalletTransaction for payment debit
+  creditTransactionId  String?             // WalletTransaction for HBCT credit (OFF_CHAIN only)
+
+  // Affiliate
+  affiliateId          String?
+  commissionAmount     Decimal?            @db.Decimal(36, 18)
+
+  // Audit
+  ipAddress            String?
+
+  // Timestamps
+  createdAt            DateTime            @default(now())
+  completedAt          DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@index([deliveryMethod, status])
+  @@map("token_purchases")
+}
+
+model PurchaseLimits {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+
+  // Per-transaction limits (in USD)
+  minPurchaseUsd    Decimal  @default(10) @db.Decimal(18, 2)
+  maxPurchaseUsd    Decimal  @default(10000) @db.Decimal(18, 2)
+
+  // Daily limits (in USD)
+  dailyLimitUsd     Decimal  @default(50000) @db.Decimal(18, 2)
+  dailyUsedUsd      Decimal  @default(0) @db.Decimal(18, 2)
+  dailyResetAt      DateTime @default(now())
+
+  // Monthly limits (in USD)
+  monthlyLimitUsd   Decimal  @default(500000) @db.Decimal(18, 2)
+  monthlyUsedUsd    Decimal  @default(0) @db.Decimal(18, 2)
+  monthlyResetAt    DateTime @default(now())
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("purchase_limits")
+}
+
+// ============================================
+// NOTIFICATION SYSTEM
+// ============================================
+
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String
+  type        NotificationType
+  title       String
+  message     String           @db.Text
+  data        Json?            // Additional data (e.g., txHash, amount, etc.)
+
+  // Read/Action status
+  isRead      Boolean          @default(false)
+  readAt      DateTime?
+  actionUrl   String?          // Optional link to related page
+
+  // Email delivery tracking
+  emailSent   Boolean          @default(false)
+  emailSentAt DateTime?
+
+  createdAt   DateTime         @default(now())
+  expiresAt   DateTime?        // Optional expiration for temporary notifications
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+  @@index([userId, type, createdAt])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id                   String              @id @default(cuid())
+  userId               String              @unique
+
+  // Per-type channel preferences
+  transactionChannel   NotificationChannel @default(BOTH)
+  securityChannel      NotificationChannel @default(BOTH)
+  lockingChannel       NotificationChannel @default(IN_APP)
+  systemChannel        NotificationChannel @default(IN_APP)
+  marketingChannel     NotificationChannel @default(NONE)
+
+  // Global settings
+  emailEnabled         Boolean             @default(true)
+  emailDigest          Boolean             @default(false) // Daily digest instead of instant
+  quietHoursEnabled    Boolean             @default(false)
+  quietHoursStart      Int?                // Hour (0-23)
+  quietHoursEnd        Int?                // Hour (0-23)
+
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}

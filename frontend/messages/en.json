@@ -1,0 +1,597 @@
+{
+  "auth": {
+    "loginTitle": "Welcome Back",
+    "loginSubtitle": "Sign in to access your HBCT dashboard",
+    "registerTitle": "Create Account",
+    "registerSubtitle": "Join the HBCT ecosystem today",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "John",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Doe",
+    "referralCode": "Referral Code (Optional)",
+    "referralCodePlaceholder": "Enter referral code",
+    "login": "Sign In",
+    "loggingIn": "Signing In...",
+    "register": "Create Account",
+    "registering": "Creating Account...",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Sign up",
+    "hasAccount": "Already have an account?",
+    "loginLink": "Sign in",
+    "loginError": "Invalid email or password",
+    "loginSuccess": "Successfully logged in!",
+    "registerError": "Failed to create account",
+    "registerSuccess": "Account created successfully!",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "forgotPassword": "Forgot password?",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithFacebook": "Continue with Facebook",
+    "connectWallet": "Connect Wallet",
+    "orContinueWith": "or continue with email"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "overview": "Overview",
+    "tokenBalance": "Token Balance",
+    "availableBalance": "Available",
+    "lockedBalance": "Locked",
+    "totalBalance": "Total",
+    "referrals": "Referrals",
+    "friends": "Friends invited",
+    "recentTransactions": "Recent Transactions",
+    "recentActivity": "Recent Activity",
+    "viewAll": "View All",
+    "noTransactions": "No transactions yet",
+    "noTransactionsDescription": "Your transaction history will appear here once you start using the platform.",
+    "quickActions": "Quick Actions",
+    "buyTokens": "Buy Tokens",
+    "lockTokens": "Lock Tokens",
+    "inviteFriends": "Invite Friends",
+    "viewAirdrops": "View Airdrops",
+    "browseProducts": "Browse Products"
+  },
+  "tokenSales": {
+    "title": "Buy HBCT Tokens",
+    "subtitle": "Purchase tokens at the current market price",
+    "currentPrice": "Current Price",
+    "amountToBuy": "Amount to Buy (USD)",
+    "youWillReceive": "You Will Receive",
+    "tokens": "tokens",
+    "getQuote": "Get Quote",
+    "buyNow": "Buy Now",
+    "processing": "Processing...",
+    "purchaseSuccess": "Purchase successful!",
+    "purchaseError": "Purchase failed. Please try again.",
+    "minPurchase": "Minimum purchase: $10",
+    "maxPurchase": "Maximum purchase: $100,000"
+  },
+  "locking": {
+    "title": "Token Locking",
+    "subtitle": "Lock your tokens to earn bonus rewards",
+    "availableTiers": "Available Tiers",
+    "months": "months",
+    "bonus": "Bonus",
+    "minAmount": "Min Amount",
+    "lockTokens": "Lock Tokens",
+    "amountToLock": "Amount to Lock",
+    "selectTier": "Select Tier",
+    "estimatedReward": "Estimated Reward",
+    "lockNow": "Lock Now",
+    "locking": "Locking...",
+    "myLocks": "My Locks",
+    "noLocks": "You have no active locks",
+    "status": "Status",
+    "active": "Active",
+    "completed": "Completed",
+    "unlockDate": "Unlock Date",
+    "reward": "Reward",
+    "unlock": "Unlock",
+    "unlocking": "Unlocking...",
+    "lockSuccess": "Tokens locked successfully!",
+    "unlockSuccess": "Tokens unlocked successfully!",
+    "lockError": "Failed to lock tokens",
+    "unlockError": "Failed to unlock tokens"
+  },
+  "airdrops": {
+    "title": "Airdrops",
+    "subtitle": "Participate in campaigns to earn free tokens",
+    "activeCampaigns": "Active Campaigns",
+    "noCampaigns": "No active campaigns at the moment",
+    "allocation": "Allocation",
+    "participants": "Participants",
+    "endsIn": "Ends In",
+    "tasks": "Tasks",
+    "participate": "Participate",
+    "participating": "Participating...",
+    "completeTask": "Complete",
+    "completed": "Completed",
+    "myEntries": "My Entries",
+    "noEntries": "You haven't joined any campaigns yet",
+    "eligibility": "Eligibility",
+    "eligible": "Eligible",
+    "notEligible": "Not Eligible",
+    "pendingDistribution": "Pending Distribution",
+    "distributed": "Distributed"
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "subtitle": "Purchase fire protection products with HBCT",
+    "categories": "Categories",
+    "allProducts": "All Products",
+    "searchProducts": "Search products...",
+    "noProducts": "No products available",
+    "price": "Price",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "addToCart": "Add to Cart",
+    "viewDetails": "View Details",
+    "cart": "Cart",
+    "emptyCart": "Your cart is empty",
+    "checkout": "Checkout",
+    "shippingInfo": "Shipping Information",
+    "address": "Address",
+    "city": "City",
+    "country": "Country",
+    "postalCode": "Postal Code",
+    "placeOrder": "Place Order",
+    "orderSuccess": "Order placed successfully!",
+    "myOrders": "My Orders",
+    "noOrders": "You have no orders yet",
+    "orderStatus": "Order Status",
+    "pending": "Pending",
+    "paid": "Paid",
+    "shipped": "Shipped",
+    "delivered": "Delivered"
+  },
+  "affiliates": {
+    "title": "Affiliate Program",
+    "subtitle": "Earn commissions by referring new users",
+    "joinProgram": "Join Affiliate Program",
+    "joinCta": "Join Now & Start Earning",
+    "alreadyAffiliate": "You're already an affiliate!",
+    "viewDashboard": "View Dashboard",
+    "whyJoin": "Why Join Our Affiliate Program?",
+    "benefits": {
+      "passiveIncome": "Passive Income",
+      "passiveIncomeDesc": "Earn commissions on every purchase your referrals make",
+      "tieredRewards": "Tiered Rewards",
+      "tieredRewardsDesc": "Unlock higher commission rates as you grow",
+      "realTimeTracking": "Real-Time Tracking",
+      "realTimeTrackingDesc": "Monitor your earnings and referrals instantly",
+      "fastPayouts": "Fast Payouts",
+      "fastPayoutsDesc": "Weekly payouts directly to your wallet"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "referrals": "Referrals",
+      "commissions": "Commissions"
+    },
+    "referralLink": {
+      "title": "Your Referral Link",
+      "subtitle": "Share this link to earn commissions",
+      "yourCode": "Your Referral Code",
+      "copyLink": "Copy Link",
+      "copyCode": "Copy Code",
+      "copied": "Copied!",
+      "showQr": "Show QR Code",
+      "hideQr": "Hide QR Code",
+      "shareOn": "Share on",
+      "customCampaign": "Custom Campaign",
+      "campaignPlaceholder": "e.g., twitter_bio",
+      "utmSource": "UTM Source",
+      "generateLink": "Generate Link"
+    },
+    "tier": {
+      "title": "Your Tier",
+      "currentTier": "Current Tier",
+      "nextTier": "Next Tier",
+      "progressToNext": "Progress to Next Tier",
+      "referralsNeeded": "referrals needed",
+      "volumeNeeded": "volume needed",
+      "benefits": "Benefits",
+      "commissionRate": "Commission Rate",
+      "levels": {
+        "bronze": "Bronze",
+        "silver": "Silver",
+        "gold": "Gold",
+        "platinum": "Platinum",
+        "diamond": "Diamond"
+      }
+    },
+    "stats": {
+      "title": "Statistics",
+      "totalReferrals": "Total Referrals",
+      "totalEarnings": "Total Earnings",
+      "pendingEarnings": "Pending Earnings",
+      "paidEarnings": "Paid Earnings",
+      "totalVolume": "Total Volume",
+      "conversionRate": "Conversion Rate",
+      "avgOrderValue": "Avg Order Value",
+      "thisMonth": "This Month",
+      "fromLastMonth": "from last month",
+      "increase": "increase",
+      "decrease": "decrease"
+    },
+    "referrals": {
+      "title": "Your Referrals",
+      "searchPlaceholder": "Search referrals...",
+      "noReferrals": "No referrals found",
+      "shareToStart": "Share your referral link to start earning!",
+      "status": {
+        "all": "All",
+        "pending": "Pending",
+        "active": "Active",
+        "converted": "Converted",
+        "inactive": "Inactive"
+      },
+      "joined": "Joined",
+      "firstPurchase": "First purchase",
+      "purchases": "purchases",
+      "earned": "earned"
+    },
+    "commissions": {
+      "title": "Commission History",
+      "noCommissions": "No commissions found",
+      "claim": "Claim",
+      "claiming": "Claiming...",
+      "totalEarned": "Total Earned",
+      "pending": "Pending",
+      "paid": "Paid",
+      "status": {
+        "all": "All",
+        "pending": "Pending",
+        "paid": "Paid"
+      },
+      "types": {
+        "signupBonus": "Signup Bonus",
+        "purchase": "Purchase Commission",
+        "recurring": "Recurring Commission",
+        "bonus": "Bonus",
+        "tierBonus": "Tier Upgrade Bonus"
+      },
+      "from": "from",
+      "viewTx": "View Transaction"
+    },
+    "leaderboard": {
+      "title": "Leaderboard",
+      "periods": {
+        "week": "Week",
+        "month": "Month",
+        "allTime": "All Time"
+      },
+      "you": "You",
+      "yourPosition": "Your Position",
+      "referrals": "referrals",
+      "rank": "Rank",
+      "volume": "Volume"
+    },
+    "tierPreview": {
+      "title": "Commission Tiers",
+      "subtitle": "Unlock higher rates as you grow",
+      "startAt": "Start at",
+      "upTo": "Up to"
+    }
+  },
+  "navigation": {
+    "home": "Home",
+    "about": "About Us",
+    "dashboard": "Dashboard",
+    "buyTokens": "Buy Tokens",
+    "locking": "Locking",
+    "airdrops": "Airdrops",
+    "marketplace": "Marketplace",
+    "affiliates": "Affiliates",
+    "admin": "Admin",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "profile": "Profile"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account settings and preferences",
+    "profile": {
+      "title": "Profile Information",
+      "description": "Update your personal information",
+      "avatar": "Profile Picture",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell us a little about yourself...",
+      "verified": "Verified",
+      "saveChanges": "Save Changes",
+      "saving": "Saving...",
+      "updateSuccess": "Profile updated successfully",
+      "updateError": "Failed to update profile"
+    },
+    "security": {
+      "title": "Security",
+      "changePassword": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "updatePassword": "Update Password",
+      "updating": "Updating...",
+      "passwordSuccess": "Password updated successfully",
+      "passwordError": "Failed to update password",
+      "passwordMismatch": "Passwords do not match",
+      "twoFactor": "Two-Factor Authentication",
+      "twoFactorDescription": "Add an extra layer of security to your account",
+      "twoFactorEnabled": "2FA is enabled",
+      "twoFactorDisabled": "2FA is disabled",
+      "enable2FA": "Enable 2FA",
+      "disable2FA": "Disable 2FA",
+      "activeSessions": "Active Sessions",
+      "activeSessionsDescription": "Manage your logged-in devices",
+      "currentSession": "Current session",
+      "revokeSession": "Revoke",
+      "revokeSuccess": "Session revoked successfully"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Choose what notifications you want to receive",
+      "email": "Email Notifications",
+      "transactions": "Transaction updates",
+      "transactionsDescription": "Get notified about deposits, withdrawals, and purchases",
+      "security": "Security alerts",
+      "securityDescription": "Important security notifications about your account",
+      "marketing": "Marketing emails",
+      "marketingDescription": "News, updates, and promotional content",
+      "updates": "Product updates",
+      "updatesDescription": "New features and platform improvements",
+      "push": "Push Notifications",
+      "pushEnabled": "Enable push notifications",
+      "pushDescription": "Receive notifications in your browser"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "appearance": "Appearance",
+      "theme": "Theme",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "System",
+      "localization": "Localization",
+      "language": "Language",
+      "currency": "Display Currency",
+      "timezone": "Timezone",
+      "timezoneAuto": "Auto-detect"
+    },
+    "wallets": {
+      "title": "Connected Wallets",
+      "description": "Manage your connected Web3 wallets",
+      "noWallets": "No wallets connected",
+      "connectWallet": "Connect Wallet",
+      "disconnect": "Disconnect",
+      "primary": "Primary",
+      "setPrimary": "Set as Primary",
+      "connectedAt": "Connected",
+      "copyAddress": "Copy address",
+      "copied": "Copied!"
+    },
+    "deleteAccount": {
+      "title": "Delete Account",
+      "dangerZone": "Danger Zone",
+      "warning": "Once you delete your account, there is no going back. Please be certain.",
+      "description": "This will permanently delete your account and all associated data. This action cannot be undone.",
+      "deleteButton": "Delete My Account",
+      "confirmTitle": "Are you absolutely sure?",
+      "confirmDescription": "This action cannot be undone. All your data will be permanently deleted.",
+      "typeEmail": "Type your email to confirm:",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete Forever",
+      "deleting": "Deleting..."
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "noResults": "No results found"
+  },
+  "metadata": {
+    "title": "HBCT - Fire Protection Meets Blockchain",
+    "description": "The innovation that protects. Fire protection technology backed by HBC Group and blockchain transparency."
+  },
+  "hero": {
+    "title": "The Innovation That Protects",
+    "subtitle": "Fire Protection Meets Blockchain — Backed by",
+    "company": "HBC GROUP",
+    "ctaToken": "HBCT Token",
+    "ctaWhitepaper": "White Paper",
+    "cards": {
+      "labCertified": {
+        "label": "Lab Certified",
+        "description": "Proven 5+ hour fire resistance"
+      },
+      "realUtility": {
+        "label": "Real Utility",
+        "description": "Buy fire protection products with HBCT"
+      },
+      "incomingToken": {
+        "label": "Incoming Token",
+        "description": "HBCT Presale from $0.03"
+      }
+    }
+  },
+  "aboutTechnology": {
+    "label": "Our Technology",
+    "title": "Built for Safety",
+    "subtitle": "Four innovative approaches to fire protection, certified to international standards.",
+    "woodPreservation": {
+      "title": "Wood Preservation",
+      "description": "Special coatings applied to structural wood elements to significantly reduce flammability and extend lifespan.",
+      "features": ["Char retardant coatings", "Fire-retardant impregnation", "NFPA & EN compliant"]
+    },
+    "filmProtection": {
+      "title": "Film Protection",
+      "description": "Transparent protective films for windows, walls, and doors that slow flame spread.",
+      "features": ["Heat-reflective technology", "Smoke barrier protection", "Custom formats"]
+    },
+    "facadeSystems": {
+      "title": "Facade Systems",
+      "description": "Architectural materials preventing flame propagation across building exteriors.",
+      "features": ["Refractory panels", "Compartmentation design", "Visual transparency"]
+    },
+    "textileProtection": {
+      "title": "Textile Fire Protection",
+      "description": "Non-invasive silicone-coated glass-fiber barriers that contain flames and reduce heat without water or foam. Certified EV-blanket technology that's maintenance-free, reusable, and weather-resistant.",
+      "features": ["Certified EV-blanket technology", "Maintenance-free & reusable", "Weather-resistant materials"]
+    }
+  },
+  "whyHbct": {
+    "label": "Token Benefits",
+    "title": "Why HBCT Token",
+    "subtitle": "More than just a token—it's the bridge between blockchain technology and real-world fire protection.",
+    "features": {
+      "realUtility": {
+        "title": "Real Utility",
+        "description": "Connect directly to verified fire protection products. Real purchases, real adoption, and measurable impact—not just speculation."
+      },
+      "blockchainTransparency": {
+        "title": "Blockchain Transparency",
+        "description": "Every certification, product test, and transaction is immutably recorded—creating full trust for investors and customers alike."
+      },
+      "longTermValue": {
+        "title": "Long-Term Value",
+        "description": "As ecosystem demand grows, the token's value stabilizes through an asset-backed foundation for future expansion."
+      }
+    },
+    "tokenInfo": {
+      "tokenName": "Token Name",
+      "tokenNameValue": "HBC Fire Protection Token",
+      "symbol": "Symbol",
+      "symbolValue": "HBCT",
+      "totalSupply": "Total Supply",
+      "totalSupplyValue": "250,000,000"
+    }
+  },
+  "tokenDistribution": {
+    "label": "Tokenomics",
+    "title": "Token Distribution",
+    "subtitle": "A balanced allocation designed for long-term stability, growth, and community trust.",
+    "distribution": {
+      "companyReserve": {
+        "label": "Company Reserve",
+        "percentage": "35",
+        "tokens": "87,500,000",
+        "description": "Locked for 12 months then gradually released to support strategic expansion"
+      },
+      "publicPresale": {
+        "label": "Public Presale",
+        "percentage": "25",
+        "tokens": "62,500,000",
+        "description": "Primary investor offering at $0.03 per token"
+      },
+      "ecosystemRewards": {
+        "label": "Ecosystem & Rewards",
+        "percentage": "15",
+        "tokens": "37,500,000",
+        "description": "Partner incentives and protocol development"
+      },
+      "rdCertifications": {
+        "label": "R&D & Certifications",
+        "percentage": "10",
+        "tokens": "25,000,000",
+        "description": "Laboratory testing and verification infrastructure"
+      },
+      "teamAdvisors": {
+        "label": "Team & Advisors",
+        "percentage": "10",
+        "tokens": "25,000,000",
+        "description": "1-year cliff, then linear vesting for 4 years"
+      },
+      "liquidity": {
+        "label": "Liquidity",
+        "percentage": "5",
+        "tokens": "12,500,000",
+        "description": "Supporting exchange trading pairs"
+      }
+    },
+    "vesting": {
+      "title": "Vesting Schedule",
+      "presale": {
+        "title": "Presale",
+        "description": "20% at TGE, remaining vested linearly over 6-8 months"
+      },
+      "rdEcosystem": {
+        "title": "R&D & Ecosystem",
+        "description": "Quarterly release upon milestone completion"
+      },
+      "companyReserve": {
+        "title": "Company Reserve",
+        "description": "12-month lock, then gradual release"
+      }
+    }
+  },
+  "projectTimeline": {
+    "label": "Roadmap",
+    "title": "Project Timeline",
+    "subtitle": "Our strategic roadmap to revolutionize fire protection through blockchain technology.",
+    "phases": {
+      "phase1": {
+        "phase": "Phase 1",
+        "title": "Foundation",
+        "description": "Finalize whitepaper, tokenomics, and smart contract architecture. Launch website and brand system. Begin HBCT token presale."
+      },
+      "phase2": {
+        "phase": "Phase 2",
+        "title": "Technology & Certification",
+        "description": "Independent 5h+ fire-resistance tests with report hashes on-chain. Certification Registry v1 linking products to verified reports."
+      },
+      "phase3": {
+        "phase": "Phase 3",
+        "title": "Utility & Ecosystem",
+        "description": "Enable purchasing products with HBCT tokens. Launch partner rewards and verification dashboards."
+      },
+      "phase4": {
+        "phase": "Phase 4",
+        "title": "Token Launch & Governance",
+        "description": "Deploy HBCT with vesting and public distribution. Establish DEX liquidity and prepare CEX listings."
+      },
+      "phase5": {
+        "phase": "Phase 5",
+        "title": "Expansion & Partnerships",
+        "description": "Global manufacturer partnerships. On-chain warranty tracking and certification marketplace."
+      },
+      "phase6": {
+        "phase": "Phase 6",
+        "title": "Sustainability & Growth",
+        "description": "Decentralized verification nodes. Mobile app for scanning certificates and warranties."
+      }
+    }
+  },
+  "joinRevolution": {
+    "badge": "Presale Live Now",
+    "title": "Join The",
+    "titleHighlight": "Revolution",
+    "subtitle": "Be part of the future where fire protection meets blockchain innovation. Secure your HBCT tokens today.",
+    "ctaBuy": "Buy HBCT Token",
+    "ctaWhitepaper": "White Paper",
+    "trust": {
+      "auditedContract": "Audited Smart Contract",
+      "verifiedTeam": "Verified Team",
+      "securePayments": "Secure Payments"
+    }
+  }
+}
