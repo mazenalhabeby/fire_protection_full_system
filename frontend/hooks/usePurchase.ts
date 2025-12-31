@@ -22,18 +22,18 @@ export const purchaseKeys = {
 };
 
 /**
- * Get current token prices
- * Only fetches when component is mounted (buy-tokens page)
+ * Get current token prices (dynamic market prices from PancakeSwap)
+ * Refreshes every 30 seconds for real-time pricing
  */
 export function usePurchasePrice() {
   return useQuery({
     queryKey: purchaseKeys.price(),
     queryFn: () => purchaseApi.getPrice(),
-    staleTime: 5 * 60 * 1000, // 5 minutes (matches backend cache)
-    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
-    refetchOnWindowFocus: false, // Don't refetch when switching tabs
+    staleTime: 30 * 1000, // 30 seconds - more real-time
+    refetchInterval: 30 * 1000, // Refetch every 30 seconds for live prices
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
     refetchOnMount: true, // Fetch when page loads
-    refetchOnReconnect: false, // Don't refetch on reconnect
+    refetchOnReconnect: true, // Refetch on reconnect for fresh prices
   });
 }
 

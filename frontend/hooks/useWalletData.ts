@@ -98,8 +98,10 @@ export function useInitiateTransfer() {
       return walletApi.initiateTransfer(data);
     },
     onSuccess: () => {
-      // Invalidate pending transfers
+      // Invalidate pending transfers and balances (funds are now locked in pendingBalance)
       queryClient.invalidateQueries({ queryKey: walletQueryKeys.pendingTransfers });
+      queryClient.invalidateQueries({ queryKey: walletQueryKeys.balances });
+      queryClient.invalidateQueries({ queryKey: walletQueryKeys.recentTransactions });
     },
   });
 }
@@ -146,11 +148,13 @@ export function useConfirmTransfer() {
       }
     },
     onSettled: () => {
-      // Refetch to ensure sync
+      // Refetch to ensure sync - invalidate all related queries
       queryClient.invalidateQueries({ queryKey: walletQueryKeys.balances });
       queryClient.invalidateQueries({ queryKey: walletQueryKeys.pendingTransfers });
       queryClient.invalidateQueries({ queryKey: walletQueryKeys.recentTransactions });
       queryClient.invalidateQueries({ queryKey: walletQueryKeys.limits });
+      // Also invalidate transaction history since confirming updates WalletTransaction status
+      queryClient.invalidateQueries({ queryKey: ["walletTransactions"] });
     },
   });
 }
@@ -191,8 +195,13 @@ export function useCancelTransfer() {
       }
     },
     onSettled: () => {
-      // Refetch to ensure sync
+      // Refetch to ensure sync - invalidate all related queries
       queryClient.invalidateQueries({ queryKey: walletQueryKeys.pendingTransfers });
+      // Also invalidate balances since funds are returned from pendingBalance to availableBalance
+      queryClient.invalidateQueries({ queryKey: walletQueryKeys.balances });
+      // Also invalidate transaction history since cancelling updates WalletTransaction status
+      queryClient.invalidateQueries({ queryKey: ["walletTransactions"] });
+      queryClient.invalidateQueries({ queryKey: walletQueryKeys.recentTransactions });
     },
   });
 }

@@ -58,6 +58,28 @@ export class CommissionQueryDto {
   limit?: number = 10;
 }
 
+export class ReferralsQueryDto {
+  @ApiPropertyOptional({ default: 1 })
+  @IsNumber()
+  @IsOptional()
+  @Min(1)
+  page?: number = 1;
+
+  @ApiPropertyOptional({ default: 10 })
+  @IsNumber()
+  @IsOptional()
+  @Min(1)
+  limit?: number = 10;
+
+  @ApiPropertyOptional({ enum: ['pending', 'active', 'converted', 'inactive'] })
+  @IsOptional()
+  status?: 'pending' | 'active' | 'converted' | 'inactive';
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  search?: string;
+}
+
 export class WithdrawDto {
   @ApiProperty({ example: 100, description: 'Amount of tokens to withdraw' })
   @IsNumber()

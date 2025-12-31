@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { User, Mail, Phone, FileText, CheckCircle, Camera, KeyRound, Wallet, Link2, AtSign, Loader2, Check, X } from "lucide-react";
 import type { User as UserType } from "@/types/api";
-import { cn } from "@/lib/utils";
+import { cn, formatName } from "@/lib/utils";
 import { authApi } from "@/lib/api/auth";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -229,8 +229,8 @@ export function ProfileSection({ user }: ProfileSectionProps) {
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {user?.firstName && user?.lastName
-                  ? `${user.firstName} ${user.lastName}`
+                {user?.firstName || user?.lastName
+                  ? formatName(user?.firstName, user?.lastName)
                   : user?.email?.split("@")[0]
                   || (user?.walletAddress ? `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}` : "User")}
               </h3>

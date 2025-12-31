@@ -31,6 +31,7 @@ import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
 import { authApi, LinkedWallet } from "@/lib/api/auth";
 import type { User } from "@/types/api";
 import { cn } from "@/lib/utils";
+import { useAccount, useSignMessage, useSignTypedData } from "wagmi";
 
 interface WalletsSectionProps {
   user: User | null;
@@ -64,6 +65,73 @@ export function WalletsSection({ user }: WalletsSectionProps) {
 
   const { isCorrectChain, switchToCorrectChain, requiredChainName } = useCorrectChain();
   const [copied, setCopied] = useState(false);
+
+  // Wagmi hooks for signing
+  const { connector, chainId } = useAccount();
+  const { signMessageAsync } = useSignMessage();
+  const { signTypedDataAsync } = useSignTypedData();
+
+  // Check if connected via WalletConnect
+  const isWalletConnect = connector?.id === 'walletConnect' || connector?.name?.toLowerCase().includes('walletconnect');
+
+  // Sign message - use EIP-712 for WalletConnect, personal_sign for others
+  const signWithFallback = async (message: string): Promise<string> => {
+    // For WalletConnect, use EIP-712 directly (many WC wallets don't support personal_sign)
+    if (isWalletConnect) {
+      const domain = {
+        name: "HBCT Fire Protection",
+        version: "1",
+        chainId: chainId || 56,
+      } as const;
+
+      const types = {
+        Message: [
+          { name: "content", type: "string" },
+        ],
+      } as const;
+
+      const signature = await signTypedDataAsync({
+        domain,
+        types,
+        primaryType: "Message",
+        message: { content: message },
+      });
+      return signature;
+    }
+
+    // For other wallets, try personal_sign first with EIP-712 fallback
+    try {
+      const signature = await signMessageAsync({ message });
+      return signature;
+    } catch (error) {
+      if (error instanceof Error &&
+          (error.message.includes("personal_sign") ||
+           error.message.includes("not supported") ||
+           error.message.includes("Method not found"))) {
+
+        const domain = {
+          name: "HBCT Fire Protection",
+          version: "1",
+          chainId: chainId || 56,
+        } as const;
+
+        const types = {
+          Message: [
+            { name: "content", type: "string" },
+          ],
+        } as const;
+
+        const signature = await signTypedDataAsync({
+          domain,
+          types,
+          primaryType: "Message",
+          message: { content: message },
+        });
+        return signature;
+      }
+      throw error;
+    }
+  };
 
   // Multi-wallet state
   const [linkedWallets, setLinkedWallets] = useState<LinkedWallet[]>([]);
@@ -173,15 +241,12 @@ export function WalletsSection({ user }: WalletsSectionProps) {
 
   // Sign and complete linking
   const signAndLink = async () => {
-    if (!pendingLink || !window.ethereum) return;
+    if (!pendingLink) return;
 
     setIsLinking(true);
     try {
-      // Request signature
-      const signature = (await window.ethereum.request({
-        method: "personal_sign",
-        params: [pendingLink.message, pendingLink.address],
-      })) as string;
+      // Request signature using the fallback method
+      const signature = await signWithFallback(pendingLink.message);
 
       // Link wallet
       const response = await authApi.linkNewWallet({
@@ -198,8 +263,10 @@ export function WalletsSection({ user }: WalletsSectionProps) {
       setPendingLink(null);
       setNewLabel("");
     } catch (error: any) {
-      if (error.code === 4001) {
-        toast.error("Signature request was rejected");
+      if (error.code === 4001 || error.message?.includes("User rejected") || error.message?.includes("User disapproved")) {
+        toast.error("Signature request was cancelled");
+      } else if (error.message?.includes("personal_sign") || error.message?.includes("not supported")) {
+        toast.error("This wallet doesn't support message signing. Please use MetaMask or another compatible wallet.");
       } else {
         toast.error(error.message || "Failed to link wallet");
       }

@@ -18,7 +18,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TokenSalesService } from './token-sales.service';
 import {
   BuyTokensDto,
-  GetQuoteDto,
+  TokenSaleQuoteDto,
   TokenPriceDto,
   QuoteResponseDto,
   BuyTokensResponseDto,
@@ -40,7 +40,7 @@ export class TokenSalesController {
   @Post('quote')
   @ApiOperation({ summary: 'Get a quote for token purchase' })
   @ApiResponse({ status: 200, type: QuoteResponseDto })
-  async getQuote(@Body() quoteDto: GetQuoteDto): Promise<QuoteResponseDto> {
+  async getQuote(@Body() quoteDto: TokenSaleQuoteDto): Promise<QuoteResponseDto> {
     return this.tokenSalesService.getQuote(quoteDto);
   }
 

@@ -15,25 +15,19 @@ export function AppFooter() {
           {/* Links */}
           <div className="flex items-center gap-6">
             <Link
-              href="/about-us"
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              About
-            </Link>
-            <Link
-              href="/"
+              href="/terms"
               className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Terms
             </Link>
             <Link
-              href="/"
+              href="/privacy"
               className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Privacy
             </Link>
             <Link
-              href="/"
+              href="/help"
               className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               Support

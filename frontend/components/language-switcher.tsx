@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocale } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { locales, type Locale } from "@/i18n/request";
@@ -41,37 +41,52 @@ export function LanguageSwitcher({ isTransparent = false }: LanguageSwitcherProp
   const router = useRouter();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Avoid hydration mismatch by only rendering Dialog after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLocaleChange = (newLocale: Locale) => {
     router.replace(pathname, { locale: newLocale });
     setIsOpen(false);
   };
 
+  const buttonClassName = cn(
+    "flex items-center gap-2 px-3 py-2 rounded-xl",
+    "text-sm font-medium",
+    "transition-all duration-300",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+    isTransparent
+      ? [
+          // Home page on dark section - white text
+          "text-white/90 hover:text-white",
+          "hover:bg-white/10",
+        ]
+      : [
+          // App pages or home page on light section - theme-aware
+          "text-gray-600 hover:text-gray-900",
+          "dark:text-gray-300 dark:hover:text-white",
+          "bg-gray-100 hover:bg-gray-200",
+          "dark:bg-gray-800 dark:hover:bg-gray-700",
+        ]
+  );
+
+  // Render a simple button during SSR to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <button className={buttonClassName} aria-label="Select language">
+        <Globe className="h-4 w-4" />
+        <span className="hidden sm:inline">{locale.toUpperCase()}</span>
+      </button>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <button
-          className={cn(
-            "flex items-center gap-2 px-3 py-2 rounded-xl",
-            "text-sm font-medium",
-            "transition-all duration-300",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-            isTransparent
-              ? [
-                  // Home page on dark section - white text
-                  "text-white/90 hover:text-white",
-                  "hover:bg-white/10",
-                ]
-              : [
-                  // App pages or home page on light section - theme-aware
-                  "text-gray-600 hover:text-gray-900",
-                  "dark:text-gray-300 dark:hover:text-white",
-                  "bg-gray-100 hover:bg-gray-200",
-                  "dark:bg-gray-800 dark:hover:bg-gray-700",
-                ]
-          )}
-          aria-label="Select language"
-        >
+        <button className={buttonClassName} aria-label="Select language">
           <Globe className="h-4 w-4" />
           <span className="hidden sm:inline">{locale.toUpperCase()}</span>
         </button>

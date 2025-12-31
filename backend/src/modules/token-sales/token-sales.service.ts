@@ -6,7 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Prisma, TransactionType, TransactionStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { BuyTokensDto, GetQuoteDto } from './dto';
+import { BuyTokensDto, TokenSaleQuoteDto } from './dto';
 
 @Injectable()
 export class TokenSalesService {
@@ -40,7 +40,7 @@ export class TokenSalesService {
     };
   }
 
-  async getQuote(quoteDto: GetQuoteDto) {
+  async getQuote(quoteDto: TokenSaleQuoteDto) {
     const { amountUsd, tokenPrice } = quoteDto;
 
     // Use price from frontend

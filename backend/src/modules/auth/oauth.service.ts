@@ -126,11 +126,16 @@ export class OAuthService {
       '',
     );
 
-    const session = await this.sessionService.createSession(
+    const { session, securityAlert } = await this.sessionService.createSession(
       user.id,
       tokens.refreshToken,
       req,
     );
+
+    // Log security alert if detected
+    if (securityAlert) {
+      this.logger.warn(`Security alert for user ${user.id}: ${securityAlert.type} - ${securityAlert.message}`);
+    }
 
     const finalTokens = await this.tokenService.generateTokenPair(
       user.id,
@@ -210,7 +215,7 @@ export class OAuthService {
       '',
     );
 
-    const session = await this.sessionService.createSession(
+    const { session } = await this.sessionService.createSession(
       user.id,
       tokens.refreshToken,
       req,

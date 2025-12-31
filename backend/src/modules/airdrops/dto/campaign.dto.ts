@@ -10,18 +10,22 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ToLowerCase } from '../../../common/utils/transforms';
 
 export class AirdropTaskDto {
   @ApiProperty()
   @IsString()
+  @ToLowerCase()
   id: string;
 
   @ApiProperty()
   @IsString()
+  @ToLowerCase()
   type: string; // 'social_follow', 'social_share', 'hold_tokens', 'referral', etc.
 
   @ApiProperty()
   @IsString()
+  @ToLowerCase()
   description: string;
 
   @ApiPropertyOptional()
@@ -32,17 +36,20 @@ export class AirdropTaskDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
+  @ToLowerCase()
   url?: string; // For social tasks
 }
 
 export class CreateCampaignDto {
   @ApiProperty({ example: 'Launch Airdrop' })
   @IsString()
+  @ToLowerCase()
   title: string;
 
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
+  @ToLowerCase()
   description?: string;
 
   @ApiProperty({ example: 100000 })
@@ -82,16 +89,19 @@ export class UpdateCampaignDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
+  @ToLowerCase()
   title?: string;
 
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
+  @ToLowerCase()
   description?: string;
 
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
+  @ToLowerCase()
   status?: string; // DRAFT, ACTIVE, PAUSED, COMPLETED, CANCELLED
 
   @ApiPropertyOptional()
@@ -152,17 +162,20 @@ export class CampaignResponseDto {
 export class ParticipateDto {
   @ApiProperty({ description: 'Wallet address for receiving airdrop' })
   @IsString()
+  @ToLowerCase()
   walletAddress: string;
 }
 
 export class CompleteTaskDto {
   @ApiProperty()
   @IsString()
+  @ToLowerCase()
   taskId: string;
 
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
+  @ToLowerCase()
   proof?: string; // Optional proof of task completion
 }
 

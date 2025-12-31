@@ -1,17 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
-import { useAccount, useSignMessage, useDisconnect } from "wagmi";
+import { useReferral } from "@/providers/ReferralProvider";
+import { useAccount, useSignMessage, useSignTypedData, useDisconnect } from "wagmi";
 import { Input } from "@/components/ui/input";
 import { ApiError } from "@/lib/api/client";
-import { UserPlus, LogIn, ArrowRight, Loader2, Mail, ChevronDown } from "lucide-react";
+import { UserPlus, LogIn, ArrowRight, Loader2, Mail, ChevronDown, Gift, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
+import { SignaturePromptModal } from "@/components/wallet/SignaturePromptModal";
+import { disconnectWallet, forceDisconnectWallet, clearDisconnectedFlag, wagmiConfig } from "@/providers/Web3ModalProvider";
+import { getAccount, disconnect as wagmiCoreDisconnect } from "@wagmi/core";
+import type { Config } from "@wagmi/core";
+import { getLocation, type BrowserLocation } from "@/hooks/useGeolocation";
+import { getReferralDataForRegistration, clearStoredReferral } from "@/lib/referral";
 
 // Social login icons with dynamic sizing
 const GoogleIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -37,8 +44,11 @@ export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { register, walletAuth } = useAuth();
+  const { referralCode: storedReferralCode, hasReferral, expiryDays, clearReferral } = useReferral();
 
-  const referralCode = searchParams.get("ref") || "";
+  // Use stored referral code (first-touch attribution) or fallback to URL param
+  const referralCodeFromUrl = searchParams.get("ref") || "";
+  const effectiveReferralCode = storedReferralCode || referralCodeFromUrl;
 
   const [formData, setFormData] = useState({
     email: "",
@@ -46,23 +56,191 @@ export default function RegisterPage() {
     confirmPassword: "",
     firstName: "",
     lastName: "",
-    referralCode: referralCode,
+    referralCode: effectiveReferralCode,
   });
+
+  // Update form when referral code changes
+  useEffect(() => {
+    if (effectiveReferralCode && !formData.referralCode) {
+      setFormData(prev => ({ ...prev, referralCode: effectiveReferralCode }));
+    }
+  }, [effectiveReferralCode, formData.referralCode]);
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [pendingWalletRegister, setPendingWalletRegister] = useState(false);
+  const [walletConnectSelected, setWalletConnectSelected] = useState(false);
+
+  // Signature prompt modal state
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [signatureStatus, setSignatureStatus] = useState<"pending" | "signing" | "success" | "error">("pending");
+  const [signatureError, setSignatureError] = useState<string | undefined>();
+
+  // Browser geolocation state (for VPN detection)
+  const [browserLocation, setBrowserLocation] = useState<BrowserLocation | null>(null);
+
+  // Ref to prevent multiple auth attempts
+  const isAuthenticatingRef = useRef(false);
+  // Ref to track WalletConnect selection (persists across re-renders during AppKit flow)
+  const walletConnectSelectedRef = useRef(false);
+  // Ref to track pending wallet register (persists across re-renders during AppKit flow)
+  const pendingWalletRegisterRef = useRef(false);
 
   // Wagmi hooks
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chainId, connector } = useAccount();
   const { signMessageAsync } = useSignMessage();
+  const { signTypedDataAsync } = useSignTypedData();
   const { disconnectAsync } = useDisconnect();
 
-  // Handle wallet registration after connection
+  // Track previous connection state to detect new connections
+  const prevConnectedRef = useRef(false);
+  // Track if we've initiated a wallet auth attempt for the current connection
+  const hasInitiatedAuthRef = useRef(false);
+  // Track if we've already disconnected on mount (to prevent repeated disconnects)
+  const hasDisconnectedOnMountRef = useRef(false);
+
+  // Request browser geolocation on mount (for VPN detection)
+  // Note: Browser may not show prompt without user interaction - we also request on form submit
   useEffect(() => {
-    if (isConnected && address && pendingWalletRegister) {
-      handleWalletAuth();
+    const requestBrowserLocation = async () => {
+      try {
+        console.log("[Register] Requesting browser location on mount...");
+        const location = await getLocation({ timeout: 10000 });
+        if (location) {
+          console.log("[Register] Got browser location:", location);
+          setBrowserLocation(location);
+        } else {
+          console.log("[Register] No location returned (permission denied or unavailable)");
+        }
+      } catch (err) {
+        console.warn("[Register] Location request error:", err);
+        // Continue without browser location - IP-based location will be used
+      }
+    };
+    requestBrowserLocation();
+  }, []);
+
+  // Disconnect any existing wallet connection on mount
+  // This ensures users always see the wallet selection popup on auth pages
+  useEffect(() => {
+    const disconnectExistingWallet = async () => {
+      // Only run once on mount
+      if (hasDisconnectedOnMountRef.current) return;
+      hasDisconnectedOnMountRef.current = true;
+
+      // Check account state directly from wagmi core (synchronous, not React state)
+      // This ensures we catch connections even before React state hydrates
+      const account = getAccount(wagmiConfig as Config);
+
+      if (account.isConnected) {
+        try {
+          // Use wagmi core disconnect for immediate effect
+          await wagmiCoreDisconnect(wagmiConfig as Config);
+        } catch {
+          // Ignore disconnect errors
+        }
+        // Also force clear wallet state to ensure complete reset
+        await forceDisconnectWallet();
+        // Reset refs to clean state
+        prevConnectedRef.current = false;
+        hasInitiatedAuthRef.current = false;
+      }
+    };
+
+    disconnectExistingWallet();
+  }, []); // Empty deps - only run on mount
+
+  // Check if connected via WalletConnect
+  const isWalletConnect = connector?.id === 'walletConnect' || connector?.name?.toLowerCase().includes('walletconnect');
+
+  // Sign message - use EIP-712 for WalletConnect, personal_sign for others
+  const signWithFallback = async (message: string): Promise<string> => {
+    // For WalletConnect, use EIP-712 directly (many WC wallets don't support personal_sign)
+    if (isWalletConnect) {
+      const domain = {
+        name: "HBCT Fire Protection",
+        version: "1",
+        chainId: chainId || 56,
+      } as const;
+
+      const types = {
+        Message: [
+          { name: "content", type: "string" },
+        ],
+      } as const;
+
+      const signature = await signTypedDataAsync({
+        domain,
+        types,
+        primaryType: "Message",
+        message: { content: message },
+      });
+      return signature;
+    }
+
+    // For other wallets, try personal_sign first with EIP-712 fallback
+    try {
+      const signature = await signMessageAsync({ message });
+      return signature;
+    } catch (error) {
+      if (error instanceof Error &&
+          (error.message.includes("personal_sign") ||
+           error.message.includes("not supported") ||
+           error.message.includes("Method not found"))) {
+
+        const domain = {
+          name: "HBCT Fire Protection",
+          version: "1",
+          chainId: chainId || 56,
+        } as const;
+
+        const types = {
+          Message: [
+            { name: "content", type: "string" },
+          ],
+        } as const;
+
+        const signature = await signTypedDataAsync({
+          domain,
+          types,
+          primaryType: "Message",
+          message: { content: message },
+        });
+        return signature;
+      }
+      throw error;
+    }
+  };
+
+  // Auto-close wallet modal when wallet connects
+  useEffect(() => {
+    if (isConnected && showWalletModal) {
+      setShowWalletModal(false);
+    }
+  }, [isConnected, showWalletModal]);
+
+  // Detect new wallet connections and trigger auth
+  useEffect(() => {
+    const wasConnected = prevConnectedRef.current;
+    const justConnected = isConnected && !wasConnected;
+
+    // Update ref for next render
+    prevConnectedRef.current = isConnected;
+
+    // If we just connected (transition from disconnected to connected)
+    // and we were waiting for a wallet register, trigger auth
+    if (justConnected && address && (pendingWalletRegister || pendingWalletRegisterRef.current)) {
+      // Prevent multiple auth attempts for the same connection
+      if (!hasInitiatedAuthRef.current && !isAuthenticatingRef.current) {
+        hasInitiatedAuthRef.current = true;
+        handleWalletAuth();
+      }
+    }
+
+    // Reset the initiated flag when we disconnect
+    if (!isConnected) {
+      hasInitiatedAuthRef.current = false;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, address, pendingWalletRegister]);
@@ -70,18 +248,62 @@ export default function RegisterPage() {
   const handleWalletAuth = async () => {
     if (!address) return;
 
+    // Prevent multiple simultaneous auth attempts
+    if (isAuthenticatingRef.current) {
+      return;
+    }
+    isAuthenticatingRef.current = true;
+
     setSocialLoading("wallet");
+
+    // Show signature modal for all wallet types
+    setSignatureStatus("signing");
+    setSignatureError(undefined);
+    setShowSignatureModal(true);
+
     try {
+      // Request location on submit (user-initiated action - browser more likely to show prompt)
+      let currentLocation = browserLocation;
+      if (!currentLocation) {
+        console.log("[Register] Wallet auth - No cached location, requesting...");
+        currentLocation = await getLocation({ timeout: 5000 });
+        if (currentLocation) {
+          setBrowserLocation(currentLocation);
+        }
+      }
+
+      // Prepare location data for VPN detection
+      const locationData = currentLocation ? {
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        accuracy: currentLocation.accuracy,
+      } : undefined;
+
+      // Get referral data with source tracking
+      const referralData = getReferralDataForRegistration();
+
+      console.log("[Register] Wallet auth with location:", locationData, "referral:", referralData);
       const { isNewUser } = await walletAuth(address, async (message: string) => {
-        const signature = await signMessageAsync({ message });
+        const signature = await signWithFallback(message);
         return signature;
       }, {
         firstName: formData.firstName || undefined,
         lastName: formData.lastName || undefined,
-        referralCode: formData.referralCode || undefined,
+        referralCode: formData.referralCode || referralData.referralCode,
+        referralSource: referralData.referralSource,
+        referralCapturedAt: referralData.referralCapturedAt,
+        location: locationData,
       });
 
+      // Show success state briefly before redirecting
+      setSignatureStatus("success");
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setShowSignatureModal(false);
+
+      // Clear referral after successful registration (only for new users)
       if (isNewUser) {
+        clearStoredReferral();
+        clearReferral();
         toast.success(t("registerSuccess"));
         router.push("/dashboard?welcome=true");
       } else {
@@ -89,27 +311,50 @@ export default function RegisterPage() {
         router.push("/dashboard");
       }
     } catch (err) {
-      // Disconnect wallet on error so user can try different wallet
+      // First try wagmi's disconnect
       try {
         await disconnectAsync();
       } catch {
-        // Ignore disconnect errors
+        // Ignore errors
       }
 
+      // Force disconnect - clears ALL wallet state from localStorage, sessionStorage, and IndexedDB
+      await forceDisconnectWallet();
+
+      // Reset all refs immediately so next connection attempt works
+      prevConnectedRef.current = false;
+      pendingWalletRegisterRef.current = false;
+      walletConnectSelectedRef.current = false;
+      hasInitiatedAuthRef.current = false;
+
+      let errorMessage = "Failed to connect wallet. Please try again.";
+
       if (err instanceof ApiError) {
-        toast.error(err.message + " - Please try a different wallet");
+        errorMessage = err.message;
       } else if (err instanceof Error) {
-        if (err.message.includes("User rejected")) {
-          toast.error("Signature request was rejected");
+        const errMsg = err.message.toLowerCase();
+        if (errMsg.includes("user rejected") || errMsg.includes("user disapproved") || errMsg.includes("rejected")) {
+          errorMessage = "Signature request was cancelled";
+        } else if (errMsg.includes("personal_sign") || errMsg.includes("not supported") || errMsg.includes("method not found")) {
+          errorMessage = "This wallet doesn't support message signing. Please use MetaMask or another compatible wallet.";
+        } else if (errMsg.includes("failed to fetch") || errMsg.includes("network") || errMsg.includes("timeout")) {
+          errorMessage = "Unable to connect to server. Please check your internet connection and try again.";
         } else {
-          toast.error(err.message + " - Please try a different wallet");
+          console.error("Wallet auth error:", err);
+          errorMessage = "Failed to authenticate. Please try again.";
         }
-      } else {
-        toast.error("Failed to connect wallet - Please try a different wallet");
       }
+
+      // Show error in modal for all wallet types
+      setSignatureStatus("error");
+      setSignatureError(errorMessage);
     } finally {
       setSocialLoading(null);
       setPendingWalletRegister(false);
+      pendingWalletRegisterRef.current = false;
+      setWalletConnectSelected(false);
+      walletConnectSelectedRef.current = false;
+      isAuthenticatingRef.current = false;
     }
   };
 
@@ -134,15 +379,24 @@ export default function RegisterPage() {
     } else {
       // Open wallet connect modal
       setPendingWalletRegister(true);
+      pendingWalletRegisterRef.current = true;
       setShowWalletModal(true);
     }
   };
 
   const handleWalletModalClose = () => {
     setShowWalletModal(false);
-    if (!isConnected) {
+    // Don't reset pending state if WalletConnect was selected (AppKit is handling it)
+    if (!isConnected && !walletConnectSelected && !walletConnectSelectedRef.current) {
       setPendingWalletRegister(false);
+      pendingWalletRegisterRef.current = false;
     }
+  };
+
+  const handleWalletConnectSelect = () => {
+    setWalletConnectSelected(true);
+    walletConnectSelectedRef.current = true;
+    // Keep pendingWalletRegister true so auth triggers after AppKit connection
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,13 +422,44 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
+      // Request location on submit (user-initiated action - browser more likely to show prompt)
+      let currentLocation = browserLocation;
+      if (!currentLocation) {
+        console.log("[Register] No cached location, requesting on submit...");
+        currentLocation = await getLocation({ timeout: 5000 });
+        if (currentLocation) {
+          setBrowserLocation(currentLocation);
+        }
+      }
+
+      // Prepare location data for VPN detection
+      const locationData = currentLocation ? {
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        accuracy: currentLocation.accuracy,
+      } : undefined;
+
+      // Get referral data with source tracking
+      const referralData = getReferralDataForRegistration();
+
+      console.log("[Register] Submitting with location:", locationData, "referral:", referralData);
       await register({
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName || undefined,
         lastName: formData.lastName || undefined,
+        referralCode: formData.referralCode || referralData.referralCode,
+        referralSource: referralData.referralSource,
+        referralCapturedAt: referralData.referralCapturedAt,
+        location: locationData,
       });
+
+      // Clear referral after successful registration
+      clearStoredReferral();
+      clearReferral();
+
       toast.success(t("registerSuccess"));
+      // Don't set loading to false - keep it true during redirect to prevent flash
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof ApiError) {
@@ -182,7 +467,7 @@ export default function RegisterPage() {
       } else {
         toast.error(t("registerError"));
       }
-    } finally {
+      // Only set loading to false on error
       setIsLoading(false);
     }
   };
@@ -259,6 +544,56 @@ export default function RegisterPage() {
       </div>
 
       <div className="w-full max-w-md relative z-10">
+        {/* Referral Badge - Shows when user has a referral code */}
+        {hasReferral && effectiveReferralCode && (
+          <div className={cn(
+            "mb-4 px-4 py-3 rounded-xl",
+            "bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-teal-500/10",
+            "dark:from-emerald-500/20 dark:via-green-500/20 dark:to-teal-500/20",
+            "border border-emerald-500/30 dark:border-emerald-400/30",
+            "backdrop-blur-sm"
+          )}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  "w-10 h-10 rounded-lg flex items-center justify-center",
+                  "bg-gradient-to-br from-emerald-500 to-green-600",
+                  "shadow-lg shadow-emerald-500/30"
+                )}>
+                  <Gift className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    Referral Applied
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Code: <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">{effectiveReferralCode}</span>
+                    {expiryDays && expiryDays > 0 && (
+                      <span className="ml-2 text-gray-400">({expiryDays}d left)</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  clearStoredReferral();
+                  clearReferral();
+                  setFormData(prev => ({ ...prev, referralCode: '' }));
+                }}
+                className={cn(
+                  "p-1.5 rounded-lg transition-colors",
+                  "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300",
+                  "hover:bg-gray-100 dark:hover:bg-gray-800"
+                )}
+                title="Remove referral code"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Card */}
         <div className={cn(
           "relative overflow-hidden rounded-2xl",
@@ -626,6 +961,41 @@ export default function RegisterPage() {
       <WalletConnectModal
         isOpen={showWalletModal}
         onClose={handleWalletModalClose}
+        skipDisconnectOnOpen
+        onWalletConnectSelect={handleWalletConnectSelect}
+      />
+
+      {/* Signature Prompt Modal for all wallet types */}
+      <SignaturePromptModal
+        isOpen={showSignatureModal}
+        onClose={async () => {
+          setShowSignatureModal(false);
+          setShowWalletModal(false); // Also close wallet selection modal
+          setSignatureStatus("pending");
+          setSignatureError(undefined);
+          // First try wagmi's disconnect
+          try {
+            await disconnectAsync();
+          } catch {
+            // Ignore errors
+          }
+          // Force disconnect - clears ALL wallet state from localStorage, sessionStorage, and IndexedDB
+          await forceDisconnectWallet();
+          // Reset ALL states and refs to clean state
+          setPendingWalletRegister(false);
+          pendingWalletRegisterRef.current = false;
+          setWalletConnectSelected(false);
+          walletConnectSelectedRef.current = false;
+          prevConnectedRef.current = false;
+          isAuthenticatingRef.current = false;
+          hasInitiatedAuthRef.current = false;
+        }}
+        walletName={connector?.name || "your wallet"}
+        walletIcon={connector?.icon}
+        isWalletConnect={walletConnectSelectedRef.current || walletConnectSelected || isWalletConnect}
+        status={signatureStatus}
+        errorMessage={signatureError}
+        autoCloseOnError={3000}
       />
     </div>
   );

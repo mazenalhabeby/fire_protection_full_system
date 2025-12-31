@@ -10,7 +10,9 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Web3ModalProvider } from "@/providers/Web3ModalProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { ReferralProvider } from "@/providers/ReferralProvider";
 import { Toaster } from "sonner";
+import { WalletConflictModal } from "@/components/wallet/WalletConflictModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -70,26 +72,29 @@ export default async function LocaleLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
           <QueryProvider>
             <NextIntlClientProvider messages={messages}>
-              <AuthProvider>
-                <Web3ModalProvider>
-                  {children}
-                  <Toaster
-                    position="bottom-right"
-                    richColors
-                    closeButton
-                    toastOptions={{
-                      duration: 4000,
-                      className: "premium-toast",
-                    }}
-                  />
-                </Web3ModalProvider>
-              </AuthProvider>
+              <ReferralProvider>
+                <AuthProvider>
+                  <Web3ModalProvider>
+                    {children}
+                    <WalletConflictModal />
+                    <Toaster
+                      position="bottom-right"
+                      richColors
+                      closeButton
+                      toastOptions={{
+                        duration: 4000,
+                        className: "premium-toast",
+                      }}
+                    />
+                  </Web3ModalProvider>
+                </AuthProvider>
+              </ReferralProvider>
             </NextIntlClientProvider>
           </QueryProvider>
         </ThemeProvider>

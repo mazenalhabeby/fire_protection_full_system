@@ -1,35 +1,26 @@
 "use client";
 
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-const navigation = {
-  product: [
-    { name: "Buy HBCT", href: "/buy" },
-    {
-      name: "White Paper",
-      href: "https://hbc-1.gitbook.io/hbc-fire-protection/",
-      external: true,
-    },
-    { name: "Tokenomics", href: "/#token-distribution" },
-    { name: "Roadmap", href: "/#timeline" },
-  ],
-  company: [
-    { name: "About Us", href: "/about-us" },
-    { name: "Technology", href: "/#technology" },
-    { name: "Contact", href: "/contact" },
-  ],
-  legal: [
-    { name: "Terms of Service", href: "/terms" },
-    { name: "Privacy Policy", href: "/privacy" },
-    { name: "Audit Report", href: "/audit.pdf", external: true },
-  ],
-};
+const footerLinks = [
+  { name: "Buy HBCT", href: "/buy-tokens" },
+  {
+    name: "White Paper",
+    href: "https://hbc-1.gitbook.io/hbc-fire-protection/",
+    external: true,
+  },
+  { name: "Tokenomics", href: "/#token-distribution" },
+  { name: "Roadmap", href: "/#timeline" },
+  { name: "Terms", href: "/terms" },
+  { name: "Privacy", href: "/privacy" },
+  { name: "Audit", href: "/audit" },
+];
 
 const socials = [
   {
-    name: "X (Twitter)",
+    name: "X",
     href: "https://twitter.com",
     icon: (props: React.SVGProps<SVGSVGElement>) => (
       <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
@@ -71,165 +62,83 @@ const socials = [
 ];
 
 export function Footer({ className }: { className?: string }) {
+  const pathname = usePathname();
+
+  // Only show anchor links on home page
+  const isHomePage = pathname === "/" || pathname === "";
+  const filteredLinks = isHomePage
+    ? footerLinks
+    : footerLinks.filter(item => !item.href.startsWith("/#"));
+
   return (
     <footer
-      className={cn("relative bg-black border-t border-white/5", className)}
+      className={cn("relative overflow-hidden", className)}
+      style={{
+        background: "linear-gradient(180deg, #0a0a0a 0%, #000000 50%, #0d0704 100%)",
+      }}
     >
-      {/* Subtle gradient at top */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-brand-500/30 to-transparent" />
+      {/* Background glow effects */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -bottom-20 left-1/4 w-[400px] h-[200px] bg-brand-500/8 rounded-full blur-[100px]" />
+        <div className="absolute -bottom-10 right-1/4 w-[300px] h-[150px] bg-brand-600/5 rounded-full blur-[80px]" />
+      </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Main footer content */}
-        <div className="py-12 lg:py-16">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-12">
-            {/* Logo - Left (vertically centered) */}
-            <div className="lg:w-48">
-              <Link href="/" className="inline-block group">
-                <Image
-                  src="/images/logo.svg"
-                  alt="HBC Engineering"
-                  width={160}
-                  height={48}
-                  className="object-contain opacity-90 group-hover:opacity-100 transition-opacity duration-300"
-                />
-              </Link>
-            </div>
+      {/* Gradient border top */}
+      <div className="h-px bg-gradient-to-r from-transparent via-brand-500 to-transparent" />
 
-            {/* Navigation sections - Center */}
-            <div className="flex-1 flex justify-center">
-              <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 sm:gap-12 lg:gap-16">
-                {/* Product */}
-                <div>
-                  <h3 className="text-sm font-semibold text-white tracking-wide uppercase">
-                    Product
-                  </h3>
-                  <ul className="mt-4 space-y-3">
-                    {navigation.product.map((item) => (
-                      <li key={item.name}>
-                        <Link
-                          href={item.href}
-                          target={item.external ? "_blank" : undefined}
-                          rel={
-                            item.external ? "noopener noreferrer" : undefined
-                          }
-                          className="group inline-flex items-center gap-1 text-sm text-gray-400 hover:text-brand-400 transition-colors duration-300"
-                        >
-                          <span>{item.name}</span>
-                          {item.external && (
-                            <svg
-                              className="w-3 h-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                              />
-                            </svg>
-                          )}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Main content - Single row on desktop */}
+        <div className="py-10 lg:py-12">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+            {/* Left - Logo */}
+            <Link href="/" className="inline-block group shrink-0">
+              <Image
+                src="/images/logo.svg"
+                alt="HBC Engineering"
+                width={140}
+                height={42}
+                className="object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+              />
+            </Link>
 
-                {/* Company */}
-                <div>
-                  <h3 className="text-sm font-semibold text-white tracking-wide uppercase">
-                    Company
-                  </h3>
-                  <ul className="mt-4 space-y-3">
-                    {navigation.company.map((item) => (
-                      <li key={item.name}>
-                        <Link
-                          href={item.href}
-                          className="text-sm text-gray-400 hover:text-brand-400 transition-colors duration-300"
-                        >
-                          {item.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+            {/* Center - All links in one row */}
+            <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 lg:gap-x-8">
+              {filteredLinks.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  target={item.external ? "_blank" : undefined}
+                  rel={item.external ? "noopener noreferrer" : undefined}
+                  className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
 
-                {/* Legal */}
-                <div>
-                  <h3 className="text-sm font-semibold text-white tracking-wide uppercase">
-                    Legal
-                  </h3>
-                  <ul className="mt-4 space-y-3">
-                    {navigation.legal.map((item) => (
-                      <li key={item.name}>
-                        <Link
-                          href={item.href}
-                          target={item.external ? "_blank" : undefined}
-                          rel={
-                            item.external ? "noopener noreferrer" : undefined
-                          }
-                          className="group inline-flex items-center gap-1 text-sm text-gray-400 hover:text-brand-400 transition-colors duration-300"
-                        >
-                          <span>{item.name}</span>
-                          {item.external && (
-                            <svg
-                              className="w-3 h-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                              />
-                            </svg>
-                          )}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Social links - Right */}
-            <div className="flex gap-3 lg:w-48 lg:justify-end">
+            {/* Right - Social icons */}
+            <div className="flex items-center justify-center lg:justify-end gap-1 shrink-0">
               {socials.map((social) => (
                 <Link
                   key={social.name}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group/social relative p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-brand-500/30 hover:bg-brand-500/10 transition-all duration-300"
+                  className="p-2.5 text-gray-500 hover:text-brand-400 transition-colors duration-200"
                 >
                   <span className="sr-only">{social.name}</span>
-                  <social.icon className="w-5 h-5 text-gray-400 group-hover/social:text-brand-400 transition-colors duration-300" />
+                  <social.icon className="w-5 h-5" />
                 </Link>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Bottom bar */}
+        {/* Bottom bar - minimal */}
         <div className="border-t border-white/5 py-6">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <p className="text-sm text-gray-500">
-              © {new Date().getFullYear()} HBC Engineering — All rights
-              reserved.
-            </p>
-
-            {/* Network badge */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-              </span>
-              <span className="text-xs text-gray-400">Ethereum Mainnet</span>
-            </div>
-          </div>
+          <p className="text-sm text-gray-500 text-center">
+            © {new Date().getFullYear()} HBC Engineering. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

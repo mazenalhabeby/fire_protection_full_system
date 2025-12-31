@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useAuth, useRequireAuth } from "@/hooks/useAuth";
-import { useAffiliate, useAffiliateStats, useLeaderboard, useRegisterAffiliate, useClaimCommission } from "@/hooks/useAppData";
+import { useAffiliate, useAffiliateStats, useLeaderboard, useReferrals, useCommissions, useRegisterAffiliate, useClaimCommission } from "@/hooks/useAppData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +26,6 @@ import {
   QrCode,
   DollarSign,
   Percent,
-  Clock,
   ChevronRight,
   ChevronLeft,
   ChevronDown,
@@ -63,7 +62,6 @@ import type {
 
 // Status display configuration
 const statusConfig: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
-  PENDING: { color: "warning", icon: <Clock className="h-3 w-3" />, label: "Pending" },
   ACTIVE: { color: "primary", icon: <UserCheck className="h-3 w-3" />, label: "Active" },
   CONVERTED: { color: "success", icon: <CheckCircle className="h-3 w-3" />, label: "Converted" },
   INACTIVE: { color: "secondary", icon: <XCircle className="h-3 w-3" />, label: "Inactive" },
@@ -88,21 +86,43 @@ export default function AffiliatesPage() {
   const { data: statsData, isLoading: statsLoading } = useAffiliateStats();
   const { data: leaderboardData, isLoading: leaderboardLoading } = useLeaderboard();
 
+  // Local state for filters and pagination
+  const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState<"overview" | "referrals">("overview");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "converted" | "inactive">("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1); // Reset to first page on search
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Referrals and commissions hooks with dynamic parameters
+  const { data: referralsData, isLoading: referralsLoading } = useReferrals({
+    page: currentPage,
+    limit: itemsPerPage,
+    status: statusFilter,
+    search: debouncedSearch || undefined,
+  });
+  const { data: commissionsData, isLoading: commissionsLoading } = useCommissions({
+    page: 1,
+    limit: 10,
+  });
+
   // Mutations
   const registerMutation = useRegisterAffiliate();
   const claimMutation = useClaimCommission();
 
   // Minimum loading duration for premium feel
   const { isLoading: isMinLoading, stopLoading } = usePageLoading();
-
-  // Local state
-  const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "referrals">("overview");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "active" | "converted" | "inactive">("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
-  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
 
   // Data is loading if any of the queries are loading
   const isDataLoading = affiliateLoading || statsLoading || leaderboardLoading;
@@ -118,8 +138,10 @@ export default function AffiliatesPage() {
   const affiliate = affiliateData;
   const stats = statsData;
   const leaderboard = leaderboardData ?? [];
-  const commissions: Commission[] = []; // TODO: Add commissions API
-  const referrals: ReferralDetails[] = []; // TODO: Add referrals API
+  const commissions = commissionsData?.commissions ?? [];
+  const referrals = referralsData?.referrals ?? [];
+  const referralsSummary = referralsData?.summary ?? { total: 0, active: 0, converted: 0, inactive: 0 };
+  const referralsPagination = referralsData?.pagination ?? { page: 1, limit: itemsPerPage, total: 0, totalPages: 0 };
 
   // Check if user is registered as affiliate
   // affiliate must be a truthy object to be considered registered
@@ -215,30 +237,20 @@ export default function AffiliatesPage() {
   const displayCommissions = commissions;
   const displayReferrals = referrals;
 
+  // Pagination is now handled by backend - use the pagination data from API
+  const totalPages = referralsPagination.totalPages;
+
   const referralLink = typeof window !== "undefined"
-    ? `${window.location.origin}/register?ref=${displayAffiliate?.referralCode || ""}`
+    ? `${window.location.origin}/${locale}/register?ref=${displayAffiliate?.referralCode || ""}`
     : "";
 
-  const filteredReferrals = displayReferrals.filter((r) => {
-    const matchesStatus = statusFilter === "all" || r.status.toLowerCase() === statusFilter;
-    const matchesSearch = !searchQuery ||
-      r.referredUserName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.referredUserEmail?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
-
-  // Pagination
-  const totalPages = Math.ceil(filteredReferrals.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedReferrals = filteredReferrals.slice(startIndex, endIndex);
-
-  // Reset to page 1 when filters change
+  // Pagination is handled by the backend - reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter]);
+  }, [statusFilter]);
 
-  const pendingCommissions = displayCommissions.filter(c => !c.isPaid);
+  // Recent commissions for display (already sorted by date from API)
+  const recentCommissions = displayCommissions;
 
   const handlePendingScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
@@ -614,7 +626,7 @@ export default function AffiliatesPage() {
           "relative overflow-hidden rounded-2xl mb-6 md:mb-8",
           displayAffiliate.tier?.name === "Starter" && "bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800",
           displayAffiliate.tier?.name === "Silver" && "bg-gradient-to-r from-slate-800 via-gray-600 to-slate-800",
-          displayAffiliate.tier?.name === "Gold" && "bg-gradient-to-r from-amber-900 via-yellow-800 to-amber-900",
+          displayAffiliate.tier?.name === "Gold" && "bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-600",
           displayAffiliate.tier?.name === "Platinum" && "bg-gradient-to-r from-purple-900 via-indigo-800 to-purple-900",
           !displayAffiliate.tier?.name && "bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900"
         )}>
@@ -623,7 +635,7 @@ export default function AffiliatesPage() {
             "absolute inset-0 bg-[radial-gradient(ellipse_at_right,_var(--tw-gradient-stops))]",
             displayAffiliate.tier?.name === "Starter" && "from-gray-500/20 via-transparent to-transparent",
             displayAffiliate.tier?.name === "Silver" && "from-gray-300/30 via-transparent to-transparent",
-            displayAffiliate.tier?.name === "Gold" && "from-yellow-500/30 via-transparent to-transparent",
+            displayAffiliate.tier?.name === "Gold" && "from-yellow-300/40 via-transparent to-transparent",
             displayAffiliate.tier?.name === "Platinum" && "from-purple-500/30 via-transparent to-transparent",
             !displayAffiliate.tier?.name && "from-brand-500/20 via-transparent to-transparent"
           )} />
@@ -631,7 +643,7 @@ export default function AffiliatesPage() {
             "absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px]",
             displayAffiliate.tier?.name === "Starter" && "bg-gray-400/20",
             displayAffiliate.tier?.name === "Silver" && "bg-gray-300/30",
-            displayAffiliate.tier?.name === "Gold" && "bg-amber-400/30",
+            displayAffiliate.tier?.name === "Gold" && "bg-yellow-400/50",
             displayAffiliate.tier?.name === "Platinum" && "bg-purple-400/30",
             !displayAffiliate.tier?.name && "bg-purple-500/10"
           )} />
@@ -639,7 +651,7 @@ export default function AffiliatesPage() {
             "absolute bottom-0 left-0 w-48 h-48 rounded-full blur-[60px]",
             displayAffiliate.tier?.name === "Starter" && "bg-gray-500/10",
             displayAffiliate.tier?.name === "Silver" && "bg-slate-400/20",
-            displayAffiliate.tier?.name === "Gold" && "bg-yellow-500/20",
+            displayAffiliate.tier?.name === "Gold" && "bg-yellow-400/30",
             displayAffiliate.tier?.name === "Platinum" && "bg-indigo-500/20",
             !displayAffiliate.tier?.name && "bg-brand-500/10"
           )} />
@@ -647,7 +659,7 @@ export default function AffiliatesPage() {
             "absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent to-transparent",
             displayAffiliate.tier?.name === "Starter" && "via-gray-400/50",
             displayAffiliate.tier?.name === "Silver" && "via-gray-300/60",
-            displayAffiliate.tier?.name === "Gold" && "via-amber-400/60",
+            displayAffiliate.tier?.name === "Gold" && "via-yellow-400/70",
             displayAffiliate.tier?.name === "Platinum" && "via-purple-400/60",
             !displayAffiliate.tier?.name && "via-brand-500/50"
           )} />
@@ -662,7 +674,7 @@ export default function AffiliatesPage() {
                     "absolute inset-0 scale-125 rounded-full blur-xl",
                     displayAffiliate.tier?.name === "Starter" && "bg-gradient-to-r from-gray-400/30 to-gray-500/30",
                     displayAffiliate.tier?.name === "Silver" && "bg-gradient-to-r from-gray-300/40 to-slate-400/40",
-                    displayAffiliate.tier?.name === "Gold" && "bg-gradient-to-r from-amber-400/40 to-yellow-500/40",
+                    displayAffiliate.tier?.name === "Gold" && "bg-gradient-to-r from-yellow-400/50 to-amber-400/50",
                     displayAffiliate.tier?.name === "Platinum" && "bg-gradient-to-r from-purple-400/40 to-indigo-500/40",
                     !displayAffiliate.tier?.name && "bg-gradient-to-r from-brand-500/30 to-purple-500/30"
                   )} />
@@ -776,7 +788,9 @@ export default function AffiliatesPage() {
             <div className="relative flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Total Earnings</p>
-                <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{displayStats?.totalEarnings || "0"}</p>
+                <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                  {parseFloat(displayStats?.totalEarnings || "0").toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
                 <p className="text-xs text-brand-500 font-medium mt-1">HBCT</p>
               </div>
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/30 group-hover:scale-110 transition-transform duration-300">
@@ -785,17 +799,19 @@ export default function AffiliatesPage() {
             </div>
           </div>
 
-          {/* Pending */}
-          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent dark:from-amber-500/20 dark:via-amber-500/10 dark:to-transparent border border-amber-200/50 dark:border-amber-500/20 p-5 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10 hover:border-amber-300 dark:hover:border-amber-500/40">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+          {/* This Month */}
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent dark:from-emerald-500/20 dark:via-emerald-500/10 dark:to-transparent border border-emerald-200/50 dark:border-emerald-500/20 p-5 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 hover:border-emerald-300 dark:hover:border-emerald-500/40">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="relative flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Pending</p>
-                <p className="text-2xl md:text-3xl font-bold text-amber-500">{displayStats?.pendingEarnings || "0"}</p>
-                <p className="text-xs text-amber-500 font-medium mt-1">HBCT</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">This Month</p>
+                <p className="text-2xl md:text-3xl font-bold text-emerald-500">
+                  {parseFloat(displayStats?.thisMonthEarnings || "0").toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <p className="text-xs text-emerald-500 font-medium mt-1">HBCT</p>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform duration-300">
-                <Clock className="h-6 w-6 text-white" />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
+                <TrendingUp className="h-6 w-6 text-white" />
               </div>
             </div>
           </div>
@@ -898,98 +914,90 @@ export default function AffiliatesPage() {
               </div>
             </div>
 
-            {/* Pending Rewards + Leaderboard */}
+            {/* Recent Commissions + Leaderboard */}
             <div className="grid lg:grid-cols-3 gap-6">
-              {/* Pending Rewards Table */}
+              {/* Recent Commissions */}
               <div className="lg:col-span-2 relative overflow-hidden rounded-2xl">
                 {/* Background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
-                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 dark:bg-amber-500/10 rounded-full blur-[80px]" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-orange-500/5 dark:bg-orange-500/10 rounded-full blur-[60px]" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-[80px]" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-500/5 dark:bg-brand-500/10 rounded-full blur-[60px]" />
 
                 <div className="relative border border-gray-200/50 dark:border-gray-700/50 rounded-2xl overflow-hidden">
                   {/* Header */}
                   <div className="flex items-center justify-between p-5 border-b border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
-                        <Coins className="h-5 w-5 text-white" />
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-brand-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                        <TrendingUp className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <h2 className="font-bold text-gray-900 dark:text-white">Pending Rewards</h2>
-                        <p className="text-xs text-gray-500">{pendingCommissions.length} unclaimed from referrals</p>
+                        <h2 className="font-bold text-gray-900 dark:text-white">Recent Commissions</h2>
+                        <p className="text-xs text-gray-500">
+                          {commissionsData?.summary?.totalEarned
+                            ? `${parseFloat(commissionsData.summary.totalEarned).toLocaleString()} HBCT total earned`
+                            : 'Commission history'}
+                        </p>
                       </div>
                     </div>
-                    {parseFloat(displayStats?.pendingEarnings || "0") > 0 && (
-                      <div className="relative group">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-emerald-500 rounded-xl blur opacity-40 group-hover:opacity-60 transition-opacity" />
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={handleClaim}
-                          disabled={isClaimLoading}
-                          className="relative"
-                        >
-                          <Sparkles className="h-4 w-4 mr-1" />
-                          {isClaimLoading ? "Claiming..." : `Claim ${displayStats?.pendingEarnings} HBCT`}
-                        </Button>
+                    {recentCommissions.length > 0 && (
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                        <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                          {recentCommissions.length} transactions
+                        </span>
                       </div>
                     )}
                   </div>
 
-                  {/* Pending Rewards List */}
+                  {/* Recent Commissions List */}
                   <div className="relative">
                     <div
                       className="divide-y divide-gray-100 dark:divide-gray-800/50 max-h-[516px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700"
                       onScroll={handlePendingScroll}
                     >
-                      {pendingCommissions.length === 0 ? (
+                      {commissionsLoading ? (
+                        <div className="flex flex-col items-center justify-center py-12 px-4">
+                          <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4 animate-pulse">
+                            <Coins className="h-8 w-8 text-gray-400" />
+                          </div>
+                          <p className="text-gray-600 dark:text-gray-400 font-medium">Loading commissions...</p>
+                        </div>
+                      ) : recentCommissions.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 px-4">
                           <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
-                            <CheckCircle className="h-8 w-8 text-emerald-500" />
+                            <Coins className="h-8 w-8 text-gray-400" />
                           </div>
-                          <p className="text-gray-600 dark:text-gray-400 font-medium">All caught up!</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">No pending rewards to claim</p>
+                          <p className="text-gray-600 dark:text-gray-400 font-medium">No commissions yet</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">Share your referral link to start earning!</p>
                         </div>
                       ) : (
-                        pendingCommissions.slice(0, 10).map((commission) => {
-                          const config = commissionTypeConfig[commission.type] || { icon: <Coins className="h-4 w-4" />, label: commission.type };
-                          return (
-                            <div
-                              key={commission.id}
-                              className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all group"
-                            >
-                              <div className="relative w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-colors">
-                                {config.icon}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-900 dark:text-white">{config.label}</p>
-                                <div className="flex items-center gap-2 text-xs text-gray-500">
-                                  {commission.referralName && (
-                                    <>
-                                      <span>from {commission.referralName}</span>
-                                      <span>•</span>
-                                    </>
-                                  )}
-                                  <span>{getTimeAgo(commission.createdAt)}</span>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-lg font-bold text-gray-900 dark:text-white">
-                                  +{commission.amount}
-                                </p>
-                                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">
-                                  <Clock className="h-3 w-3" />
-                                  Unclaimed
-                                </div>
+                        recentCommissions.map((commission) => (
+                          <div
+                            key={commission.id}
+                            className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all group"
+                          >
+                            <div className="relative w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/50 transition-colors">
+                              <Coins className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 dark:text-white">Referral Commission</p>
+                              <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <span>{getTimeAgo(commission.createdAt)}</span>
                               </div>
                             </div>
-                          );
-                        })
+                            <div className="text-right">
+                              <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                                +{parseFloat(commission.amount).toLocaleString()}
+                              </p>
+                              <span className="text-xs text-gray-500">HBCT</span>
+                            </div>
+                          </div>
+                        ))
                       )}
                     </div>
 
                     {/* Scroll indicator - shows when more than 6 items and not at bottom */}
-                    {pendingCommissions.length > 6 && showScrollIndicator && (
+                    {recentCommissions.length > 6 && showScrollIndicator && (
                       <div className="absolute bottom-0 left-0 right-0 pointer-events-none transition-opacity duration-300">
                         <div className="h-16 bg-gradient-to-t from-white dark:from-gray-900 to-transparent" />
                         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0.5 animate-bounce">
@@ -1019,50 +1027,60 @@ export default function AffiliatesPage() {
                   </div>
 
                   {/* Top 3 Podium */}
-                  <div className="flex items-end justify-center gap-3 px-4 py-6 bg-gradient-to-b from-transparent to-white/50 dark:to-gray-800/30">
-                    {/* 2nd Place */}
-                    {leaderboard[1] && (
-                      <div className="flex flex-col items-center">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-400 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300 mb-2 ring-2 ring-gray-300 dark:ring-gray-600">
-                          {leaderboard[1].name?.[0]}
-                        </div>
-                        <div className="w-16 h-16 bg-gradient-to-t from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-500 rounded-t-lg flex flex-col items-center justify-center">
-                          <Medal className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-                          <span className="text-xs font-bold text-gray-700 dark:text-gray-200">2nd</span>
-                        </div>
-                        <p className="text-[10px] text-gray-500 mt-1 truncate max-w-16">{leaderboard[1].name?.split(' ')[0]}</p>
+                  {leaderboard.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 px-4">
+                      <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
+                        <Trophy className="h-8 w-8 text-gray-400" />
                       </div>
-                    )}
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">No leaders yet</p>
+                      <p className="text-xs text-gray-500 mt-1">Be the first to climb the ranks!</p>
+                    </div>
+                  ) : (
+                    <div className="flex items-end justify-center gap-3 px-4 py-6 bg-gradient-to-b from-transparent to-white/50 dark:to-gray-800/30">
+                      {/* 2nd Place */}
+                      {leaderboard[1] && (
+                        <div className="flex flex-col items-center">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-400 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center text-sm font-bold text-gray-600 dark:text-gray-300 mb-2 ring-2 ring-gray-300 dark:ring-gray-600">
+                            {leaderboard[1].name?.[0]}
+                          </div>
+                          <div className="w-16 h-16 bg-gradient-to-t from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-500 rounded-t-lg flex flex-col items-center justify-center">
+                            <Medal className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+                            <span className="text-xs font-bold text-gray-700 dark:text-gray-200">2nd</span>
+                          </div>
+                          <p className="text-[10px] text-gray-500 mt-1 truncate max-w-16">{leaderboard[1].name?.split(' ')[0]}</p>
+                        </div>
+                      )}
 
-                    {/* 1st Place */}
-                    {leaderboard[0] && (
-                      <div className="flex flex-col items-center -mt-4">
-                        <Crown className="h-5 w-5 text-amber-500 mb-1" />
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-300 to-amber-500 flex items-center justify-center text-sm font-bold text-amber-900 mb-2 ring-2 ring-amber-400 shadow-lg shadow-amber-500/30">
-                          {leaderboard[0].name?.[0]}
+                      {/* 1st Place */}
+                      {leaderboard[0] && (
+                        <div className="flex flex-col items-center -mt-4">
+                          <Crown className="h-5 w-5 text-amber-500 mb-1" />
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-300 to-amber-500 flex items-center justify-center text-sm font-bold text-amber-900 mb-2 ring-2 ring-amber-400 shadow-lg shadow-amber-500/30">
+                            {leaderboard[0].name?.[0]}
+                          </div>
+                          <div className="w-16 h-20 bg-gradient-to-t from-amber-400 to-amber-500 rounded-t-lg flex flex-col items-center justify-center shadow-lg">
+                            <Trophy className="h-5 w-5 text-amber-900" />
+                            <span className="text-xs font-bold text-amber-900">1st</span>
+                          </div>
+                          <p className="text-[10px] font-medium text-gray-700 dark:text-gray-300 mt-1">{leaderboard[0].name?.split(' ')[0]}</p>
                         </div>
-                        <div className="w-16 h-20 bg-gradient-to-t from-amber-400 to-amber-500 rounded-t-lg flex flex-col items-center justify-center shadow-lg">
-                          <Trophy className="h-5 w-5 text-amber-900" />
-                          <span className="text-xs font-bold text-amber-900">1st</span>
-                        </div>
-                        <p className="text-[10px] font-medium text-gray-700 dark:text-gray-300 mt-1">{leaderboard[0].name?.split(' ')[0]}</p>
-                      </div>
-                    )}
+                      )}
 
-                    {/* 3rd Place */}
-                    {leaderboard[2] && (
-                      <div className="flex flex-col items-center">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-sm font-bold text-amber-100 mb-2 ring-2 ring-amber-600">
-                          {leaderboard[2].name?.[0]}
+                      {/* 3rd Place */}
+                      {leaderboard[2] && (
+                        <div className="flex flex-col items-center">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center text-sm font-bold text-amber-100 mb-2 ring-2 ring-amber-600">
+                            {leaderboard[2].name?.[0]}
+                          </div>
+                          <div className="w-16 h-12 bg-gradient-to-t from-amber-600 to-amber-700 rounded-t-lg flex flex-col items-center justify-center">
+                            <Medal className="h-4 w-4 text-amber-200" />
+                            <span className="text-xs font-bold text-amber-100">3rd</span>
+                          </div>
+                          <p className="text-[10px] text-gray-500 mt-1 truncate max-w-16">{leaderboard[2].name?.split(' ')[0]}</p>
                         </div>
-                        <div className="w-16 h-12 bg-gradient-to-t from-amber-600 to-amber-700 rounded-t-lg flex flex-col items-center justify-center">
-                          <Medal className="h-4 w-4 text-amber-200" />
-                          <span className="text-xs font-bold text-amber-100">3rd</span>
-                        </div>
-                        <p className="text-[10px] text-gray-500 mt-1 truncate max-w-16">{leaderboard[2].name?.split(' ')[0]}</p>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Rest of Leaderboard */}
                   <div className="px-4 pb-4 space-y-2">
@@ -1078,28 +1096,46 @@ export default function AffiliatesPage() {
                           <p className="font-medium text-sm text-gray-900 dark:text-white truncate">{entry.name}</p>
                           <p className="text-xs text-gray-500">{entry.totalReferrals} referrals</p>
                         </div>
-                        <p className="text-sm font-bold text-brand-500">{parseFloat(entry.totalEarnings).toLocaleString()}</p>
+                        <p className="text-sm font-bold text-brand-500">{parseFloat(entry.totalEarnings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-xs font-normal text-gray-400">HBCT</span></p>
                       </div>
                     ))}
 
                     {/* Your Position */}
                     <div className="mt-3 pt-3 border-t border-dashed border-gray-200 dark:border-gray-700">
-                      <div className="relative group">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500/50 to-yellow-500/50 rounded-xl blur opacity-30" />
-                        <div className="relative flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30">
-                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center font-bold text-sm text-amber-900 shadow-lg shadow-amber-500/30">
-                            6
+                      {(() => {
+                        // Find user's position in leaderboard
+                        const userRankIndex = leaderboard.findIndex(
+                          entry => entry.referralCode === displayAffiliate?.referralCode
+                        );
+                        const userRank = userRankIndex !== -1 ? userRankIndex + 1 : null;
+
+                        return (
+                          <div className="relative group">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500/50 to-yellow-500/50 rounded-xl blur opacity-30" />
+                            <div className="relative flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30">
+                              <div className={cn(
+                                "w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shadow-lg",
+                                userRank !== null
+                                  ? "bg-gradient-to-br from-amber-500 to-yellow-500 text-amber-900 shadow-amber-500/30"
+                                  : "bg-gradient-to-br from-gray-400 to-gray-500 text-white shadow-gray-500/30"
+                              )}>
+                                {userRank !== null ? userRank : "-"}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-sm text-gray-900 dark:text-white flex items-center gap-1">
+                                  You
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-500 text-white">YOU</span>
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {displayStats?.totalReferrals || 0} referrals
+                                  {!userRank && leaderboard.length > 0 && " · Not in top " + leaderboard.length}
+                                </p>
+                              </div>
+                              <p className="text-sm font-bold text-brand-500">{parseFloat(displayStats?.totalEarnings || "0").toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-xs font-normal text-gray-400">HBCT</span></p>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm text-gray-900 dark:text-white flex items-center gap-1">
-                              You
-                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-500 text-white">YOU</span>
-                            </p>
-                            <p className="text-xs text-gray-500">{displayStats?.totalReferrals || 0} referrals</p>
-                          </div>
-                          <p className="text-sm font-bold text-brand-500">{displayStats?.totalEarnings || "0"}</p>
-                        </div>
-                      </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -1124,15 +1160,15 @@ export default function AffiliatesPage() {
                     <div className="flex items-center gap-3 mt-1">
                       <span className="inline-flex items-center gap-1.5 text-sm text-gray-500">
                         <span className="w-2 h-2 rounded-full bg-gray-400"></span>
-                        {displayReferrals.length} total
+                        {referralsSummary.total} total
                       </span>
                       <span className="inline-flex items-center gap-1.5 text-sm text-emerald-600 dark:text-emerald-400">
                         <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        {displayReferrals.filter(r => r.status === "CONVERTED").length} converted
+                        {referralsSummary.converted} converted
                       </span>
                       <span className="inline-flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400">
                         <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                        {displayReferrals.filter(r => r.status === "ACTIVE").length} active
+                        {referralsSummary.active} active
                       </span>
                     </div>
                   </div>
@@ -1152,10 +1188,15 @@ export default function AffiliatesPage() {
 
               {/* Status Filters */}
               <div className="flex gap-2 mt-5 flex-wrap">
-                {(["all", "pending", "active", "converted", "inactive"] as const).map((status) => {
-                  const count = status === "all"
-                    ? displayReferrals.length
-                    : displayReferrals.filter(r => r.status.toLowerCase() === status).length;
+                {(["all", "active", "converted", "inactive"] as const).map((status) => {
+                  // Use summary counts from the API
+                  const countMap: Record<string, number> = {
+                    all: referralsSummary.total,
+                    active: referralsSummary.active,
+                    converted: referralsSummary.converted,
+                    inactive: referralsSummary.inactive,
+                  };
+                  const count = countMap[status] ?? 0;
                   return (
                     <button
                       key={status}
@@ -1195,16 +1236,27 @@ export default function AffiliatesPage() {
 
               {/* Table Body */}
               <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                {paginatedReferrals.length === 0 ? (
+                {referralsLoading ? (
+                  <div className="p-16 text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center animate-pulse">
+                      <Users className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">Loading referrals...</p>
+                  </div>
+                ) : displayReferrals.length === 0 ? (
                   <div className="p-16 text-center">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                       <Users className="h-8 w-8 text-gray-400" />
                     </div>
                     <p className="text-gray-900 dark:text-white font-medium">No referrals found</p>
-                    <p className="text-sm text-gray-500 mt-1">Try adjusting your search or filters</p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {debouncedSearch || statusFilter !== 'all'
+                        ? "Try adjusting your search or filters"
+                        : "Share your referral link to start earning!"}
+                    </p>
                   </div>
                 ) : (
-                  paginatedReferrals.map((referral, index) => {
+                  displayReferrals.map((referral, index) => {
                     const config = statusConfig[referral.status];
                     return (
                       <div
@@ -1285,7 +1337,7 @@ export default function AffiliatesPage() {
               </div>
 
               {/* Pagination */}
-              {filteredReferrals.length > 0 && (
+              {referralsPagination.total > 0 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-800">
                   {/* Items per page */}
                   <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
@@ -1303,7 +1355,7 @@ export default function AffiliatesPage() {
                       <option value={20}>20</option>
                       <option value={50}>50</option>
                     </select>
-                    <span>of {filteredReferrals.length} entries</span>
+                    <span>of {referralsPagination.total} entries</span>
                   </div>
 
                   {/* Pagination Controls */}

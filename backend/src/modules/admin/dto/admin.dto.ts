@@ -1,7 +1,8 @@
 import { IsString, IsOptional, IsNumber, Min, Max, IsBoolean, IsEnum, MaxLength, IsInt } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { UserRole } from '@prisma/client';
+import { ToLowerCase } from '../../../common/utils/transforms';
 
 export class DashboardDto {
   @ApiProperty()
@@ -52,7 +53,7 @@ export class UserQueryDto {
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  @Transform(({ value }) => value?.trim())
+  @ToLowerCase()
   search?: string;
 
   @ApiPropertyOptional({ enum: UserRole })
@@ -105,6 +106,7 @@ export class TransactionQueryDto {
 export class CreateLockTierDto {
   @ApiProperty({ example: '24 Months' })
   @IsString()
+  @ToLowerCase()
   name: string;
 
   @ApiProperty({ example: 24 })
@@ -132,6 +134,7 @@ export class UpdateLockTierDto {
   @ApiPropertyOptional()
   @IsString()
   @IsOptional()
+  @ToLowerCase()
   name?: string;
 
   @ApiPropertyOptional()

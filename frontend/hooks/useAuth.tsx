@@ -6,23 +6,39 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
   type ReactNode,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { authApi, type MeResponse, type Session, type LocationData, type TwoFactorChallengeResponse, type TwoFactorStatus } from "@/lib/api/auth";
-import { ApiError, setTokenExpiry, clearTokenExpiry, hasSessionMarker, clearSessionMarker } from "@/lib/api/client";
+import { authApi, type MeResponse, type Session, type SessionActivity, type LocationData, type TwoFactorChallengeResponse, type TwoFactorStatus, type SecurityAlert, type AuthResponse } from "@/lib/api/auth";
+import { toast } from "sonner";
+import { ApiError, setTokenExpiry, clearTokenExpiry, hasSessionMarker, clearSessionMarker, setSessionMarker } from "@/lib/api/client";
 import { getBrowserLocation } from "@/lib/geolocation";
 import { disconnectWallet, clearDisconnectedFlag } from "@/providers/Web3ModalProvider";
 import { tokensApi } from "@/lib/api/tokens";
 import { lockingApi } from "@/lib/api/locking";
 import { affiliatesApi } from "@/lib/api/affiliates";
+import { walletApi } from "@/lib/api/wallet";
 import { queryKeys } from "./useAppData";
+import { walletQueryKeys } from "./useWalletData";
 import type { User } from "@/types/api";
+
+// Referral source types for tracking
+type ReferralSource =
+  | 'direct_link'
+  | 'social_share'
+  | 'qr_code'
+  | 'email_campaign'
+  | 'partner'
+  | 'unknown';
 
 interface WalletAuthOptions {
   firstName?: string;
   lastName?: string;
   referralCode?: string;
+  referralSource?: ReferralSource;
+  referralCapturedAt?: number;
+  location?: LocationData;
 }
 
 interface LoginRequest {
@@ -37,6 +53,8 @@ interface RegisterRequest {
   firstName?: string;
   lastName?: string;
   referralCode?: string;
+  referralSource?: ReferralSource;
+  referralCapturedAt?: number;
   location?: LocationData;
 }
 
@@ -84,6 +102,9 @@ interface AuthContextType {
   getSessions: () => Promise<Session[]>;
   revokeSession: (sessionId: string) => Promise<void>;
   logoutAllOtherSessions: () => Promise<number>;
+  trustDevice: (sessionId: string, deviceName?: string) => Promise<void>;
+  untrustDevice: (sessionId: string) => Promise<void>;
+  getSessionActivities: (limit?: number) => Promise<SessionActivity[]>;
 
   // Email Verification
   verifyEmailCode: (code: string) => Promise<void>;
@@ -130,6 +151,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         queryKey: queryKeys.transactions(1, 10),
         queryFn: () => tokensApi.getTransactions(1, 10),
         staleTime,
+      }),
+
+      // Wallet balances (for navbar and wallet page)
+      queryClient.prefetchQuery({
+        queryKey: walletQueryKeys.balances,
+        queryFn: () => walletApi.getBalances(),
+        staleTime: 30 * 1000, // 30 seconds - matches useWalletBalances
       }),
 
       // Locking data
@@ -188,9 +216,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ]);
   }, [queryClient]);
 
-  // Clear all cached data on logout
+  // Clear all cached data on logout or user switch
   const clearCache = useCallback(() => {
+    // Remove all queries from the cache
     queryClient.clear();
+    // Also remove all query data and cancel any in-flight queries
+    queryClient.removeQueries();
+    // Reset query defaults
+    queryClient.resetQueries();
   }, [queryClient]);
 
   // Fetch current user from /auth/me
@@ -209,7 +242,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Track the last known user ID to detect user changes
+  const lastKnownUserIdRef = useRef<string | null>(null);
+
   // Check auth on mount - only if session marker exists (optimization)
+  // This also handles OAuth logins (Google, Facebook) which redirect from backend
   useEffect(() => {
     const initAuth = async () => {
       // Skip API call if no session marker exists (guest user)
@@ -218,12 +255,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setCurrentSession(null);
         setPendingActions(null);
         setIsLoading(false);
+        // Clear any stale cache from previous sessions
+        clearCache();
+        lastKnownUserIdRef.current = null;
         return;
       }
 
       // Session marker exists - verify with backend
       try {
         const response = await authApi.getMe();
+
+        // IMPORTANT: Clear cache if user changed (handles OAuth logins and account switches)
+        // This ensures we don't show cached data from a different user
+        const previousUserId = lastKnownUserIdRef.current;
+        const newUserId = response.user?.id || null;
+
+        if (previousUserId && previousUserId !== newUserId) {
+          console.log('[Auth] User changed, clearing cache');
+          clearCache();
+        } else if (!previousUserId && newUserId) {
+          // Fresh login (including OAuth) - clear any stale cache
+          console.log('[Auth] Fresh login detected, clearing cache');
+          clearCache();
+        }
+
+        // Update the ref with current user ID
+        lastKnownUserIdRef.current = newUserId;
+
         setUser(response.user);
         setCurrentSession(response.currentSession);
         setPendingActions(response.pendingActions);
@@ -241,15 +299,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setPendingActions(null);
         clearTokenExpiry();
         clearSessionMarker(); // Clear stale marker
+        // Clear cache when auth fails
+        clearCache();
+        lastKnownUserIdRef.current = null;
       } finally {
         setIsLoading(false);
       }
     };
 
     initAuth();
-  }, [prefetchUserData]);
+  }, [prefetchUserData, clearCache]);
 
-  // Listen for session-revoked events (when token refresh fails due to revoked session)
+  // Display security alert to user (defined before useEffect that needs it)
+  const showSecurityAlert = useCallback((alert: SecurityAlert) => {
+    const messages: Record<string, { title: string; description: string }> = {
+      impossible_travel: {
+        title: "🚨 Suspicious Login Detected",
+        description: alert.message || "We detected a login from an unusual location. If this wasn't you, please secure your account.",
+      },
+      new_location: {
+        title: "📍 New Login Location",
+        description: alert.message || "We noticed a login from a new location. If this wasn't you, please review your sessions.",
+      },
+      ip_change: {
+        title: "🌍 IP Address Changed",
+        description: alert.message || "Your IP address changed during this session.",
+      },
+      new_device: {
+        title: "📱 New Device",
+        description: alert.message || "We noticed a login from a new device.",
+      },
+    };
+
+    const info = messages[alert.type] || {
+      title: "⚠️ Security Alert",
+      description: alert.message,
+    };
+
+    // Show warning toast that stays longer
+    toast.warning(info.title, {
+      description: info.description,
+      duration: 10000, // 10 seconds
+      action: {
+        label: "Review Sessions",
+        onClick: () => window.location.href = "/settings?tab=security",
+      },
+    });
+  }, []);
+
+  // Listen for session-revoked and security-alert events
   useEffect(() => {
     const handleSessionRevoked = () => {
       console.log('[Auth] Session revoked - logging out');
@@ -265,11 +363,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
+    // Handle security alerts from token refresh
+    const handleSecurityAlert = (event: CustomEvent) => {
+      const alert = event.detail as SecurityAlert;
+      if (alert) {
+        showSecurityAlert(alert);
+      }
+    };
+
     window.addEventListener('session-revoked', handleSessionRevoked);
+    window.addEventListener('security-alert', handleSecurityAlert as EventListener);
     return () => {
       window.removeEventListener('session-revoked', handleSessionRevoked);
+      window.removeEventListener('security-alert', handleSecurityAlert as EventListener);
     };
-  }, []);
+  }, [showSecurityAlert]);
 
   // ============================================
   // EMAIL/PASSWORD AUTH
@@ -281,17 +389,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = useCallback(async (credentials: LoginRequest): Promise<LoginResult> => {
+    // IMPORTANT: Clear all cached data from previous user before new login
+    // This prevents showing stale data from a different account
+    clearCache();
+
     // Try to get browser location for accurate geolocation (non-blocking)
     let location: LocationData | undefined;
     try {
       console.log('[Auth] Getting browser location before login...');
       const browserLocation = await getBrowserLocation();
       if (browserLocation) {
+        // Explicitly pick only the allowed properties to avoid validation errors
         location = {
-          latitude: browserLocation.latitude,
-          longitude: browserLocation.longitude,
-          city: browserLocation.city,
-          country: browserLocation.country,
+          ...(browserLocation.latitude !== undefined && { latitude: browserLocation.latitude }),
+          ...(browserLocation.longitude !== undefined && { longitude: browserLocation.longitude }),
+          ...(browserLocation.city && { city: browserLocation.city }),
+          ...(browserLocation.country && { country: browserLocation.country }),
         };
         console.log('[Auth] Browser location obtained:', location);
       } else {
@@ -322,20 +435,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await refreshUser();
     // Prefetch all app data in background (non-blocking)
     prefetchUserData();
+
+    // Show security alert if present
+    if (response.securityAlert) {
+      showSecurityAlert(response.securityAlert);
+    }
+
     return { success: true };
-  }, [refreshUser, prefetchUserData]);
+  }, [clearCache, refreshUser, prefetchUserData, showSecurityAlert]);
 
   const register = useCallback(async (data: RegisterRequest) => {
+    // IMPORTANT: Clear all cached data before registration
+    clearCache();
+
     // Try to get browser location for accurate geolocation (non-blocking)
     let location: LocationData | undefined;
     try {
       const browserLocation = await getBrowserLocation();
       if (browserLocation) {
+        // Explicitly pick only the allowed properties to avoid validation errors
         location = {
-          latitude: browserLocation.latitude,
-          longitude: browserLocation.longitude,
-          city: browserLocation.city,
-          country: browserLocation.country,
+          ...(browserLocation.latitude !== undefined && { latitude: browserLocation.latitude }),
+          ...(browserLocation.longitude !== undefined && { longitude: browserLocation.longitude }),
+          ...(browserLocation.city && { city: browserLocation.city }),
+          ...(browserLocation.country && { country: browserLocation.country }),
         };
       }
     } catch (e) {
@@ -351,7 +474,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await refreshUser();
     // Prefetch all app data in background (non-blocking)
     prefetchUserData();
-  }, [refreshUser, prefetchUserData]);
+  }, [clearCache, refreshUser, prefetchUserData]);
 
   const logout = useCallback(async () => {
     await authApi.logout();
@@ -363,6 +486,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearTokenExpiry();
     // Clear all cached data
     clearCache();
+    // Reset user tracking ref
+    lastKnownUserIdRef.current = null;
     // Disconnect wallet completely and prevent auto-reconnection
     await disconnectWallet();
   }, [clearCache]);
@@ -379,16 +504,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('No 2FA challenge active');
     }
 
+    // IMPORTANT: Clear cache before completing 2FA login (in case of stale data)
+    clearCache();
+
     // Get browser location for the 2FA verification
     let location: LocationData | undefined;
     try {
       const browserLocation = await getBrowserLocation();
       if (browserLocation) {
+        // Explicitly pick only the allowed properties to avoid validation errors
         location = {
-          latitude: browserLocation.latitude,
-          longitude: browserLocation.longitude,
-          city: browserLocation.city,
-          country: browserLocation.country,
+          ...(browserLocation.latitude !== undefined && { latitude: browserLocation.latitude }),
+          ...(browserLocation.longitude !== undefined && { longitude: browserLocation.longitude }),
+          ...(browserLocation.city && { city: browserLocation.city }),
+          ...(browserLocation.country && { country: browserLocation.country }),
         };
       }
     } catch {
@@ -401,15 +530,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       location,
     });
 
-    // Clear the challenge
-    setTwoFactorChallenge(null);
-
-    // Complete login
+    // Complete login - set user FIRST to prevent flash of login form
     setUser(response.user);
     setTokenExpiry();
+
+    // Clear the challenge AFTER setting user
+    setTwoFactorChallenge(null);
+
     await refreshUser();
     prefetchUserData();
-  }, [twoFactorChallenge, refreshUser, prefetchUserData]);
+
+    // Show security alert if present
+    if (response.securityAlert) {
+      showSecurityAlert(response.securityAlert);
+    }
+  }, [clearCache, twoFactorChallenge, refreshUser, prefetchUserData, showSecurityAlert]);
 
   /**
    * Get 2FA status for current user
@@ -430,6 +565,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signMessage: (message: string) => Promise<string>,
     options?: WalletAuthOptions
   ): Promise<{ isNewUser: boolean; requiresTwoFactor?: boolean }> => {
+    // IMPORTANT: Clear all cached data from previous user before new login
+    clearCache();
+
     // Step 1: Get nonce from backend
     const { message, isRegistered } = await authApi.getWalletNonce(walletAddress);
 
@@ -442,6 +580,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         walletAddress,
         signature,
         message,
+        location: options?.location,
       });
 
       // Check if 2FA is required
@@ -471,6 +610,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         firstName: options?.firstName,
         lastName: options?.lastName,
         referralCode: options?.referralCode,
+        referralSource: options?.referralSource,
+        referralCapturedAt: options?.referralCapturedAt,
+        location: options?.location,
       });
       setUser(response.user);
       // Set token expiry for proactive refresh
@@ -482,12 +624,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       prefetchUserData();
       return { isNewUser: true };
     }
-  }, [refreshUser, prefetchUserData]);
+  }, [clearCache, refreshUser, prefetchUserData]);
 
   const walletLogin = useCallback(async (
     walletAddress: string,
     signMessage: (message: string) => Promise<string>
   ): Promise<LoginResult> => {
+    // IMPORTANT: Clear all cached data from previous user before new login
+    clearCache();
+
     // Step 1: Get nonce from backend
     const { message, isRegistered } = await authApi.getWalletNonce(walletAddress);
 
@@ -523,14 +668,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearDisconnectedFlag();
     // Prefetch all app data in background (non-blocking)
     prefetchUserData();
+
+    // Show security alert if present
+    if (response.securityAlert) {
+      showSecurityAlert(response.securityAlert);
+    }
+
     return { success: true };
-  }, [refreshUser, prefetchUserData]);
+  }, [clearCache, refreshUser, prefetchUserData, showSecurityAlert]);
 
   const walletRegister = useCallback(async (
     walletAddress: string,
     signMessage: (message: string) => Promise<string>,
     options?: WalletAuthOptions
   ) => {
+    // IMPORTANT: Clear all cached data before registration
+    clearCache();
+
     // Step 1: Get nonce from backend
     const { message, isRegistered } = await authApi.getWalletNonce(walletAddress);
 
@@ -549,6 +703,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       firstName: options?.firstName,
       lastName: options?.lastName,
       referralCode: options?.referralCode,
+      referralSource: options?.referralSource,
+      referralCapturedAt: options?.referralCapturedAt,
+      location: options?.location,
     });
 
     setUser(response.user);
@@ -559,7 +716,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearDisconnectedFlag();
     // Prefetch all app data in background (non-blocking)
     prefetchUserData();
-  }, [refreshUser, prefetchUserData]);
+  }, [clearCache, refreshUser, prefetchUserData]);
 
   const linkWallet = useCallback(async (
     walletAddress: string,
@@ -600,6 +757,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logoutAllOtherSessions = useCallback(async (): Promise<number> => {
     const response = await authApi.logoutAll();
     return response.revokedSessions;
+  }, []);
+
+  const trustDevice = useCallback(async (sessionId: string, deviceName?: string) => {
+    await authApi.trustDevice(sessionId, deviceName);
+  }, []);
+
+  const untrustDevice = useCallback(async (sessionId: string) => {
+    await authApi.untrustDevice(sessionId);
+  }, []);
+
+  const getSessionActivities = useCallback(async (limit?: number): Promise<SessionActivity[]> => {
+    const response = await authApi.getSessionActivities(limit);
+    return response.activities;
   }, []);
 
   // ============================================
@@ -678,6 +848,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getSessions,
     revokeSession,
     logoutAllOtherSessions,
+    trustDevice,
+    untrustDevice,
+    getSessionActivities,
     // Email Verification
     verifyEmailCode,
     resendVerificationEmail,

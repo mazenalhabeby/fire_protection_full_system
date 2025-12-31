@@ -257,6 +257,8 @@ model User {
   affiliate         Affiliate?
   referredBy        Affiliate?    @relation("ReferredUsers", fields: [referredById], references: [id])
   referredById      String?
+  referralSource    String?       // Source of referral: direct_link, social_share, qr_code, email_campaign, partner
+  referralCapturedAt DateTime?    // When the referral code was first captured
 
   // Legacy Staking (keep for future DeFi)
   stakes            Stake[]
@@ -299,6 +301,9 @@ model User {
   // Notification system
   notifications             Notification[]
   notificationPreference    NotificationPreference?
+
+  // Session activity logging
+  sessionActivities         SessionActivity[]
 
   @@map("users")
 }
@@ -349,36 +354,92 @@ model Session {
   tokenFamily     String    // For refresh token rotation detection
 
   // Device/Session fingerprinting
-  deviceId        String?
-  deviceType      String?   // desktop, mobile, tablet
-  deviceName      String?   // "Chrome on Windows", "Safari on iPhone"
-  browser         String?
-  browserVersion  String?
-  os              String?
-  osVersion       String?
+  deviceId          String?
+  deviceFingerprint String?   // Stable device fingerprint for token binding security
+  deviceType        String?   // desktop, mobile, tablet
+  deviceName        String?   // "Chrome on Windows", "Safari on iPhone"
+  browser           String?
+  browserVersion    String?
+  os                String?
+  osVersion         String?
 
-  // Location tracking
+  // Location tracking (IP-based)
   ipAddress       String?
+  previousIpAddress String? // For IP change detection
   country         String?
   city            String?
+  latitude        Float?    // For impossible travel detection
+  longitude       Float?    // For impossible travel detection
+
+  // Browser geolocation (GPS-based, more accurate)
+  browserLatitude   Float?
+  browserLongitude  Float?
+  browserCity       String?
+  browserCountry    String?
+  browserAccuracy   Float?    // Accuracy in meters
+
+  // VPN/Proxy detection
+  isVpnDetected     Boolean   @default(false)
+  vpnDetectedAt     DateTime?
+  locationMismatch  Boolean   @default(false)  // IP location differs from GPS location
+
+  // Trusted device feature
+  isTrusted       Boolean   @default(false)
+  trustedAt       DateTime?
+  trustDeviceName String?   // User-friendly name for trusted device
 
   // Session status
   isValid         Boolean   @default(true)
   revokedAt       DateTime?
-  revokedReason   String?   // logout, password_change, security, admin, expired
+  revokedReason   String?   // logout, password_change, security, admin, expired, inactivity, ip_change, suspicious_location
+
+  // Optimistic locking for token refresh race condition prevention
+  version         Int       @default(0)
+
+  // Refresh failure tracking for suspicious activity detection
+  refreshFailureCount   Int       @default(0)
+  lastRefreshFailureAt  DateTime?
+  lastRefreshIp         String?   // Last IP that attempted refresh
 
   // Timestamps
   createdAt       DateTime  @default(now())
   lastActivityAt  DateTime  @default(now())
   expiresAt       DateTime
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Relations
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activities SessionActivity[]
 
   @@index([userId, isValid])
   @@index([refreshToken])
   @@index([tokenFamily])
   @@index([expiresAt])
+  @@index([lastActivityAt])
   @@map("sessions")
+}
+
+// Session activity logging for security audits
+model SessionActivity {
+  id          String   @id @default(cuid())
+  sessionId   String
+  userId      String
+
+  // Activity details
+  action      String   // login, logout, password_change, 2fa_setup, withdrawal_request, etc.
+  details     String?  // JSON string with additional details
+  ipAddress   String?
+  userAgent   String?
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("session_activities")
 }
 
 // ============================================
@@ -535,42 +596,6 @@ model TwoFactorAuditLog {
   @@map("two_factor_audit_logs")
 }
 
-// ============================================
-// REQUEST LOGGING (For API Monitoring)
-// ============================================
-
-model RequestLog {
-  id           String   @id @default(cuid())
-
-  // Request details
-  endpoint     String
-  method       String   // GET, POST, PUT, DELETE, PATCH
-  statusCode   Int
-
-  // User tracking (optional for public endpoints)
-  userId       String?
-  sessionId    String?
-
-  // Request metadata
-  ipAddress    String?
-  userAgent    String?
-
-  // Performance
-  responseTime Int?     // milliseconds
-
-  // Timestamps
-  createdAt    DateTime @default(now())
-
-  // For aggregation queries (truncated to hour)
-  dateHour     DateTime
-
-  @@index([endpoint, method, dateHour])
-  @@index([userId, createdAt])
-  @@index([dateHour])
-  @@index([createdAt])
-  @@map("request_logs")
-}
-
 model TokenBalance {
   id               String   @id @default(cuid())
   userId           String   @unique
@@ -636,6 +661,7 @@ model Affiliate {
   referredUsers User[]       @relation("ReferredUsers")
   commissions   Commission[]
   tokenSales    TokenSale[]
+  auditLogs     AffiliateAuditLog[]
 
   @@map("affiliates")
 }
@@ -658,6 +684,24 @@ model Commission {
   @@index([affiliateId, createdAt])
   @@index([isPaid])
   @@map("commissions")
+}
+
+// Affiliate action audit log for security and tracking
+model AffiliateAuditLog {
+  id          String   @id @default(cuid())
+  affiliateId String
+  action      String   // REGISTRATION, COMMISSION_CREATED, COMMISSION_CLAIMED, WITHDRAWAL_REQUEST, CODE_VALIDATED
+  amount      Decimal? @db.Decimal(36, 18)
+  metadata    Json?    // Additional context (IP, user agent, referral details, etc.)
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId, createdAt])
+  @@index([action])
+  @@map("affiliate_audit_logs")
 }
 
 // ============================================
@@ -1454,7 +1498,7 @@ model TokenPurchase {
   failureReason        String?
 
   // Blockchain info (for ON_CHAIN only)
-  txHash               String?
+  txHash               String?             @unique // Prevent replay attacks - each tx can only be used once
 
   // Related wallet transactions
   paymentTransactionId String?             // WalletTransaction for payment debit

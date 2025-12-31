@@ -5,6 +5,24 @@ import { X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
+function smoothScrollToSection(href: string, onClose: () => void) {
+  const targetId = href.slice(1);
+  const element = document.getElementById(targetId);
+  if (element) {
+    onClose();
+    // Small delay to allow menu to close before scrolling
+    setTimeout(() => {
+      const navbarHeight = 64;
+      const extraPadding = 20; // Extra space to show section content
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({
+        top: elementPosition - navbarHeight - extraPadding,
+        behavior: "smooth",
+      });
+    }, 300);
+  }
+}
+
 interface NavItem {
   href: string;
   label: string;
@@ -156,22 +174,48 @@ export function MobileMenu({
           {/* Navigation links - always white */}
           <nav className="flex-1 overflow-y-auto px-4 py-6">
             <ul className="space-y-1">
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={onClose}
-                    className={cn(
-                      "block w-full text-base py-3 px-4 rounded-xl",
-                      "text-white/90 hover:text-white",
-                      "hover:bg-white/10",
-                      "transition-colors duration-200"
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
+              {navItems.map((item) => {
+                const isAnchorLink = item.href.startsWith("#");
+
+                if (isAnchorLink) {
+                  return (
+                    <li key={item.href}>
+                      <a
+                        href={item.href}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          smoothScrollToSection(item.href, onClose);
+                        }}
+                        className={cn(
+                          "block w-full text-base py-3 px-4 rounded-xl cursor-pointer",
+                          "text-white/90 hover:text-white",
+                          "hover:bg-white/10",
+                          "transition-colors duration-200"
+                        )}
+                      >
+                        {item.label}
+                      </a>
+                    </li>
+                  );
+                }
+
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={onClose}
+                      className={cn(
+                        "block w-full text-base py-3 px-4 rounded-xl",
+                        "text-white/90 hover:text-white",
+                        "hover:bg-white/10",
+                        "transition-colors duration-200"
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 

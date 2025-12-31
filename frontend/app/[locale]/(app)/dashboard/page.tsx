@@ -1,29 +1,49 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { useBalance, useTransactions, useAffiliate } from "@/hooks/useAppData";
-import { cn } from "@/lib/utils";
+import { capitalize, formatTokenBalance } from "@/lib/utils";
 import {
   Coins,
-  ArrowUpRight,
-  ArrowDownLeft,
   Lock,
   Users,
   ShoppingBag,
-  ExternalLink,
   TrendingUp,
   Clock,
-  CheckCircle2,
-  AlertCircle,
 } from "lucide-react";
 import { DashboardSkeleton } from "@/components/skeletons/page-skeletons";
 import { usePageLoading } from "@/hooks/useMinimumLoading";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ScrollableList } from "@/components/ui/scrollable-list";
-import { getTimeAgo } from "@/lib/utils/format";
 import { TwoFactorPrompt } from "@/components/security/TwoFactorPrompt";
+import {
+  StatCard,
+  TransactionItem,
+  MiniChart,
+  QuickActionsPanel,
+} from "@/components/dashboard";
+import type { StatCardProps } from "@/components/dashboard";
+import type { QuickAction } from "@/components/dashboard";
+
+// Helper function to get time-based greeting
+const getGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 18) return "Good Afternoon";
+  return "Good Evening";
+};
+
+// Helper to get display balance with fallback and formatting
+const getDisplayBalance = (
+  real: string | undefined,
+  showNewUserState: boolean
+): string => {
+  if (showNewUserState) return "0";
+  if (!real || real === "0" || real === "0.00") return "0";
+  return formatTokenBalance(real);
+};
 
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
@@ -31,17 +51,19 @@ export default function DashboardPage() {
   const { user } = useAuth();
 
   // Use cached data hooks - data is prefetched on login
-  const { data: balance, isLoading: balanceLoading } = useBalance();
-  const { data: txData, isLoading: txLoading } = useTransactions(1, 5);
-  const { data: affiliate, isLoading: affiliateLoading } = useAffiliate();
+  const { data: balance, isLoading: balanceLoading, isError: balanceError } = useBalance();
+  const { data: txData, isLoading: txLoading, isError: txError } = useTransactions(1, 5);
+  const { data: affiliate, isLoading: affiliateLoading, isError: affiliateError } = useAffiliate();
 
   // Minimum loading duration for premium feel
   const { isLoading: isMinLoading, stopLoading } = usePageLoading();
 
-  // Data is loading if any of the queries are loading
-  const isDataLoading = balanceLoading || txLoading || affiliateLoading;
+  // Data is loading if queries are loading (but not if they errored - show partial data)
+  const isDataLoading = (balanceLoading && !balanceError) ||
+                         (txLoading && !txError) ||
+                         (affiliateLoading && !affiliateError);
 
-  // Stop minimum loading when data is ready
+  // Stop minimum loading when data is ready or errored
   useEffect(() => {
     if (!isDataLoading) {
       stopLoading();
@@ -49,83 +71,206 @@ export default function DashboardPage() {
   }, [isDataLoading, stopLoading]);
 
   // Get transactions from query result
-  const transactions = txData?.transactions ?? [];
+  const transactions = useMemo(() => txData?.transactions ?? [], [txData]);
 
   // Check if user has any activity
-  const hasBalance = balance && (
-    parseFloat(balance.availableBalance) > 0 ||
-    parseFloat(balance.lockedBalance) > 0
+  const showNewUserState = useMemo(() => {
+    const hasBalance =
+      balance &&
+      (parseFloat(balance.availableBalance) > 0 ||
+        parseFloat(balance.lockedBalance) > 0);
+    return !hasBalance && transactions.length === 0;
+  }, [balance, transactions.length]);
+
+  // Display values using centralized fallback logic
+  const displayBalance = useMemo(
+    () => ({
+      available: getDisplayBalance(balance?.availableBalance, showNewUserState),
+      locked: getDisplayBalance(balance?.lockedBalance, showNewUserState),
+      total: getDisplayBalance(balance?.totalBalance, showNewUserState),
+    }),
+    [balance, showNewUserState]
   );
-  const showNewUserState = !hasBalance && transactions.length === 0;
-
-  // Helper to get display balance
-  const getDisplayBalance = (real: string | undefined, mock: string) => {
-    if (showNewUserState) return "0.00";
-    if (!real || real === "0" || real === "0.00") return mock;
-    return real;
-  };
-
-  // Display values using centralized mock data
-  const displayBalance = {
-    available: getDisplayBalance(balance?.availableBalance, "0"),
-    locked: getDisplayBalance(balance?.lockedBalance, "0"),
-    total: getDisplayBalance(balance?.totalBalance, "0"),
-  };
 
   // Referral count from affiliate data (cached)
   const displayReferralCount = affiliate?.totalReferrals ?? 0;
 
-  // Use real transactions or mock data
-  const displayTransactions = showNewUserState ? [] :
-    transactions;
+  // Incoming transaction types (money coming in)
+  const INCOMING_TYPES = ['BUY_WEBSITE', 'AIRDROP', 'REWARD_DISTRIBUTION', 'AFFILIATE_BONUS', 'UNLOCK', 'FEE_CASHBACK', 'MARKETPLACE_REFUND', 'TRANSFER_RECEIVE'];
 
-  // Chart data calculation - simple 7-point line chart showing growth
-  const chartData = showNewUserState
-    ? { data: [0, 0, 0, 0, 0, 0, 0], changePercent: 0 }
-    : {
-        data: [120, 145, 132, 167, 178, 195, 210], // Sample growth data
-        changePercent: 12.5
-      };
+  // Chart data - reconstruct balance history from transactions
+  const chartData = useMemo(() => {
+    const currentBalance = parseFloat(balance?.totalBalance?.replace(/,/g, '') || '0') || 0;
 
-  // Generate smooth curve path for chart
-  const generateChartPath = () => {
-    const points = chartData.data;
-    const width = 300;
-    const height = 80;
-    const padding = 5;
-
-    const min = Math.min(...points);
-    const max = Math.max(...points);
-    const range = max - min || 1;
-
-    const xStep = width / (points.length - 1);
-
-    const coords = points.map((point, i) => ({
-      x: i * xStep,
-      y: padding + (height - 2 * padding) - ((point - min) / range) * (height - 2 * padding)
-    }));
-
-    // Generate smooth curve using quadratic bezier
-    let path = `M ${coords[0].x} ${coords[0].y}`;
-    for (let i = 1; i < coords.length; i++) {
-      const prev = coords[i - 1];
-      const curr = coords[i];
-      const midX = (prev.x + curr.x) / 2;
-      path += ` Q ${prev.x + (midX - prev.x) * 0.5} ${prev.y}, ${midX} ${(prev.y + curr.y) / 2}`;
-      path += ` T ${curr.x} ${curr.y}`;
+    // No data state
+    if (showNewUserState || (currentBalance === 0 && transactions.length === 0)) {
+      return { data: [0, 0, 0, 0, 0, 0, 0], changePercent: 0 };
     }
-    return path;
-  };
 
-  const chartPath = generateChartPath();
-  const chartAreaPath = `${chartPath} L 300 80 L 0 80 Z`;
-  const lastPoint = chartData.data[chartData.data.length - 1];
-  const lastY = 5 + (80 - 10) - ((lastPoint - Math.min(...chartData.data)) / (Math.max(...chartData.data) - Math.min(...chartData.data) || 1)) * (80 - 10);
+    // No transactions - show flat line at current balance
+    if (transactions.length === 0) {
+      return {
+        data: Array(7).fill(currentBalance),
+        changePercent: 0,
+      };
+    }
 
+    // Sort transactions by date (oldest first for chronological order)
+    const sortedTx = [...transactions].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+
+    // Calculate balance before all transactions (working backwards)
+    let startingBalance = currentBalance;
+    sortedTx.forEach((tx) => {
+      const amount = parseFloat(tx.amount?.replace(/,/g, '') || '0') || 0;
+      const isIncoming = INCOMING_TYPES.includes(tx.type);
+      // Reverse the transaction to get previous balance
+      if (isIncoming) {
+        startingBalance -= amount; // Was lower before incoming
+      } else {
+        startingBalance += amount; // Was higher before outgoing
+      }
+    });
+    startingBalance = Math.max(0, startingBalance);
+
+    // Build balance history points (one per transaction + start + end)
+    const balancePoints: number[] = [startingBalance];
+    let runningBalance = startingBalance;
+
+    sortedTx.forEach((tx) => {
+      const amount = parseFloat(tx.amount?.replace(/,/g, '') || '0') || 0;
+      const isIncoming = INCOMING_TYPES.includes(tx.type);
+      if (isIncoming) {
+        runningBalance += amount;
+      } else {
+        runningBalance -= amount;
+      }
+      balancePoints.push(Math.max(0, runningBalance));
+    });
+
+    // Normalize to 7 data points for the chart
+    let data: number[];
+    if (balancePoints.length >= 7) {
+      // Take evenly spaced samples
+      data = [];
+      for (let i = 0; i < 7; i++) {
+        const index = Math.floor((i / 6) * (balancePoints.length - 1));
+        data.push(balancePoints[index]);
+      }
+    } else {
+      // Pad with starting balance at the beginning
+      const padding = 7 - balancePoints.length;
+      data = [...Array(padding).fill(startingBalance), ...balancePoints];
+    }
+
+    // Calculate percentage change (capped to reasonable range)
+    const firstValue = data[0];
+    const lastValue = data[data.length - 1];
+    let changePercent = 0;
+
+    if (firstValue > 0 && lastValue > 0) {
+      // Normal case: calculate actual percentage
+      changePercent = ((lastValue - firstValue) / firstValue) * 100;
+    } else if (firstValue === 0 && lastValue > 0) {
+      // Started from 0: show as 100% growth (new user)
+      changePercent = 100;
+    } else if (lastValue < firstValue) {
+      // Balance decreased
+      changePercent = ((lastValue - firstValue) / firstValue) * 100;
+    }
+
+    // Cap percentage to reasonable range (-99% to +999%)
+    changePercent = Math.max(-99, Math.min(999, changePercent));
+    changePercent = Math.round(changePercent * 10) / 10;
+
+    return { data, changePercent };
+  }, [showNewUserState, balance?.totalBalance, transactions]);
+
+  // Stats configuration - dynamic based on data
+  const statsConfig = useMemo(
+    (): StatCardProps[] => [
+      {
+        label: t("availableBalance") || "Available Balance",
+        value: displayBalance.available || "0",
+        subtitle: "HBCT",
+        icon: Coins,
+        color: "brand" as const,
+      },
+      {
+        label: t("lockedBalance") || "Locked Balance",
+        value: displayBalance.locked || "0",
+        subtitle: "HBCT",
+        icon: Lock,
+        color: "purple" as const,
+      },
+      {
+        label: t("totalBalance") || "Total Balance",
+        value: displayBalance.total || "0",
+        subtitle: "HBCT",
+        icon: TrendingUp,
+        color: "emerald" as const,
+      },
+      {
+        label: t("referrals") || "Referrals",
+        value: displayReferralCount ?? 0,
+        subtitle: t("friends") || "Friends",
+        icon: Users,
+        color: "blue" as const,
+      },
+    ],
+    [t, displayBalance, displayReferralCount]
+  );
+
+  // Quick actions configuration
+  const quickActions = useMemo(
+    (): QuickAction[] => [
+      {
+        href: "/buy-tokens",
+        icon: Coins,
+        label: t("buyTokens") || "Buy Tokens",
+        description: "Purchase HBCT tokens",
+        gradient: "from-brand-500 to-brand-600",
+        shadowColor: "shadow-brand-500/25",
+      },
+      {
+        href: "/affiliates",
+        icon: Users,
+        label: t("inviteFriends") || "Invite Friends",
+        description: "Earn referral rewards",
+        gradient: "from-blue-500 to-blue-600",
+        shadowColor: "shadow-blue-500/25",
+      },
+      {
+        href: "/locking",
+        icon: Lock,
+        label: t("lockTokens") || "Lock Tokens",
+        description: "Earn rewards by locking",
+        gradient: "from-purple-500 to-purple-600",
+        shadowColor: "shadow-purple-500/25",
+      },
+      {
+        href: "/marketplace",
+        icon: ShoppingBag,
+        label: t("browseProducts") || "Browse Products",
+        description: "Shop with HBCT",
+        gradient: "from-gray-400 to-gray-500",
+        shadowColor: "shadow-gray-500/25",
+        comingSoon: true,
+      },
+    ],
+    [t]
+  );
+
+  // User display name
+  const displayName = useMemo(
+    () => capitalize(user?.firstName) || user?.email?.split("@")[0] || "User",
+    [user?.firstName, user?.email]
+  );
 
   // Show skeleton while data is loading OR minimum time not met
-  // Note: Auth protection is handled at the layout level
-  const showSkeleton = isDataLoading || isMinLoading;
+  // But don't block forever if there are errors
+  const showSkeleton = isMinLoading || (isDataLoading && !balanceError && !txError && !affiliateError);
 
   if (showSkeleton) {
     return (
@@ -140,49 +285,6 @@ export default function DashboardPage() {
     );
   }
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 18) return "Good Afternoon";
-    return "Good Evening";
-  };
-
-  const quickActions = [
-    {
-      href: "/buy-tokens",
-      icon: Coins,
-      label: t("buyTokens"),
-      description: "Purchase HBCT tokens",
-      gradient: "from-brand-500 to-brand-600",
-      shadowColor: "shadow-brand-500/25",
-    },
-    {
-      href: "/affiliates",
-      icon: Users,
-      label: t("inviteFriends"),
-      description: "Earn referral rewards",
-      gradient: "from-blue-500 to-blue-600",
-      shadowColor: "shadow-blue-500/25",
-    },
-    {
-      href: "/locking",
-      icon: Lock,
-      label: t("lockTokens"),
-      description: "Earn rewards by locking",
-      gradient: "from-purple-500 to-purple-600",
-      shadowColor: "shadow-purple-500/25",
-    },
-    {
-      href: "/marketplace",
-      icon: ShoppingBag,
-      label: t("browseProducts"),
-      description: "Shop with HBCT",
-      gradient: "from-gray-400 to-gray-500",
-      shadowColor: "shadow-gray-500/25",
-      comingSoon: true,
-    },
-  ];
-
   return (
     <div className="flex-1 relative overflow-hidden">
       {/* Premium Background - Clean & Sophisticated */}
@@ -195,7 +297,7 @@ export default function DashboardPage() {
           className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]"
           style={{
             backgroundImage: `linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)`,
-            backgroundSize: '60px 60px',
+            backgroundSize: "60px 60px",
           }}
         />
 
@@ -220,7 +322,7 @@ export default function DashboardPage() {
             className="absolute inset-0 opacity-[0.03]"
             style={{
               backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`,
-              backgroundSize: '40px 40px',
+              backgroundSize: "40px 40px",
             }}
           />
 
@@ -233,9 +335,13 @@ export default function DashboardPage() {
           <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-4">
             {/* Left Side - Text (50%) */}
             <div className="md:w-1/2">
-              <p className="text-brand-400 text-sm font-medium mb-2">{getGreeting()}</p>
+              <p className="text-brand-400 text-sm font-medium mb-2">
+                {getGreeting()}
+              </p>
               <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-                {showNewUserState ? `Welcome, ${user?.firstName || user?.email?.split("@")[0]}!` : `Welcome back, ${user?.firstName || user?.email?.split("@")[0]}!`}
+                {showNewUserState
+                  ? `Welcome, ${displayName}!`
+                  : `Welcome back, ${displayName}!`}
               </h1>
               <p className="text-gray-400 text-sm md:text-base">
                 {showNewUserState
@@ -245,55 +351,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Right Side - Chart (50%) */}
-            <div className="hidden md:flex items-center justify-end gap-4 md:w-1/2">
-              {/* Chart - Takes most of the space */}
-              <div className="relative flex-1 h-24">
-                <svg viewBox="0 0 300 80" className="w-full h-full" preserveAspectRatio="none">
-                  {/* Gradient fill under the line */}
-                  <defs>
-                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="rgb(249, 115, 22)" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="rgb(249, 115, 22)" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  {/* Area fill */}
-                  <path
-                    d={chartAreaPath}
-                    fill="url(#chartGradient)"
-                  />
-                  {/* Line */}
-                  <path
-                    d={chartPath}
-                    fill="none"
-                    stroke="rgb(249, 115, 22)"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  {/* End dot with glow */}
-                  <circle cx="300" cy={lastY} r="6" fill="rgb(249, 115, 22)" opacity="0.3" />
-                  <circle cx="300" cy={lastY} r="4" fill="rgb(249, 115, 22)" />
-                </svg>
-              </div>
-              {/* Stats */}
-              <div className="text-right shrink-0">
-                {chartData.changePercent === 0 ? (
-                  <>
-                    <p className="text-brand-400 text-lg font-bold flex items-center justify-end gap-1">
-                      0%
-                    </p>
-                    <p className="text-gray-400 text-xs">No activity yet</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-brand-400 text-lg font-bold flex items-center justify-end gap-1">
-                      <TrendingUp className="h-4 w-4" />
-                      +{chartData.changePercent}%
-                    </p>
-                    <p className="text-gray-400 text-xs">Last 7 days</p>
-                  </>
-                )}
-              </div>
+            <div className="hidden md:flex items-center justify-end md:w-1/2">
+              <MiniChart
+                data={chartData.data}
+                changePercent={chartData.changePercent}
+                showStats={false}
+              />
             </div>
           </div>
         </div>
@@ -304,106 +367,19 @@ export default function DashboardPage() {
           <div className="space-y-6">
             {/* Stats Grid - 2x2 */}
             <div className="grid grid-cols-2 gap-4">
-              {/* Available Balance */}
-              <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500/10 via-brand-500/5 to-transparent dark:from-brand-500/20 dark:via-brand-500/10 dark:to-transparent border border-brand-200/50 dark:border-brand-500/20 p-4 md:p-5 transition-all duration-300 hover:shadow-lg hover:shadow-brand-500/10 hover:border-brand-300 dark:hover:border-brand-500/40">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-brand-500/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="relative flex items-center justify-between">
-                  <div>
-                    <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">{t("availableBalance")}</p>
-                    <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{displayBalance.available}</p>
-                    <p className="text-[10px] md:text-xs text-brand-500 font-medium mt-1">HBCT</p>
-                  </div>
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <Coins className="h-5 w-5 md:h-6 md:w-6 text-white" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Locked Balance */}
-              <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent dark:from-purple-500/20 dark:via-purple-500/10 dark:to-transparent border border-purple-200/50 dark:border-purple-500/20 p-4 md:p-5 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10 hover:border-purple-300 dark:hover:border-purple-500/40">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="relative flex items-center justify-between">
-                  <div>
-                    <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">{t("lockedBalance")}</p>
-                    <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{displayBalance.locked}</p>
-                    <p className="text-[10px] md:text-xs text-purple-500 font-medium mt-1">HBCT</p>
-                  </div>
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <Lock className="h-5 w-5 md:h-6 md:w-6 text-white" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Total Balance */}
-              <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent dark:from-emerald-500/20 dark:via-emerald-500/10 dark:to-transparent border border-emerald-200/50 dark:border-emerald-500/20 p-4 md:p-5 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/10 hover:border-emerald-300 dark:hover:border-emerald-500/40">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="relative flex items-center justify-between">
-                  <div>
-                    <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">{t("totalBalance")}</p>
-                    <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{displayBalance.total}</p>
-                    <p className="text-[10px] md:text-xs text-emerald-500 font-medium mt-1">HBCT</p>
-                  </div>
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-white" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Referrals */}
-              <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent dark:from-blue-500/20 dark:via-blue-500/10 dark:to-transparent border border-blue-200/50 dark:border-blue-500/20 p-4 md:p-5 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 hover:border-blue-300 dark:hover:border-blue-500/40">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="relative flex items-center justify-between">
-                  <div>
-                    <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">{t("referrals")}</p>
-                    <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{displayReferralCount}</p>
-                    <p className="text-[10px] md:text-xs text-blue-500 font-medium mt-1">{t("friends")}</p>
-                  </div>
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <Users className="h-5 w-5 md:h-6 md:w-6 text-white" />
-                  </div>
-                </div>
-              </div>
+              {statsConfig.map((stat, index) => (
+                <StatCard key={index} {...stat} />
+              ))}
             </div>
 
             {/* Quick Actions - Desktop Only */}
-            <div className="hidden md:block p-5 rounded-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-800/50 shadow-lg shadow-gray-200/50 dark:shadow-black/20">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">{t("quickActions")}</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {quickActions.map((action) => (
-                  <a
-                    key={action.href}
-                    href={action.comingSoon ? "#" : `/${locale}${action.href}`}
-                    className={cn(
-                      "group flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-transparent transition-all duration-200",
-                      action.comingSoon
-                        ? "cursor-not-allowed opacity-60"
-                        : "hover:bg-white dark:hover:bg-gray-800 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-md"
-                    )}
-                    onClick={action.comingSoon ? (e) => e.preventDefault() : undefined}
-                  >
-                    <div className={cn(
-                      "w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center transition-transform duration-300",
-                      action.gradient,
-                      action.shadowColor,
-                      !action.comingSoon && "group-hover:scale-110 shadow-lg"
-                    )}>
-                      <action.icon className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{action.label}</p>
-                        {action.comingSoon && (
-                          <span className="text-[10px] font-medium px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full">Soon</span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{action.description}</p>
-                    </div>
-                    {!action.comingSoon && (
-                      <ExternalLink className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    )}
-                  </a>
-                ))}
-              </div>
+            <div className="hidden md:block">
+              <QuickActionsPanel
+                actions={quickActions}
+                locale={locale}
+                title={t("quickActions")}
+                variant="desktop"
+              />
             </div>
           </div>
 
@@ -414,9 +390,9 @@ export default function DashboardPage() {
                 <Clock className="h-4 w-4 text-brand-500" />
                 {t("recentActivity")}
               </h3>
-              {displayTransactions.length > 0 && (
+              {transactions.length > 0 && (
                 <a
-                  href={`/${locale}/transactions`}
+                  href={`/${locale}/wallet/transactions`}
                   className="text-xs font-medium text-brand-500 hover:text-brand-600 transition-colors"
                 >
                   {t("viewAll")}
@@ -424,7 +400,7 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {displayTransactions.length === 0 ? (
+            {transactions.length === 0 ? (
               <div className="p-8">
                 <EmptyState
                   icon={Clock}
@@ -434,82 +410,14 @@ export default function DashboardPage() {
                 />
               </div>
             ) : (
-              <ScrollableList maxHeight="430px" showScrollIndicator={displayTransactions.length > 5}>
+              <ScrollableList
+                maxHeight="430px"
+                showScrollIndicator={transactions.length > 5}
+              >
                 <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
-                  {displayTransactions.map((tx) => {
-                    const isReceived = tx.type === "REWARD_DISTRIBUTION" || tx.type === "AFFILIATE_BONUS" || tx.type === "AIRDROP" || tx.type === "BUY_WEBSITE";
-                    const Icon = isReceived ? ArrowDownLeft : ArrowUpRight;
-
-                    const getStatusIcon = () => {
-                      switch (tx.status) {
-                        case "COMPLETED":
-                          return <CheckCircle2 className="h-3 w-3 text-emerald-500" />;
-                        case "PENDING":
-                          return <Clock className="h-3 w-3 text-amber-500" />;
-                        case "FAILED":
-                          return <AlertCircle className="h-3 w-3 text-red-500" />;
-                        default:
-                          return null;
-                      }
-                    };
-
-                    const getStatusClass = () => {
-                      switch (tx.status) {
-                        case "COMPLETED":
-                          return "bg-emerald-500/10 text-emerald-500";
-                        case "PENDING":
-                          return "bg-amber-500/10 text-amber-500";
-                        case "FAILED":
-                          return "bg-red-500/10 text-red-500";
-                        default:
-                          return "bg-gray-500/10 text-gray-500";
-                      }
-                    };
-
-                    return (
-                      <div
-                        key={tx.id}
-                        className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors"
-                      >
-                        <div className={cn(
-                          "w-10 h-10 rounded-xl flex items-center justify-center",
-                          isReceived
-                            ? "bg-emerald-100 dark:bg-emerald-500/20"
-                            : "bg-gray-100 dark:bg-gray-800"
-                        )}>
-                          <Icon className={cn(
-                            "h-5 w-5",
-                            isReceived ? "text-emerald-500" : "text-gray-500 dark:text-gray-400"
-                          )} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                              {t(`transactionTypes.${tx.type}`, { defaultValue: tx.type.replace(/_/g, ' ') })}
-                            </p>
-                            <span className={cn(
-                              "text-sm font-semibold",
-                              isReceived ? "text-emerald-500" : "text-gray-900 dark:text-white"
-                            )}>
-                              {isReceived ? "+" : "-"}{tx.amount} HBCT
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {getTimeAgo(tx.createdAt)}
-                            </span>
-                            <span className={cn(
-                              "inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full",
-                              getStatusClass()
-                            )}>
-                              {getStatusIcon()}
-                              {t(`status.${tx.status.toLowerCase()}`, { defaultValue: tx.status })}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {transactions.map((tx) => (
+                    <TransactionItem key={tx.id} transaction={tx} />
+                  ))}
                 </div>
               </ScrollableList>
             )}
@@ -517,34 +425,13 @@ export default function DashboardPage() {
         </div>
 
         {/* Mobile Quick Actions */}
-        <div className="md:hidden mt-6 p-4 rounded-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-800/50">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{t("quickActions")}</h3>
-          <div className="grid grid-cols-4 gap-2">
-            {quickActions.map((action) => (
-              <a
-                key={action.href}
-                href={action.comingSoon ? "#" : `/${locale}${action.href}`}
-                className={cn(
-                  "flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all",
-                  action.comingSoon
-                    ? "cursor-not-allowed opacity-50"
-                    : "hover:bg-gray-50 dark:hover:bg-gray-800/50 active:scale-95"
-                )}
-                onClick={action.comingSoon ? (e) => e.preventDefault() : undefined}
-              >
-                <div className={cn(
-                  "w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-lg",
-                  action.gradient,
-                  action.shadowColor
-                )}>
-                  <action.icon className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400 text-center leading-tight">
-                  {action.label.split(' ')[0]}
-                </span>
-              </a>
-            ))}
-          </div>
+        <div className="md:hidden mt-6">
+          <QuickActionsPanel
+            actions={quickActions}
+            locale={locale}
+            title={t("quickActions")}
+            variant="mobile"
+          />
         </div>
       </div>
     </div>

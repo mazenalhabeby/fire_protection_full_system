@@ -11,6 +11,7 @@ import {
   useConfirmTransfer,
   useCancelTransfer,
 } from "@/hooks/useWalletData";
+import { useInvalidateDashboard } from "@/hooks/useAppData";
 import { usePageLoading } from "@/hooks/useMinimumLoading";
 import { cn } from "@/lib/utils";
 import {
@@ -48,6 +49,9 @@ export default function SendPage() {
   const initiateMutation = useInitiateTransfer();
   const confirmMutation = useConfirmTransfer();
   const cancelMutation = useCancelTransfer();
+
+  // Cache invalidation
+  const { invalidateBalance } = useInvalidateDashboard();
 
   // Loading
   const { isLoading: isMinLoading, stopLoading } = usePageLoading();
@@ -87,6 +91,8 @@ export default function SendPage() {
         transferId: pendingTransfer.transferId,
         confirmationCode: code,
       });
+      // Invalidate dashboard cache to show updated balance/transactions
+      invalidateBalance();
       setFinalMessage("Transfer completed successfully!");
       setStep("success");
     } catch (error: unknown) {

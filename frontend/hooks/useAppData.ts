@@ -2,10 +2,11 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { tokensApi } from "@/lib/api/tokens";
+import { walletApi } from "@/lib/api/wallet";
 import { lockingApi } from "@/lib/api/locking";
 import { affiliatesApi } from "@/lib/api/affiliates";
 import { useAuth } from "./useAuth";
-import type { TokenBalance, Transaction, LockTier, TokenLock } from "@/types/api";
+import type { TokenBalance, Transaction, LockTier, TokenLock, WalletBalance } from "@/types/api";
 import type {
   Affiliate,
   AffiliateStats,
@@ -47,7 +48,9 @@ export const queryKeys = {
 // ============================================
 
 /**
- * Fetch and cache token balance
+ * Fetch and cache token balance from wallet
+ * Uses the wallet API which is where purchased tokens are stored
+ * Refreshes on window focus and when mutations invalidate the cache
  */
 export function useBalance() {
   const { isAuthenticated } = useAuth();
@@ -55,17 +58,27 @@ export function useBalance() {
   return useQuery({
     queryKey: queryKeys.balance,
     queryFn: async (): Promise<TokenBalance> => {
-      return tokensApi.getBalance();
+      // Get HBCT balance from wallet
+      const walletBalance = await walletApi.getBalance('HBCT');
+
+      // Transform WalletBalance to TokenBalance format for dashboard compatibility
+      return {
+        availableBalance: walletBalance.availableBalance,
+        lockedBalance: walletBalance.lockedBalance,
+        totalBalance: walletBalance.totalBalance,
+      };
     },
     enabled: isAuthenticated,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 60 * 1000, // 1 minute
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
 }
 
 /**
- * Fetch and cache recent transactions
+ * Fetch and cache recent transactions from wallet
+ * Uses wallet transactions which include all HBCT activity
+ * Refreshes on window focus and when mutations invalidate the cache
  */
 export function useTransactions(page = 1, limit = 10) {
   const { isAuthenticated } = useAuth();
@@ -73,13 +86,57 @@ export function useTransactions(page = 1, limit = 10) {
   return useQuery({
     queryKey: queryKeys.transactions(page, limit),
     queryFn: async () => {
-      return tokensApi.getTransactions(page, limit);
+      const result = await walletApi.getTransactions({
+        currency: 'HBCT',
+        page,
+        limit,
+      });
+
+      // Transform WalletTransaction[] to Transaction[] format for dashboard compatibility
+      const transactions: Transaction[] = result.transactions.map((tx) => ({
+        id: tx.id,
+        type: mapWalletTypeToTransactionType(tx.type),
+        amount: tx.amount,
+        status: tx.status as Transaction['status'],
+        txHash: tx.txHash || tx.metadata?.txHash,
+        createdAt: tx.createdAt,
+        completedAt: tx.completedAt,
+      }));
+
+      return {
+        transactions,
+        pagination: {
+          page: result.page,
+          limit: result.limit,
+          total: result.total,
+          totalPages: result.totalPages,
+        },
+      };
     },
     enabled: isAuthenticated,
-    staleTime: 1 * 60 * 1000, // 1 minute
+    staleTime: 60 * 1000, // 1 minute
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
+}
+
+// Helper to map wallet transaction types to dashboard transaction types
+function mapWalletTypeToTransactionType(walletType: string): Transaction['type'] {
+  const typeMap: Record<string, Transaction['type']> = {
+    'TOKEN_PURCHASE': 'BUY_WEBSITE',
+    'DEPOSIT': 'BUY_WEBSITE',
+    'WITHDRAWAL': 'TRANSFER',
+    'INTERNAL_TRANSFER_SEND': 'TRANSFER',
+    'INTERNAL_TRANSFER_RECEIVE': 'TRANSFER_RECEIVE',
+    'LOCK': 'LOCK',
+    'UNLOCK': 'UNLOCK',
+    'REWARD': 'REWARD_DISTRIBUTION',
+    'AIRDROP': 'AIRDROP',
+    'AFFILIATE_COMMISSION': 'AFFILIATE_BONUS',
+    'FEE': 'TRANSFER',
+    'REFUND': 'MARKETPLACE_REFUND',
+  };
+  return typeMap[walletType] || 'TRANSFER';
 }
 
 // ============================================
@@ -194,6 +251,7 @@ export function useUnlock() {
 
 /**
  * Fetch and cache affiliate profile
+ * Refreshes on window focus and when mutations invalidate the cache
  */
 export function useAffiliate() {
   const { isAuthenticated } = useAuth();
@@ -208,7 +266,7 @@ export function useAffiliate() {
       }
     },
     enabled: isAuthenticated,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
@@ -251,6 +309,80 @@ export function useLeaderboard(limit = 10) {
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
+}
+
+/**
+ * Fetch and cache referrals with pagination
+ */
+export function useReferrals(params?: {
+  page?: number;
+  limit?: number;
+  status?: 'all' | 'pending' | 'active' | 'converted' | 'inactive';
+  search?: string;
+}) {
+  const { isAuthenticated } = useAuth();
+  const { page = 1, limit = 10, status, search } = params || {};
+
+  return useQuery({
+    queryKey: [...queryKeys.referrals(page, limit), status, search],
+    queryFn: async () => {
+      try {
+        const response = await affiliatesApi.getReferrals({
+          page,
+          limit,
+          status: status === 'all' ? undefined : status,
+          search,
+        });
+        return response;
+      } catch {
+        return {
+          referrals: [] as ReferralDetails[],
+          summary: { total: 0, active: 0, converted: 0, inactive: 0 },
+          pagination: { page, limit, total: 0, totalPages: 0 },
+        };
+      }
+    },
+    enabled: isAuthenticated,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
+}
+
+/**
+ * Fetch and cache commissions with pagination
+ */
+export function useCommissions(params?: {
+  page?: number;
+  limit?: number;
+  status?: 'all' | 'paid' | 'pending';
+}) {
+  const { isAuthenticated } = useAuth();
+  const { page = 1, limit = 10, status } = params || {};
+
+  return useQuery({
+    queryKey: [...queryKeys.commissions(page, limit), status],
+    queryFn: async () => {
+      try {
+        const response = await affiliatesApi.getCommissions({
+          page,
+          limit,
+          status: status === 'all' ? undefined : status,
+        });
+        return response;
+      } catch {
+        return {
+          commissions: [] as Commission[],
+          summary: { totalEarned: '0', totalPending: '0', totalPaid: '0' },
+          pagination: { page, limit, total: 0, totalPages: 0 },
+        };
+      }
+    },
+    enabled: isAuthenticated,
+    staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
@@ -377,11 +509,32 @@ export function usePrefetchInitialData() {
       // Dashboard data
       queryClient.prefetchQuery({
         queryKey: queryKeys.balance,
-        queryFn: () => tokensApi.getBalance(),
+        queryFn: async () => {
+          const walletBalance = await walletApi.getBalance('HBCT');
+          return {
+            availableBalance: walletBalance.availableBalance,
+            lockedBalance: walletBalance.lockedBalance,
+            totalBalance: walletBalance.totalBalance,
+          };
+        },
       }),
       queryClient.prefetchQuery({
         queryKey: queryKeys.transactions(1, 10),
-        queryFn: () => tokensApi.getTransactions(1, 10),
+        queryFn: async () => {
+          const result = await walletApi.getTransactions({ currency: 'HBCT', page: 1, limit: 10 });
+          return {
+            transactions: result.transactions.map((tx) => ({
+              id: tx.id,
+              type: mapWalletTypeToTransactionType(tx.type),
+              amount: tx.amount,
+              status: tx.status,
+              txHash: tx.txHash || tx.metadata?.txHash,
+              createdAt: tx.createdAt,
+              completedAt: tx.completedAt,
+            })),
+            pagination: { page: result.page, limit: result.limit, total: result.total, totalPages: result.totalPages },
+          };
+        },
       }),
 
       // Locking data
@@ -443,6 +596,41 @@ export function useClearCache() {
 
   return () => {
     queryClient.clear();
+  };
+}
+
+/**
+ * Invalidate dashboard data (call after balance-changing actions)
+ * Use this after transfers, purchases, locks, etc.
+ */
+export function useInvalidateDashboard() {
+  const queryClient = useQueryClient();
+
+  return {
+    // Invalidate all dashboard data
+    invalidateAll: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.balance });
+      // Use predicate to match all transaction queries regardless of page/limit
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === 'transactions'
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.userLocks });
+      queryClient.invalidateQueries({ queryKey: queryKeys.affiliate });
+      queryClient.invalidateQueries({ queryKey: queryKeys.affiliateStats });
+    },
+    // Invalidate only balance and transactions
+    invalidateBalance: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.balance });
+      // Use predicate to match all transaction queries regardless of page/limit
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === 'transactions'
+      });
+    },
+    // Invalidate only affiliate data
+    invalidateAffiliate: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.affiliate });
+      queryClient.invalidateQueries({ queryKey: queryKeys.affiliateStats });
+    },
   };
 }
 

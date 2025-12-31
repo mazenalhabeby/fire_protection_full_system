@@ -46,9 +46,9 @@ export function SendForm({ balances, limits, onSubmit, isSubmitting }: SendFormP
   const [touched, setTouched] = useState(false);
 
   const lookupMutation = useLookupRecipient();
-  const debouncedIdentifier = useDebounce(identifier, 500);
+  const debouncedIdentifier = useDebounce(identifier, 1000);
 
-  // Lookup recipient when identifier changes
+  // Lookup recipient when identifier changes (debounced)
   useEffect(() => {
     if (debouncedIdentifier.length >= 3) {
       lookupMutation.mutate({ method, identifier: debouncedIdentifier });

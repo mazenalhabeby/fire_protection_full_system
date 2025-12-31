@@ -25,6 +25,7 @@ export interface PurchaseOffChainParams {
   paymentAmount: Decimal;
   referralCode?: string;
   ipAddress?: string;
+  txHash?: string; // Blockchain transaction hash of payment
 }
 
 export interface PurchaseOnChainParams extends PurchaseOffChainParams {

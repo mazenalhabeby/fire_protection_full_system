@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import {
   useAccount,
   useBalance,
@@ -13,6 +13,8 @@ import {
 import { bsc } from "wagmi/chains";
 import { toast } from "sonner";
 import { clearDisconnectedFlag } from "@/providers/Web3ModalProvider";
+import { authApi } from "@/lib/api/auth";
+import { useAuth } from "@/hooks/useAuth";
 
 // Chain names mapping
 const chainNames: Record<number, string> = {
@@ -60,6 +62,12 @@ export interface ConnectorInfo {
   icon?: string;
 }
 
+export interface WalletConflictError {
+  hasConflict: boolean;
+  message: string;
+  walletAddress: string;
+}
+
 export interface UseWalletReturn extends WalletInfo {
   connect: (connectorId?: string) => void;
   disconnect: () => void;
@@ -70,6 +78,10 @@ export interface UseWalletReturn extends WalletInfo {
   isModalOpen: boolean;
   openModal: () => void;
   closeModal: () => void;
+  // Wallet conflict detection
+  walletConflict: WalletConflictError | null;
+  isCheckingWallet: boolean;
+  clearWalletConflict: () => void;
 }
 
 export function useWallet(): UseWalletReturn {
@@ -79,9 +91,15 @@ export function useWallet(): UseWalletReturn {
   const { switchChain: wagmiSwitchChain } = useSwitchChain();
   const { connect: wagmiConnect, isPending } = useConnect();
   const wagmiConnectors = useConnectors();
+  const { isAuthenticated } = useAuth();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendingConnector, setPendingConnector] = useState<string | null>(null);
+
+  // Wallet conflict detection
+  const [walletConflict, setWalletConflict] = useState<WalletConflictError | null>(null);
+  const [isCheckingWallet, setIsCheckingWallet] = useState(false);
+  const lastCheckedAddress = useRef<string | null>(null);
 
   // Auto-close modal when wallet connects
   useEffect(() => {
@@ -90,6 +108,75 @@ export function useWallet(): UseWalletReturn {
       setPendingConnector(null);
     }
   }, [isConnected, isModalOpen]);
+
+  // Check wallet availability when connected
+  // IMPORTANT: Only check when user is AUTHENTICATED (logged in)
+  // This prevents showing conflict modal during wallet login/register flow
+  useEffect(() => {
+    const checkWalletAvailability = async () => {
+      if (!isConnected || !address) {
+        setWalletConflict(null);
+        lastCheckedAddress.current = null;
+        return;
+      }
+
+      // SKIP check if user is NOT authenticated
+      // During login/register with wallet, we don't want to show conflict modal
+      // The conflict check is only for when a logged-in user connects a wallet for transactions
+      if (!isAuthenticated) {
+        setWalletConflict(null);
+        lastCheckedAddress.current = null;
+        return;
+      }
+
+      // Skip if we already checked this address
+      if (lastCheckedAddress.current === address.toLowerCase()) {
+        return;
+      }
+
+      setIsCheckingWallet(true);
+      lastCheckedAddress.current = address.toLowerCase();
+
+      try {
+        // Use authenticated endpoint since user is logged in
+        const result = await authApi.checkWalletAvailabilityAuthenticated(address);
+
+        if (!result.available && !result.linkedToCurrentUser) {
+          // Wallet is linked to another user - DISCONNECT immediately
+          setWalletConflict({
+            hasConflict: true,
+            message: result.message || "This wallet is already linked to another account",
+            walletAddress: address,
+          });
+
+          // Disconnect the wallet - don't allow it to stay connected
+          wagmiDisconnect();
+
+          // Show toast notification
+          toast.error("Wallet Blocked", {
+            description: result.message || "This wallet is already linked to another account. Please use a different wallet.",
+            duration: 6000,
+          });
+        } else {
+          setWalletConflict(null);
+        }
+      } catch (error) {
+        // Silently handle errors - don't block the user
+        console.warn("Failed to check wallet availability:", error);
+        setWalletConflict(null);
+      } finally {
+        setIsCheckingWallet(false);
+      }
+    };
+
+    checkWalletAvailability();
+  }, [isConnected, address, isAuthenticated, wagmiDisconnect]);
+
+  // Clear wallet conflict state
+  const clearWalletConflict = useCallback(() => {
+    setWalletConflict(null);
+    lastCheckedAddress.current = null;
+  }, []);
 
   // Get native token balance
   const { data: balanceData } = useBalance({
@@ -206,7 +293,11 @@ export function useWallet(): UseWalletReturn {
   }, [address]);
 
   // Modal controls
-  const openModal = useCallback(() => setIsModalOpen(true), []);
+  const openModal = useCallback(() => {
+    // Clear the disconnected flag when opening modal so user can connect
+    clearDisconnectedFlag();
+    setIsModalOpen(true);
+  }, []);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
 
   return {
@@ -232,6 +323,10 @@ export function useWallet(): UseWalletReturn {
     isModalOpen,
     openModal,
     closeModal,
+    // Wallet conflict detection
+    walletConflict,
+    isCheckingWallet,
+    clearWalletConflict,
   };
 }
 

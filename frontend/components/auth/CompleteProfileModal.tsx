@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
-import { User, Mail, CheckCircle, Loader2, AlertCircle, Send } from "lucide-react";
+import { User, Mail, CheckCircle, Loader2, AlertCircle, Send, Pencil, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CompleteProfileModalProps {
@@ -16,7 +16,7 @@ interface CompleteProfileModalProps {
 export function CompleteProfileModal({ isOpen }: CompleteProfileModalProps) {
   const { user, refreshUser, verifyEmailCode, resendVerificationEmail } = useAuth();
 
-  const [step, setStep] = useState<"profile" | "verify-email">("profile");
+  const [step, setStep] = useState<"profile" | "verify-email" | "edit-email">("profile");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -28,6 +28,8 @@ export function CompleteProfileModal({ isOpen }: CompleteProfileModalProps) {
   const [isResending, setIsResending] = useState(false);
   const [canResend, setCanResend] = useState(true);
   const [resendCountdown, setResendCountdown] = useState(0);
+  const [newEmail, setNewEmail] = useState("");
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -195,6 +197,59 @@ export function CompleteProfileModal({ isOpen }: CompleteProfileModalProps) {
     }
   };
 
+  const handleEditEmail = () => {
+    setNewEmail(user?.email || "");
+    setStep("edit-email");
+  };
+
+  const handleUpdateEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newEmail.trim()) {
+      toast.error("Please enter an email address");
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail.trim())) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    if (newEmail.trim().toLowerCase() === user?.email?.toLowerCase()) {
+      toast.error("Please enter a different email address");
+      return;
+    }
+
+    setIsUpdatingEmail(true);
+    try {
+      await api.patch("/users/profile", {
+        email: newEmail.trim().toLowerCase(),
+      });
+
+      await refreshUser();
+      toast.success("Email updated! Check your inbox for verification code.");
+
+      // Send verification email
+      try {
+        await resendVerificationEmail();
+        setCanResend(false);
+        setResendCountdown(60);
+      } catch {
+        // Silently fail - user can manually resend
+      }
+
+      // Reset and go to verification step
+      setVerificationCode(["", "", "", "", "", ""]);
+      setStep("verify-email");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update email");
+    } finally {
+      setIsUpdatingEmail(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -220,23 +275,31 @@ export function CompleteProfileModal({ isOpen }: CompleteProfileModalProps) {
             )}>
               {step === "profile" ? (
                 <User className="h-7 w-7 text-white" />
+              ) : step === "edit-email" ? (
+                <Pencil className="h-7 w-7 text-white" />
               ) : (
                 <Mail className="h-7 w-7 text-white" />
               )}
             </div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              {step === "profile" ? "Complete Your Profile" : "Verify Your Email"}
+              {step === "profile"
+                ? "Complete Your Profile"
+                : step === "edit-email"
+                ? "Update Email Address"
+                : "Verify Your Email"}
             </h2>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               {step === "profile"
                 ? "Please provide your details to continue"
+                : step === "edit-email"
+                ? "Enter your correct email address"
                 : "Enter the 6-digit code sent to your email"}
             </p>
           </div>
 
           {/* Content */}
           <div className="p-6">
-            {step === "profile" ? (
+            {step === "profile" && (
               <form onSubmit={handleProfileSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -299,18 +362,30 @@ export function CompleteProfileModal({ isOpen }: CompleteProfileModalProps) {
                   )}
                 </Button>
               </form>
-            ) : (
+            )}
+
+            {step === "verify-email" && (
               <div className="space-y-6">
                 {/* Email display */}
                 <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
-                      <Mail className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+                        <Mail className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Code sent to</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{user?.email}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Code sent to</p>
-                      <p className="font-medium text-gray-900 dark:text-white">{user?.email}</p>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={handleEditEmail}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Edit
+                    </button>
                   </div>
                 </div>
 
@@ -383,6 +458,63 @@ export function CompleteProfileModal({ isOpen }: CompleteProfileModalProps) {
                   )}
                 </Button>
               </div>
+            )}
+
+            {step === "edit-email" && (
+              <form onSubmit={handleUpdateEmail} className="space-y-4">
+                {/* Back button */}
+                <button
+                  type="button"
+                  onClick={() => setStep("verify-email")}
+                  className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to verification
+                </button>
+
+                {/* Current email info */}
+                <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Current email</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white line-through opacity-60">
+                    {user?.email}
+                  </p>
+                </div>
+
+                {/* New email input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    New Email Address <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="Enter your correct email"
+                    required
+                    autoFocus
+                  />
+                  <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    A new verification code will be sent to this email
+                  </p>
+                </div>
+
+                {/* Submit button */}
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="w-full"
+                  disabled={isUpdatingEmail}
+                >
+                  {isUpdatingEmail ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Email & Send Code"
+                  )}
+                </Button>
+              </form>
             )}
           </div>
         </div>

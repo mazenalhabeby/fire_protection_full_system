@@ -23,6 +23,7 @@ node_modules/
 # Keep example files
 !.env.example
 !.env.sample
+!.env.docker.example
 
 # ============================================
 # Build Outputs
@@ -182,8 +183,8 @@ temp/
 # ============================================
 # Ignore docker override files
 docker-compose.override.yml
-docker-compose.*.yml
 !docker-compose.yml
+!docker-compose.dev.yml
 !docker-compose.prod.yml
 
 # ============================================

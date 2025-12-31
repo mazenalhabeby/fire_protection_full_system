@@ -9,7 +9,7 @@ export default function MarketingLayout({
 }) {
   return (
     <NavbarThemeProvider>
-      <Navbar />
+      <Navbar hideSpacer />
       {children}
       <Footer />
     </NavbarThemeProvider>

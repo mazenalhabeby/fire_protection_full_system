@@ -18,7 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { UsersService } from './users.service';
-import { UpdateUserDto, ChangePasswordDto, UpdateUsernameDto, CheckUsernameDto } from './dto';
+import { UpdateUserDto, UserChangePasswordDto, UpdateUsernameDto, CheckUsernameDto } from './dto';
 import { CurrentUser, Roles } from '../../common/decorators';
 import { JwtAuthGuard } from '../auth/guards';
 import { RolesGuard } from '../../common/guards';
@@ -65,7 +65,7 @@ export class UsersController {
   @ApiResponse({ status: 400, description: 'Current password is incorrect' })
   async changePassword(
     @CurrentUser('id') userId: string,
-    @Body() changePasswordDto: ChangePasswordDto,
+    @Body() changePasswordDto: UserChangePasswordDto,
   ) {
     return this.usersService.changePassword(userId, changePasswordDto);
   }

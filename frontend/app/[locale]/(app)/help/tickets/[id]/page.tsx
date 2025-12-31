@@ -18,7 +18,7 @@ import { TicketStatusBadge, TicketPriorityBadge } from "@/components/help";
 import type { SupportTicket, TicketMessage } from "@/types/support";
 import { TICKET_CATEGORY_LABELS } from "@/types/support";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, formatName } from "@/lib/utils";
 
 export default function TicketDetailPage() {
   const params = useParams();
@@ -227,9 +227,7 @@ export default function TicketDetailPage() {
                           ? "System"
                           : message.sender?.firstName ||
                             message.sender?.lastName
-                          ? `${message.sender.firstName || ""} ${
-                              message.sender.lastName || ""
-                            }`.trim()
+                          ? formatName(message.sender.firstName, message.sender.lastName)
                           : "You"}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">

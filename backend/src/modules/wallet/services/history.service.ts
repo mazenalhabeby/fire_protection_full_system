@@ -58,6 +58,7 @@ export class HistoryService {
       balanceAfter: t.balanceAfter.toString(),
       status: t.status,
       description: t.description,
+      metadata: t.metadata as Record<string, unknown> | null,
       createdAt: t.createdAt,
       completedAt: t.completedAt,
     }));
@@ -97,6 +98,7 @@ export class HistoryService {
       balanceAfter: transaction.balanceAfter.toString(),
       status: transaction.status,
       description: transaction.description,
+      metadata: transaction.metadata as Record<string, unknown> | null,
       createdAt: transaction.createdAt,
       completedAt: transaction.completedAt,
     };
@@ -153,11 +155,11 @@ export class HistoryService {
     let totalIn = new Decimal(0);
     let totalOut = new Decimal(0);
 
-    // Types that add to balance
+    // Types that add to balance (user receives HBCT)
     const incomingTypes: WalletTransactionType[] = [
       WalletTransactionType.DEPOSIT,
       WalletTransactionType.INTERNAL_TRANSFER_RECEIVE,
-      WalletTransactionType.TOKEN_SALE,
+      WalletTransactionType.TOKEN_PURCHASE, // User buys tokens → receives HBCT
       WalletTransactionType.REWARD,
       WalletTransactionType.AIRDROP,
       WalletTransactionType.AFFILIATE_COMMISSION,
@@ -165,11 +167,11 @@ export class HistoryService {
       WalletTransactionType.UNLOCK,
     ];
 
-    // Types that subtract from balance
+    // Types that subtract from balance (user sends/loses HBCT)
     const outgoingTypes: WalletTransactionType[] = [
       WalletTransactionType.WITHDRAWAL,
       WalletTransactionType.INTERNAL_TRANSFER_SEND,
-      WalletTransactionType.TOKEN_PURCHASE,
+      WalletTransactionType.TOKEN_SALE, // User sells tokens → loses HBCT
       WalletTransactionType.LOCK,
       WalletTransactionType.FEE,
     ];
@@ -217,6 +219,7 @@ export class HistoryService {
       balanceAfter: t.balanceAfter.toString(),
       status: t.status,
       description: t.description,
+      metadata: t.metadata as Record<string, unknown> | null,
       createdAt: t.createdAt,
       completedAt: t.completedAt,
     }));

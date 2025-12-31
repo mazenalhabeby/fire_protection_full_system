@@ -81,12 +81,12 @@ export class PurchaseLimitsService {
     const dailyRemaining = new Decimal(limitsInfo.dailyRemainingUsd);
     const monthlyRemaining = new Decimal(limitsInfo.monthlyRemainingUsd);
 
-    // Check minimum purchase
-    if (amountUsd.lt(minPurchase)) {
-      throw new BadRequestException(
-        `Minimum purchase amount is $${minPurchase.toString()}`,
-      );
-    }
+    // Check minimum purchase (disabled for testing)
+    // if (amountUsd.lt(minPurchase)) {
+    //   throw new BadRequestException(
+    //     `Minimum purchase amount is $${minPurchase.toString()}`,
+    //   );
+    // }
 
     // Check maximum purchase per transaction
     if (amountUsd.gt(maxPurchase)) {

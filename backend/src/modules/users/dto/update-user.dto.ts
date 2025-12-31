@@ -1,22 +1,26 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsOptional, MaxLength, MinLength, IsEthereumAddress, IsEmail, Matches } from 'class-validator';
+import { ToLowerCase } from '../../../common/utils/transforms';
 
 export class UpdateUserDto {
   @ApiPropertyOptional({ example: 'John' })
   @IsString()
   @IsOptional()
   @MaxLength(50)
+  @ToLowerCase()
   firstName?: string;
 
   @ApiPropertyOptional({ example: 'Doe' })
   @IsString()
   @IsOptional()
   @MaxLength(50)
+  @ToLowerCase()
   lastName?: string;
 
   @ApiPropertyOptional({ example: 'john@example.com' })
   @IsEmail()
   @IsOptional()
+  @ToLowerCase()
   email?: string;
 
   @ApiPropertyOptional({ example: '+1234567890' })
@@ -29,6 +33,7 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   @IsEthereumAddress()
+  @ToLowerCase()
   walletAddress?: string;
 }
 
@@ -43,6 +48,7 @@ export class UpdateUsernameDto {
   @Matches(/^[a-zA-Z][a-zA-Z0-9_]*$/, {
     message: 'Username must start with a letter and contain only letters, numbers, and underscores'
   })
+  @ToLowerCase()
   username: string;
 }
 
@@ -51,10 +57,11 @@ export class CheckUsernameDto {
   @IsString()
   @MinLength(3)
   @MaxLength(20)
+  @ToLowerCase()
   username: string;
 }
 
-export class ChangePasswordDto {
+export class UserChangePasswordDto {
   @ApiPropertyOptional({ example: 'OldPass123!' })
   @IsString()
   currentPassword: string;

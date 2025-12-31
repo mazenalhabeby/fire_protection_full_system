@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRequireAuth } from "@/hooks/useAuth";
-import { useWalletBalances } from "@/hooks/useWalletData";
 import {
   usePurchasePrice,
   usePurchaseLimits,
@@ -35,6 +34,34 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PremiumButton } from "@/components/ui/premium-button";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@/hooks/useWallet";
+import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, usePublicClient, useSendTransaction, useWalletClient } from "wagmi";
+import { parseEther, parseUnits } from "viem";
+import { TransactionResultModal, TransactionResultData } from "@/components/ui/transaction-result-modal";
+import { bscTestnet } from "wagmi/chains";
+
+// BSC Testnet token addresses (these are test tokens - you may need to deploy your own or use faucet tokens)
+const BSC_USDT_ADDRESS = "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd" as `0x${string}`; // Testnet USDT
+const BSC_USDC_ADDRESS = "0x64544969ed7EBf5f083679233325356EbE738930" as `0x${string}`; // Testnet USDC
+
+// For production, use these mainnet addresses:
+// const BSC_USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955" as `0x${string}`;
+// const BSC_USDC_ADDRESS = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d" as `0x${string}`;
+
+// Deposit wallet address from env
+const DEPOSIT_WALLET_ADDRESS = (process.env.NEXT_PUBLIC_DEPOSIT_WALLET_ADDRESS || "") as `0x${string}`;
+
+// ERC-20 ABI for transfer function
+const ERC20_ABI = [
+  {
+    name: "transfer",
+    type: "function",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+] as const;
 
 type DeliveryMethod = "OFF_CHAIN" | "ON_CHAIN";
 type PaymentCurrency = "BNB" | "USDT" | "USDC";
@@ -57,8 +84,65 @@ export default function BuyTokensPage() {
   // Data hooks
   const { data: priceData, isLoading: priceLoading } = usePurchasePrice();
   const { data: limitsData } = usePurchaseLimits();
-  const { data: balancesData, isLoading: balancesLoading } = useWalletBalances();
   const { data: walletsData } = useLinkedWalletsForPurchase();
+
+  // Get connected wallet address, chain, and connector for on-chain balance queries
+  const { address: connectedAddress, chainId, connector } = useAccount();
+  const { switchChainAsync } = useSwitchChain();
+
+  // Get public client for reading blockchain data (doesn't require wallet)
+  const publicClient = usePublicClient();
+
+  // Use wagmi's sendTransaction hook - best practice for WalletConnect compatibility
+  const { sendTransactionAsync } = useSendTransaction();
+
+  // Get wallet client for additional verification
+  const { data: walletClient, isError: walletClientError } = useWalletClient();
+
+  // Check if on BSC Testnet
+  const isOnBsc = chainId === bscTestnet.id;
+
+  // Check if connected via WalletConnect (includes AppKit WalletConnect)
+  const isWalletConnect = connector?.id === 'walletConnect' ||
+    connector?.id?.includes('walletConnect') ||
+    connector?.name?.toLowerCase().includes('walletconnect') ||
+    connector?.type === 'walletConnect';
+
+  // Check if connected via Safe wallet
+  const isSafeWallet = connector?.id === 'safe' || connector?.name?.toLowerCase().includes('safe');
+
+  // On-chain balance hooks for connected wallet
+  const { data: bnbBalance, isLoading: bnbLoading } = useBalance({
+    address: connectedAddress,
+  });
+
+  const { data: usdtBalance, isLoading: usdtLoading } = useBalance({
+    address: connectedAddress,
+    token: BSC_USDT_ADDRESS,
+  });
+
+  const { data: usdcBalance, isLoading: usdcLoading } = useBalance({
+    address: connectedAddress,
+    token: BSC_USDC_ADDRESS,
+  });
+
+  const balancesLoading = bnbLoading || usdtLoading || usdcLoading;
+
+  // Web3 transaction hooks
+  const { writeContractAsync } = useWriteContract();
+  const [pendingTxHash, setPendingTxHash] = useState<`0x${string}` | undefined>();
+  const [txState, setTxState] = useState<'idle' | 'sending' | 'confirming' | 'processing' | 'success'>('idle');
+
+  // Transaction result modal state (for both success and failure)
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultData, setResultData] = useState<TransactionResultData | null>(null);
+
+  // Wait for transaction confirmation (used for UI feedback)
+  // BSC has ~3 second block times, 3 confirmations = ~9 seconds
+  useWaitForTransactionReceipt({
+    hash: pendingTxHash,
+    confirmations: 3,
+  });
 
   // Quote hook (debounced)
   const quoteParams = useMemo(() => {
@@ -107,12 +191,40 @@ export default function BuyTokensPage() {
 
   const selectedCurrency = currencies.find((c) => c.symbol === paymentCurrency) || currencies[0];
 
-  // Get wallet balance for selected currency
+  // Get on-chain wallet balance for selected currency
   const getBalance = (currency: string): string => {
-    if (!balancesData?.balances) return "0.00";
-    const balance = balancesData.balances.find((b) => b.currency === currency);
-    return balance ? parseFloat(balance.availableBalance).toFixed(4) : "0.00";
+    switch (currency) {
+      case "BNB":
+        return bnbBalance ? parseFloat(bnbBalance.formatted).toFixed(4) : "0.0000";
+      case "USDT":
+        return usdtBalance ? parseFloat(usdtBalance.formatted).toFixed(4) : "0.0000";
+      case "USDC":
+        return usdcBalance ? parseFloat(usdcBalance.formatted).toFixed(4) : "0.0000";
+      default:
+        return "0.0000";
+    }
   };
+
+  // Get numeric balance for validation
+  const getNumericBalance = (currency: string): number => {
+    switch (currency) {
+      case "BNB":
+        return bnbBalance ? parseFloat(bnbBalance.formatted) : 0;
+      case "USDT":
+        return usdtBalance ? parseFloat(usdtBalance.formatted) : 0;
+      case "USDC":
+        return usdcBalance ? parseFloat(usdcBalance.formatted) : 0;
+      default:
+        return 0;
+    }
+  };
+
+  // Check balance validity
+  const currentBalance = getNumericBalance(paymentCurrency);
+  const enteredAmount = parseFloat(paymentAmount) || 0;
+  const hasNoBalance = currentBalance <= 0;
+  const exceedsBalance = enteredAmount > currentBalance;
+  const isBalanceInvalid = hasNoBalance || exceedsBalance;
 
   // Get selected wallet
   const selectedWallet = walletsData?.wallets?.find((w) => w.id === selectedWalletId);
@@ -133,26 +245,74 @@ export default function BuyTokensPage() {
     }
   };
 
-  // Handle purchase
+  // Handle purchase with Web3 payment
   const handlePurchase = async () => {
     if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
       toast.error("Please enter an amount");
       return;
     }
 
+    if (!connectedAddress) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    if (!DEPOSIT_WALLET_ADDRESS) {
+      toast.error("Deposit wallet not configured");
+      return;
+    }
+
+    // Verify connector is ready
+    if (!connector) {
+      toast.error("Wallet not properly connected. Please reconnect.");
+      return;
+    }
+
+    // Safe wallets are not supported for direct purchases (require multisig)
+    if (isSafeWallet) {
+      toast.error("Safe (multisig) wallets are not supported for token purchases. Please use a regular wallet.");
+      return;
+    }
+
+    // Check if wallet client is available (important for WalletConnect)
+    if (!walletClient && isWalletConnect) {
+      toast.error("Wallet connection not ready. Please wait a moment or reconnect your wallet.", {
+        description: "Make sure your wallet app is open and connected.",
+      });
+      return;
+    }
+
+    if (walletClientError) {
+      toast.error("Unable to connect to your wallet. Please try reconnecting.");
+      return;
+    }
+
+    // Ensure user is on BSC network
+    if (!isOnBsc) {
+      try {
+        toast.info("Switching to BSC Testnet...");
+        await switchChainAsync({ chainId: bscTestnet.id });
+        // Wait a moment for the chain switch to complete
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch (switchError) {
+        if (switchError instanceof Error) {
+          if (switchError.message.includes("rejected") || switchError.message.includes("denied")) {
+            toast.error("Please switch to BSC network to continue");
+          } else {
+            toast.error("Failed to switch network. Please manually switch to BSC.");
+          }
+        }
+        return;
+      }
+    }
+
     // Validate limits - convert payment amount to USD
     if (limitsData && priceData) {
       let amountUsd = parseFloat(paymentAmount);
-      // Convert BNB to USD using live price
       if (paymentCurrency === "BNB") {
         amountUsd = amountUsd * parseFloat(priceData.bnbPriceUsd);
       }
-      // USDT and USDC are 1:1 with USD
 
-      if (amountUsd < parseFloat(limitsData.minPurchaseUsd)) {
-        toast.error(`Minimum purchase is $${limitsData.minPurchaseUsd}`);
-        return;
-      }
       if (amountUsd > parseFloat(limitsData.maxPurchaseUsd)) {
         toast.error(`Maximum purchase per transaction is $${limitsData.maxPurchaseUsd}`);
         return;
@@ -160,32 +320,245 @@ export default function BuyTokensPage() {
     }
 
     try {
+      let txHash: `0x${string}`;
+
+      // Step 1: Send Web3 transaction based on currency
+      console.log("=== Transaction Debug ===");
+      console.log("Sending transaction from:", connectedAddress);
+      console.log("Connected via:", connector?.name, "(id:", connector?.id, ", type:", connector?.type, ")");
+      console.log("Current Chain ID:", chainId);
+      console.log("Target chain (BSC Testnet):", bscTestnet.id);
+      console.log("Is WalletConnect:", isWalletConnect);
+      console.log("Is Safe Wallet:", isSafeWallet);
+      console.log("Wallet client ready:", !!walletClient);
+      console.log("Wallet client chain:", walletClient?.chain?.id);
+      console.log("Deposit wallet:", DEPOSIT_WALLET_ADDRESS);
+      console.log("Amount:", paymentAmount, paymentCurrency);
+      console.log("=========================");
+
+      if (isWalletConnect) {
+        toast.info("Check your wallet app for the transaction request...");
+      } else {
+        toast.info(`Please confirm the transaction in ${connector?.name || 'your wallet'}...`);
+      }
+
+      // Set sending state
+      setTxState('sending');
+
+      if (paymentCurrency === "BNB") {
+        // Send native BNB
+        txHash = await sendTransactionAsync({
+          to: DEPOSIT_WALLET_ADDRESS,
+          value: parseEther(paymentAmount),
+          chainId: bscTestnet.id,
+        });
+      } else {
+        // Send ERC-20 token (USDT/USDC)
+        const tokenAddress = paymentCurrency === "USDT" ? BSC_USDT_ADDRESS : BSC_USDC_ADDRESS;
+        // USDT and USDC on BSC have 18 decimals
+        const amount = parseUnits(paymentAmount, 18);
+
+        txHash = await writeContractAsync({
+          address: tokenAddress,
+          abi: ERC20_ABI,
+          functionName: "transfer",
+          args: [DEPOSIT_WALLET_ADDRESS, amount],
+          chainId: bscTestnet.id,
+        });
+      }
+
+      // Transaction sent - now waiting for confirmations
+      setTxState('confirming');
+      setPendingTxHash(txHash);
+
+      const tokensReceived = tokensToReceive;
+      const amountPaid = paymentAmount;
+
+      toast.success(`Transaction sent!`, {
+        description: "Waiting for blockchain confirmations...",
+      });
+
+      // Step 2: Wait for 3 confirmations using public client (doesn't require wallet methods)
+      // BSC has ~3 second block times, 3 confirmations = ~9 seconds
+      if (publicClient) {
+        try {
+          await publicClient.waitForTransactionReceipt({
+            hash: txHash,
+            confirmations: 3,
+            timeout: 60_000, // 1 minute
+          });
+        } catch (waitError) {
+          console.log("Confirmation wait completed or timed out:", waitError);
+          // Continue anyway - transaction was sent
+        }
+      } else {
+        // Fallback: just wait 15 seconds
+        await new Promise((resolve) => setTimeout(resolve, 15000));
+      }
+
+      // Step 3: Call backend to record the purchase
+      setTxState('processing');
+
       if (deliveryMethod === "OFF_CHAIN") {
         await purchaseOffChain.mutateAsync({
           paymentCurrency,
-          paymentAmount,
+          paymentAmount: amountPaid,
+          txHash,
         });
-        toast.success("Purchase successful! HBCT added to your wallet.");
       } else {
         if (!selectedWalletId) {
           toast.error("Please select a destination wallet");
+          setTxState('idle');
           return;
         }
-        const result = await purchaseOnChain.mutateAsync({
+        await purchaseOnChain.mutateAsync({
           paymentCurrency,
-          paymentAmount,
+          paymentAmount: amountPaid,
           destinationWalletId: selectedWalletId,
+          txHash,
         });
-        toast.success(`Purchase successful! HBCT sent to your wallet. TX: ${result.txHash?.slice(0, 10)}...`);
       }
+
+      // Success! Show premium modal
+      setTxState('success');
+      setResultData({
+        status: 'success',
+        title: 'Purchase Successful!',
+        message: deliveryMethod === 'OFF_CHAIN'
+          ? 'Your HBCT tokens have been added to your balance'
+          : 'Your HBCT tokens have been sent to your wallet',
+        txHash,
+        amount: `${amountPaid} ${paymentCurrency}`,
+        tokens: tokensReceived,
+        tokenSymbol: 'HBCT',
+        deliveryMethod,
+      });
+      setShowResultModal(true);
+
+      // Reset form
       setPaymentAmount("");
+      setPendingTxHash(undefined);
+
+      // Reset state after delay
+      setTimeout(() => {
+        setTxState('idle');
+      }, 500);
+
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Purchase failed";
-      toast.error(message);
+      setPendingTxHash(undefined);
+      setTxState('idle');
+      console.error("Transaction error:", error);
+      console.error("Error details:", {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        isWalletConnect,
+        connector: connector?.id,
+        connectorName: connector?.name,
+        chainId,
+      });
+
+      // Prepare error data for modal
+      let errorTitle = "Transaction Failed";
+      let errorMessage = "Something went wrong with your transaction";
+      let errorCode = "";
+      let errorDetails = "";
+      let suggestion = "";
+
+      if (error instanceof Error) {
+        const errorMsg = error.message.toLowerCase();
+
+        if (errorMsg.includes("rejected") || errorMsg.includes("denied") || errorMsg.includes("user rejected") || errorMsg.includes("user disapproved") || errorMsg.includes("cancelled")) {
+          errorTitle = "Transaction Cancelled";
+          errorMessage = "You cancelled the transaction";
+          errorCode = "USER_REJECTED";
+          errorDetails = "The transaction was not completed because it was cancelled in your wallet.";
+          suggestion = "You can try again when you're ready to proceed.";
+        } else if (errorMsg.includes("unknown method") || errorMsg.includes("unsupported method") || errorMsg.includes("method not found") || errorMsg.includes("not supported") || errorMsg.includes("unknown rpc")) {
+          errorTitle = "Wallet Incompatibility";
+          errorCode = "UNSUPPORTED_METHOD";
+          if (isWalletConnect) {
+            errorMessage = "Your wallet doesn't support BSC transactions via WalletConnect";
+            errorDetails = "Some mobile wallets have limited support for BSC network transactions when connected via WalletConnect.";
+            suggestion = "Please use MetaMask or Coinbase Wallet browser extension, or try Trust Wallet mobile app for better compatibility.";
+          } else {
+            errorMessage = "Your wallet doesn't support this transaction type";
+            errorDetails = "The connected wallet may not fully support all required transaction methods.";
+            suggestion = "Try using MetaMask or Coinbase Wallet browser extension instead.";
+          }
+        } else if (errorMsg.includes("insufficient funds") || errorMsg.includes("insufficient balance")) {
+          errorTitle = "Insufficient Balance";
+          errorCode = "INSUFFICIENT_FUNDS";
+          errorMessage = "You don't have enough balance for this transaction";
+          errorDetails = `Your ${paymentCurrency} balance is not sufficient to cover the transaction amount plus network fees.`;
+          suggestion = "Please add more funds to your wallet or reduce the transaction amount.";
+        } else if (errorMsg.includes("network") || errorMsg.includes("chain") || errorMsg.includes("wrong network")) {
+          errorTitle = "Network Error";
+          errorCode = "NETWORK_MISMATCH";
+          errorMessage = "Please connect to the correct network";
+          errorDetails = "Your wallet may be connected to a different blockchain network than required.";
+          suggestion = "Switch to BNB Smart Chain (BSC) network in your wallet and try again.";
+        } else if (errorMsg.includes("timeout") || errorMsg.includes("timed out")) {
+          errorTitle = "Transaction Timeout";
+          errorCode = "TIMEOUT";
+          errorMessage = "The transaction took too long to process";
+          errorDetails = "The blockchain network may be congested or your wallet connection was interrupted.";
+          suggestion = "Please check your wallet for any pending transactions and try again.";
+        } else if (errorMsg.includes("session") || errorMsg.includes("disconnected") || errorMsg.includes("no active session")) {
+          errorTitle = "Connection Lost";
+          errorCode = "SESSION_EXPIRED";
+          errorMessage = "Your wallet connection was lost";
+          errorDetails = "The connection between your wallet and the app has been interrupted.";
+          suggestion = "Please reconnect your wallet and try again.";
+        } else if (errorMsg.includes("pending") || errorMsg.includes("already processing")) {
+          errorTitle = "Transaction Pending";
+          errorCode = "TX_PENDING";
+          errorMessage = "A transaction is already in progress";
+          errorDetails = "You have another transaction that hasn't been confirmed yet.";
+          suggestion = "Please wait for the pending transaction to complete or check your wallet app.";
+        } else {
+          errorCode = "UNKNOWN_ERROR";
+          errorDetails = error.message.length > 150
+            ? error.message.substring(0, 150) + "..."
+            : error.message;
+          suggestion = "Please try again. If the problem persists, contact support.";
+        }
+      } else {
+        errorCode = "UNKNOWN_ERROR";
+        suggestion = "Please try again. If the problem persists, contact support.";
+      }
+
+      // Show premium failure modal
+      setResultData({
+        status: 'failed',
+        title: errorTitle,
+        message: errorMessage,
+        errorCode,
+        errorDetails,
+        suggestion,
+      });
+      setShowResultModal(true);
     }
   };
 
-  const isPurchasing = purchaseOffChain.isPending || purchaseOnChain.isPending;
+  const isPurchasing = txState !== 'idle' && txState !== 'success';
+
+  // Get button text based on current state
+  const getButtonText = () => {
+    switch (txState) {
+      case 'sending':
+        return 'Confirm in Wallet...';
+      case 'confirming':
+        return 'Confirming on Chain...';
+      case 'processing':
+        return 'Processing Purchase...';
+      case 'success':
+        return 'Purchase Complete!';
+      default:
+        if (hasNoBalance) return `No ${paymentCurrency} Balance`;
+        if (exceedsBalance) return 'Insufficient Balance';
+        return deliveryMethod === 'OFF_CHAIN' ? 'Buy & Add to Balance' : 'Buy & Send to Wallet';
+    }
+  };
   const showSkeleton = authLoading || !isAuthenticated || isDataLoading || isMinLoading;
 
   if (showSkeleton) {
@@ -216,7 +589,7 @@ export default function BuyTokensPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <PageHeader title={t("title")} subtitle="Buy HBCT tokens using your wallet balance" />
+        <PageHeader title={t("title")} subtitle="Buy HBCT tokens using your connected Web3 wallet" />
 
         {/* Connect Wallet Prompt */}
         {!isWalletConnected && (
@@ -228,6 +601,56 @@ export default function BuyTokensPage() {
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white">Wallet Not Connected</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Please connect your Web3 wallet to buy HBCT tokens</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Wrong Network Warning */}
+        {isWalletConnected && !isOnBsc && (
+          <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-red-500/10 via-red-500/5 to-transparent border border-red-500/20">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
+                <AlertCircle className="h-6 w-6 text-red-500" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 dark:text-white">Wrong Network</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Please switch to BSC Testnet to buy HBCT tokens</p>
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    await switchChainAsync({ chainId: bscTestnet.id });
+                  } catch {
+                    toast.error("Failed to switch network");
+                  }
+                }}
+                className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors"
+              >
+                Switch to Testnet
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* WalletConnect Limitation Warning */}
+        {isWalletConnected && isWalletConnect && (
+          <div className="mb-8 p-4 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                  WalletConnect May Have Limited Support
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Some mobile wallets don&apos;t support transactions on BSC via WalletConnect.
+                  If you see &quot;Unknown method&quot; errors, please use one of these options:
+                </p>
+                <ul className="text-xs text-gray-600 dark:text-gray-400 list-disc list-inside mt-1 space-y-0.5">
+                  <li><strong>MetaMask</strong> or <strong>Coinbase Wallet</strong> browser extension (recommended)</li>
+                  <li><strong>Trust Wallet</strong> mobile app (best WalletConnect + BSC support)</li>
+                  <li><strong>MetaMask Mobile</strong> app</li>
+                </ul>
               </div>
             </div>
           </div>
@@ -272,10 +695,20 @@ export default function BuyTokensPage() {
 
               <div className="p-6 space-y-4">
                 {/* You Pay Section */}
-                <div className="relative p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700/50">
+                <div className={cn(
+                  "relative p-5 rounded-2xl border",
+                  exceedsBalance
+                    ? "bg-red-50 dark:bg-red-900/10 border-red-300 dark:border-red-500/30"
+                    : hasNoBalance
+                      ? "bg-amber-50 dark:bg-amber-900/10 border-amber-300 dark:border-amber-500/30"
+                      : "bg-gray-50 dark:bg-gray-800/80 border-gray-100 dark:border-gray-700/50"
+                )}>
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-medium text-gray-500 dark:text-gray-400">You Pay</span>
-                    <span className="text-xs text-gray-400">
+                    <span className={cn(
+                      "text-xs",
+                      exceedsBalance ? "text-red-500 font-medium" : hasNoBalance ? "text-amber-500 font-medium" : "text-gray-400"
+                    )}>
                       Balance: {getBalance(paymentCurrency)} {paymentCurrency}
                     </span>
                   </div>
@@ -284,7 +717,20 @@ export default function BuyTokensPage() {
                       type="number"
                       placeholder="0"
                       value={paymentAmount}
-                      onChange={(e) => setPaymentAmount(e.target.value)}
+                      min="0"
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Only allow positive numbers
+                        if (value === '' || parseFloat(value) >= 0) {
+                          setPaymentAmount(value.replace('-', ''));
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent typing minus sign
+                        if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                          e.preventDefault();
+                        }
+                      }}
                       className="flex-1 bg-transparent text-3xl font-semibold text-gray-900 dark:text-white placeholder-gray-300 dark:placeholder-gray-600 outline-none w-full min-w-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     {/* Currency Selector */}
@@ -504,7 +950,7 @@ export default function BuyTokensPage() {
                   </div>
                 )}
 
-                {/* Error message */}
+                {/* Error messages */}
                 {quoteError && (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
                     <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
@@ -517,14 +963,22 @@ export default function BuyTokensPage() {
                 {/* Buy Button */}
                 <PremiumButton
                   onClick={handlePurchase}
-                  disabled={!paymentAmount || parseFloat(paymentAmount) <= 0 || isPurchasing || (deliveryMethod === "ON_CHAIN" && !selectedWalletId)}
+                  disabled={
+                    !paymentAmount ||
+                    parseFloat(paymentAmount) <= 0 ||
+                    isPurchasing ||
+                    isBalanceInvalid ||
+                    txState === 'success' ||
+                    (deliveryMethod === "ON_CHAIN" && !selectedWalletId)
+                  }
                   isLoading={isPurchasing}
-                  loadingText="Processing..."
-                  icon={deliveryMethod === "OFF_CHAIN" ? Wallet : ExternalLink}
+                  loadingText={getButtonText()}
+                  icon={txState === 'success' ? Check : deliveryMethod === "OFF_CHAIN" ? Wallet : ExternalLink}
                   size="lg"
                   fullWidth
+                  className={txState === 'success' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}
                 >
-                  {deliveryMethod === "OFF_CHAIN" ? "Buy & Add to Balance" : "Buy & Send to Wallet"}
+                  {getButtonText()}
                 </PremiumButton>
               </div>
             </div>
@@ -624,7 +1078,7 @@ export default function BuyTokensPage() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-500">Per Transaction</span>
                     <span className="font-medium text-gray-900 dark:text-white">
-                      ${limitsData.minPurchaseUsd} - ${limitsData.maxPurchaseUsd}
+                      Up to ${limitsData.maxPurchaseUsd}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
@@ -643,7 +1097,7 @@ export default function BuyTokensPage() {
             <div className="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pay With</h3>
-                <span className="text-xs text-gray-400">From Wallet Balance</span>
+                <span className="text-xs text-gray-400">From Connected Wallet</span>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 {currencies.map((currency) => (
@@ -678,6 +1132,17 @@ export default function BuyTokensPage() {
           </div>
         </div>
       </div>
+
+      {/* Premium Transaction Result Modal (Success & Failure) */}
+      <TransactionResultModal
+        open={showResultModal}
+        onOpenChange={setShowResultModal}
+        data={resultData}
+        onRetry={handlePurchase}
+        onViewBalance={() => router.push(`/${locale}/wallet`)}
+        onViewHistory={() => router.push(`/${locale}/wallet/transactions`)}
+        explorerBaseUrl="https://testnet.bscscan.com"
+      />
     </div>
   );
 }

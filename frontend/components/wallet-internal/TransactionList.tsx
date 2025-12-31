@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
   ArrowUpRight,
@@ -15,6 +17,8 @@ import {
   AlertCircle,
   XCircle,
   ChevronRight,
+  ExternalLink,
+  Shield,
 } from "lucide-react";
 import type { WalletTransaction, WalletTransactionType, WalletTransactionStatus } from "@/types/api";
 import { getTimeAgo } from "@/lib/utils/format";
@@ -24,6 +28,8 @@ interface TransactionListProps {
   transactions: WalletTransaction[];
   onTransactionClick?: (transaction: WalletTransaction) => void;
   compact?: boolean;
+  explorerBaseUrl?: string;
+  showPendingActions?: boolean;
 }
 
 const typeConfig: Record<WalletTransactionType, {
@@ -145,7 +151,17 @@ export function TransactionList({
   transactions,
   onTransactionClick,
   compact = false,
+  explorerBaseUrl = "https://testnet.bscscan.com", // Default to testnet, change to bscscan.com for mainnet
+  showPendingActions = true,
 }: TransactionListProps) {
+  const router = useRouter();
+  const locale = useLocale();
+
+  // Check if a transaction is a pending transfer that can be confirmed
+  const isPendingTransfer = (tx: WalletTransaction) => {
+    return tx.status === "PENDING" && tx.type === "INTERNAL_TRANSFER_SEND";
+  };
+
   if (transactions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -160,6 +176,11 @@ export function TransactionList({
     );
   }
 
+  // Get txHash from transaction - check both txHash field and metadata
+  const getTxHash = (tx: WalletTransaction): string | undefined => {
+    return tx.txHash || tx.metadata?.txHash;
+  };
+
   return (
     <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
       {transactions.map((tx) => {
@@ -167,6 +188,7 @@ export function TransactionList({
         const statusInfo = statusConfig[tx.status];
         const Icon = typeInfo.icon;
         const StatusIcon = statusInfo.icon;
+        const txHash = getTxHash(tx);
 
         return (
           <div
@@ -223,10 +245,43 @@ export function TransactionList({
                   {tx.description}
                 </p>
               )}
+              {/* Note from sender */}
+              {!compact && tx.metadata?.note && (
+                <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 italic truncate" title={tx.metadata.note}>
+                  "{tx.metadata.note}"
+                </p>
+              )}
+              {/* Transaction Hash Link */}
+              {!compact && txHash && (
+                <a
+                  href={`${explorerBaseUrl}/tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-mono text-brand-600 dark:text-brand-400"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  {txHash.slice(0, 8)}...{txHash.slice(-6)}
+                </a>
+              )}
+
+              {/* Pending Transfer Action Button */}
+              {!compact && showPendingActions && isPendingTransfer(tx) && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/${locale}/wallet/transfers`);
+                  }}
+                  className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium transition-colors shadow-sm"
+                >
+                  <Shield className="h-3.5 w-3.5" />
+                  Confirm Transfer
+                </button>
+              )}
             </div>
 
             {/* Chevron for clickable items */}
-            {onTransactionClick && (
+            {onTransactionClick && !isPendingTransfer(tx) && (
               <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
             )}
           </div>

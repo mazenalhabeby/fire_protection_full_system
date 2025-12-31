@@ -8,6 +8,7 @@ import {
   useWalletOverview,
   useWalletTransactionSummary,
 } from "@/hooks/useWalletData";
+import { useTokenPrice } from "@/hooks/useAppData";
 import { usePageLoading } from "@/hooks/useMinimumLoading";
 import { cn } from "@/lib/utils";
 import {
@@ -54,6 +55,7 @@ export default function WalletPage() {
   } = useWalletOverview();
 
   const { data: summary } = useWalletTransactionSummary({ period: "month" });
+  const { data: tokenPrice } = useTokenPrice();
 
   // Minimum loading for premium feel
   const { isLoading: isMinLoading, stopLoading } = usePageLoading();
@@ -74,10 +76,11 @@ export default function WalletPage() {
   const hbctBalance = balances.find(b => b.currency === "HBCT");
   const availableBalance = parseFloat(hbctBalance?.availableBalance || "0");
   const lockedBalance = parseFloat(hbctBalance?.lockedBalance || "0");
-  const totalBalance = availableBalance + lockedBalance;
+  const pendingBalance = parseFloat(hbctBalance?.pendingBalance || "0");
+  const totalBalance = availableBalance + lockedBalance + pendingBalance;
 
-  // Mock price for HBCT
-  const hbctPrice = 0.05;
+  // Dynamic token price from API
+  const hbctPrice = tokenPrice ?? 0.05; // Fallback to 0.05 if not loaded
   const totalEstimatedUsd = totalBalance * hbctPrice;
 
   const formatBalance = (value: number) => {
@@ -189,17 +192,23 @@ export default function WalletPage() {
                     {summary && (
                       <div className={cn(
                         "inline-flex items-center gap-1.5 mt-4 px-3 py-1.5 rounded-full text-sm font-medium",
-                        isPositiveChange
-                          ? "bg-emerald-500/20 text-emerald-400"
-                          : "bg-red-500/20 text-red-400"
+                        monthlyChange === 0
+                          ? "bg-gray-500/20 text-gray-400"
+                          : isPositiveChange
+                            ? "bg-emerald-500/20 text-emerald-400"
+                            : "bg-red-500/20 text-red-400"
                       )}>
-                        {isPositiveChange ? (
+                        {monthlyChange === 0 ? (
+                          <TrendingUp className="h-4 w-4 opacity-50" />
+                        ) : isPositiveChange ? (
                           <TrendingUp className="h-4 w-4" />
                         ) : (
                           <TrendingDown className="h-4 w-4" />
                         )}
                         <span>
-                          {isPositiveChange ? "+" : ""}{hideBalances ? "••••" : formatBalance(monthlyChange)} this month
+                          {hideBalances ? "••••" : monthlyChange === 0
+                            ? "No change"
+                            : `${isPositiveChange ? "+" : ""}${monthlyChange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`} this month
                         </span>
                       </div>
                     )}
@@ -215,6 +224,17 @@ export default function WalletPage() {
                     </div>
                     <span className="text-sm font-semibold text-white">{formatBalance(availableBalance)}</span>
                   </div>
+                  {pendingBalance > 0 && (
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-amber-500/30">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-3.5 w-3.5 text-amber-400" />
+                        <span className="text-sm text-gray-400">Reserved</span>
+                      </div>
+                      <span className="text-sm font-semibold text-amber-400">
+                        {formatBalance(pendingBalance)}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
                     <div className="flex items-center gap-2">
                       <Lock className="h-3.5 w-3.5 text-brand-400" />
@@ -275,14 +295,19 @@ export default function WalletPage() {
                   <div>
                     <p className="font-semibold text-amber-600 dark:text-amber-400">
                       {pendingCount} Pending Transfer{pendingCount > 1 ? "s" : ""}
+                      {pendingBalance > 0 && (
+                        <span className="font-normal text-amber-500/80 ml-1">
+                          ({formatBalance(pendingBalance)} HBCT reserved)
+                        </span>
+                      )}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Check your email for confirmation codes
+                      Confirm or cancel to release reserved funds
                     </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => router.push(`/${locale}/wallet/transactions?status=PENDING`)}
+                  onClick={() => router.push(`/${locale}/wallet/transfers`)}
                   className="flex items-center gap-1 px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-600 dark:text-amber-400 text-sm font-medium transition-colors"
                 >
                   View
@@ -520,6 +545,37 @@ function TransactionRow({
     return icons[type] || (isIncoming ? ArrowDownLeft : ArrowUpRight);
   };
 
+  const getStatusStyle = (status: string) => {
+    const styles: Record<string, { bg: string; text: string; label: string }> = {
+      COMPLETED: {
+        bg: "bg-emerald-500/10 dark:bg-emerald-500/20",
+        text: "text-emerald-600 dark:text-emerald-400",
+        label: "Completed",
+      },
+      PENDING: {
+        bg: "bg-amber-500/10 dark:bg-amber-500/20",
+        text: "text-amber-600 dark:text-amber-400",
+        label: "Pending",
+      },
+      CANCELLED: {
+        bg: "bg-gray-500/10 dark:bg-gray-500/20",
+        text: "text-gray-500 dark:text-gray-400",
+        label: "Cancelled",
+      },
+      EXPIRED: {
+        bg: "bg-red-500/10 dark:bg-red-500/20",
+        text: "text-red-600 dark:text-red-400",
+        label: "Expired",
+      },
+      FAILED: {
+        bg: "bg-red-500/10 dark:bg-red-500/20",
+        text: "text-red-600 dark:text-red-400",
+        label: "Failed",
+      },
+    };
+    return styles[status] || styles.COMPLETED;
+  };
+
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
@@ -533,6 +589,7 @@ function TransactionRow({
   };
 
   const Icon = getTypeIcon(transaction.type);
+  const statusStyle = getStatusStyle(transaction.status);
 
   return (
     <div className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
@@ -548,15 +605,38 @@ function TransactionRow({
             isIncoming ? "text-emerald-500" : "text-gray-500 dark:text-gray-400"
           )} />
         </div>
-        <div>
-          <p className="text-sm font-semibold text-gray-900 dark:text-white">{getTypeLabel(transaction.type)}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{timeAgo(transaction.createdAt)}</p>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">{getTypeLabel(transaction.type)}</p>
+            <span className={cn(
+              "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium",
+              statusStyle.bg,
+              statusStyle.text
+            )}>
+              {statusStyle.label}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <span>{timeAgo(transaction.createdAt)}</span>
+            {transaction.metadata?.note && (
+              <>
+                <span className="text-gray-300 dark:text-gray-600">•</span>
+                <span className="truncate max-w-[150px]" title={transaction.metadata.note}>
+                  "{transaction.metadata.note}"
+                </span>
+              </>
+            )}
+          </div>
         </div>
       </div>
       <div className="text-right">
         <p className={cn(
           "text-sm font-bold",
-          isIncoming ? "text-emerald-500" : "text-gray-900 dark:text-white"
+          transaction.status === "CANCELLED" || transaction.status === "EXPIRED" || transaction.status === "FAILED"
+            ? "text-gray-400 line-through"
+            : isIncoming
+              ? "text-emerald-500"
+              : "text-gray-900 dark:text-white"
         )}>
           {isIncoming ? "+" : "-"}{formatAmount(transaction.amount)}
         </p>

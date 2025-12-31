@@ -7,7 +7,9 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useMemo,
   type ReactNode,
+  type RefCallback,
 } from "react";
 
 type NavbarTheme = "light" | "dark";
@@ -31,12 +33,14 @@ export function NavbarThemeProvider({ children }: { children: ReactNode }) {
     // Find which section is currently at the top of the viewport (behind navbar)
     const navbarHeight = 64; // h-16 = 64px
     let currentTheme: NavbarTheme = "light";
+    let foundSection: string | null = null;
 
-    sectionsRef.current.forEach(({ theme: sectionTheme, element }) => {
+    sectionsRef.current.forEach(({ theme: sectionTheme, element }, id) => {
       const rect = element.getBoundingClientRect();
       // Check if section is behind the navbar (top of section is above navbar bottom)
       if (rect.top <= navbarHeight && rect.bottom > navbarHeight) {
         currentTheme = sectionTheme;
+        foundSection = id;
       }
     });
 
@@ -92,8 +96,14 @@ export function NavbarThemeProvider({ children }: { children: ReactNode }) {
     };
   }, [updateTheme]);
 
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(
+    () => ({ theme, registerSection, unregisterSection }),
+    [theme, registerSection, unregisterSection]
+  );
+
   return (
-    <NavbarThemeContext.Provider value={{ theme, registerSection, unregisterSection }}>
+    <NavbarThemeContext.Provider value={contextValue}>
       {children}
     </NavbarThemeContext.Provider>
   );
@@ -107,31 +117,35 @@ export function useNavbarTheme() {
   return context;
 }
 
+// Optional hook that returns null if provider is not present
+export function useNavbarThemeOptional() {
+  return useContext(NavbarThemeContext);
+}
+
 // Hook for sections to register themselves
-export function useRegisterSection(id: string, theme: NavbarTheme) {
-  const { registerSection, unregisterSection } = useNavbarTheme();
-  const elementRef = useRef<HTMLElement | null>(null);
+export function useRegisterSection(id: string, theme: NavbarTheme): RefCallback<HTMLElement> {
+  const context = useContext(NavbarThemeContext);
+  const [element, setElement] = useState<HTMLElement | null>(null);
 
-  const setRef = useCallback(
-    (element: HTMLElement | null) => {
-      if (elementRef.current) {
-        unregisterSection(id);
-      }
-
-      elementRef.current = element;
-
-      if (element) {
-        registerSection(id, theme, element);
-      }
-    },
-    [id, theme, registerSection, unregisterSection]
-  );
+  // Extract stable function references to avoid depending on entire context
+  // (which includes theme and would cause re-registration on every theme change)
+  const registerSection = context?.registerSection;
+  const unregisterSection = context?.unregisterSection;
 
   useEffect(() => {
+    if (!registerSection || !unregisterSection || !element) return;
+
+    registerSection(id, theme, element);
+
     return () => {
       unregisterSection(id);
     };
-  }, [id, unregisterSection]);
+  }, [id, theme, element, registerSection, unregisterSection]);
+
+  // Return a callback ref that updates state
+  const setRef: RefCallback<HTMLElement> = useCallback((el) => {
+    setElement(el);
+  }, []);
 
   return setRef;
 }

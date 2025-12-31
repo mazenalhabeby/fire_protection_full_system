@@ -3,10 +3,18 @@
 import { api } from './client';
 import type { User } from '@/types/api';
 
+// Security Alert Types
+export interface SecurityAlert {
+  type: 'impossible_travel' | 'ip_change' | 'new_device' | 'new_location';
+  message: string;
+  details?: Record<string, any>;
+}
+
 // Auth Response Types
 export interface AuthResponse {
   user: User;
   message?: string;
+  securityAlert?: SecurityAlert;
 }
 
 export interface MeResponse {
@@ -25,13 +33,23 @@ export interface MeResponse {
   };
 }
 
-// Browser Location (for accurate geolocation)
+// Browser Location (for accurate geolocation and VPN detection)
 export interface LocationData {
   latitude?: number;
   longitude?: number;
+  accuracy?: number;  // Accuracy in meters
   city?: string;
   country?: string;
 }
+
+// Referral source types for tracking
+export type ReferralSource =
+  | 'direct_link'
+  | 'social_share'
+  | 'qr_code'
+  | 'email_campaign'
+  | 'partner'
+  | 'unknown';
 
 // Login/Register Types
 export interface LoginRequest {
@@ -46,6 +64,8 @@ export interface RegisterRequest {
   firstName?: string;
   lastName?: string;
   referralCode?: string;
+  referralSource?: ReferralSource;
+  referralCapturedAt?: number;  // Unix timestamp in ms
   location?: LocationData;
 }
 
@@ -60,6 +80,7 @@ export interface WalletLoginRequest {
   walletAddress: string;
   signature: string;
   message: string;
+  location?: LocationData;
 }
 
 export interface WalletRegisterRequest {
@@ -69,6 +90,9 @@ export interface WalletRegisterRequest {
   firstName?: string;
   lastName?: string;
   referralCode?: string;
+  referralSource?: ReferralSource;
+  referralCapturedAt?: number;  // Unix timestamp in ms
+  location?: LocationData;
 }
 
 export interface WalletLinkRequest {
@@ -140,14 +164,39 @@ export interface TwoFactorLoginRequest {
 export interface Session {
   id: string;
   deviceType: string | null;
+  deviceName: string | null;
   browser: string | null;
   os: string | null;
   ipAddress: string | null;
+  // IP-based location
   country: string | null;
   city: string | null;
+  // Browser GPS location
+  browserCity: string | null;
+  browserCountry: string | null;
+  // VPN detection
+  isVpnDetected: boolean;
+  locationMismatch: boolean;
+  // Session metadata
   lastActivityAt: string;
   createdAt: string;
   isCurrent: boolean;
+  isTrusted: boolean;
+  trustDeviceName: string | null;
+}
+
+// Session Activity Types
+export interface SessionActivity {
+  id: string;
+  sessionId: string;
+  action: string;
+  details: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  device: string | null;
+  city: string | null;
+  country: string | null;
+  createdAt: string;
 }
 
 export const authApi = {
@@ -208,6 +257,19 @@ export const authApi = {
 
   logoutAll: async (): Promise<{ revokedSessions: number }> => {
     return api.post<{ revokedSessions: number }>('/auth/logout-all');
+  },
+
+  trustDevice: async (sessionId: string, deviceName?: string): Promise<void> => {
+    await api.post(`/auth/sessions/${sessionId}/trust`, { deviceName });
+  },
+
+  untrustDevice: async (sessionId: string): Promise<void> => {
+    await api.delete(`/auth/sessions/${sessionId}/trust`);
+  },
+
+  getSessionActivities: async (limit?: number): Promise<{ activities: SessionActivity[] }> => {
+    const params = limit ? `?limit=${limit}` : '';
+    return api.get<{ activities: SessionActivity[] }>(`/auth/sessions/activities${params}`);
   },
 
   // ============================================
@@ -332,6 +394,37 @@ export const authApi = {
    */
   checkWalletSwitch: async (walletAddress: string): Promise<{ canSwitch: boolean; reason?: string }> => {
     return api.post<{ canSwitch: boolean; reason?: string }>('/auth/wallets/check-switch', { walletAddress });
+  },
+
+  /**
+   * Check if a wallet address is available (not linked to any account)
+   * This is a public endpoint - no authentication required
+   */
+  checkWalletAvailability: async (walletAddress: string): Promise<{
+    available: boolean;
+    linkedToCurrentUser: boolean;
+    message?: string;
+  }> => {
+    return api.get<{
+      available: boolean;
+      linkedToCurrentUser: boolean;
+      message?: string;
+    }>(`/auth/wallet/check/${encodeURIComponent(walletAddress)}`);
+  },
+
+  /**
+   * Check wallet availability for authenticated user (includes ownership check)
+   */
+  checkWalletAvailabilityAuthenticated: async (walletAddress: string): Promise<{
+    available: boolean;
+    linkedToCurrentUser: boolean;
+    message?: string;
+  }> => {
+    return api.get<{
+      available: boolean;
+      linkedToCurrentUser: boolean;
+      message?: string;
+    }>(`/auth/wallet/check-authenticated/${encodeURIComponent(walletAddress)}`);
   },
 
   // ============================================

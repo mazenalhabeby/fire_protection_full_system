@@ -4,14 +4,66 @@ import React, { ReactNode, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { bsc, bscTestnet, mainnet, sepolia } from "wagmi/chains";
-import { injected, metaMask, coinbaseWallet, walletConnect } from "wagmi/connectors";
 import { disconnect as wagmiDisconnect, getAccount, watchAccount, type Config } from "@wagmi/core";
+import { createAppKit } from "@reown/appkit/react";
+import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
+import { walletConnect, injected, coinbaseWallet } from "wagmi/connectors";
 
-// Project ID from WalletConnect Cloud
+// Project ID from WalletConnect Cloud (https://cloud.walletconnect.com)
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
 // LocalStorage key to track if user explicitly logged out
 const WALLET_DISCONNECTED_KEY = "wallet_explicitly_disconnected";
+
+// Metadata for WalletConnect
+const metadata = {
+  name: "HBCT Fire Protection",
+  description: "HBCT Fire Protection Token Platform",
+  url: typeof window !== "undefined" ? window.location.origin : "https://hbct.io",
+  icons: ["https://hbct.io/logo.png"],
+};
+
+// Define chains for AppKit - BSC first as default
+const chains = [bsc, bscTestnet, mainnet, sepolia];
+
+// Create Wagmi Adapter for AppKit with proper WalletConnect v2 configuration
+const wagmiAdapter = new WagmiAdapter({
+  networks: chains as [typeof bsc, ...typeof chains],
+  projectId,
+  ssr: true,
+});
+
+// Initialize AppKit with comprehensive WalletConnect v2 configuration
+if (projectId) {
+  createAppKit({
+    adapters: [wagmiAdapter],
+    networks: chains as [typeof bsc, ...typeof chains],
+    defaultNetwork: bsc,
+    projectId,
+    metadata,
+    features: {
+      analytics: false,
+      email: false,
+      socials: false,
+    },
+    // Allow unsupported chains to let wallets try even if they don't advertise support
+    allowUnsupportedChain: true,
+    // Featured wallets that are known to work well with BSC
+    featuredWalletIds: [
+      "c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96", // MetaMask
+      "4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0", // Trust Wallet
+      "fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa", // Coinbase
+      "1ae92b26df02f0abca6304df07debccd18262fdf5fe82daa81593582dac9a369", // Rainbow
+    ],
+    themeMode: "dark",
+    themeVariables: {
+      "--w3m-accent": "#f97316",
+      "--w3m-color-mix": "#1f2937",
+      "--w3m-color-mix-strength": 20,
+      "--w3m-border-radius-master": "2px",
+    },
+  });
+}
 
 // Create query client for React Query - singleton pattern
 const makeQueryClient = () => {
@@ -29,62 +81,24 @@ let browserQueryClient: QueryClient | undefined = undefined;
 
 function getQueryClient() {
   if (typeof window === "undefined") {
-    // Server: always make a new query client
     return makeQueryClient();
   } else {
-    // Browser: make a new query client if we don't already have one
     if (!browserQueryClient) browserQueryClient = makeQueryClient();
     return browserQueryClient;
   }
 }
 
-// Create wagmi config with connectors
-export const wagmiConfig = createConfig({
-  chains: [bsc, bscTestnet, mainnet, sepolia],
-  connectors: [
-    metaMask({
-      dappMetadata: {
-        name: "HBCT Fire Protection",
-      },
-    }),
-    coinbaseWallet({
-      appName: "HBCT Fire Protection",
-      appLogoUrl: "https://hbct.io/logo.png",
-    }),
-    ...(projectId ? [walletConnect({
-      projectId,
-      metadata: {
-        name: "HBCT Fire Protection",
-        description: "HBCT Fire Protection Token Platform",
-        url: "https://hbct.io",
-        icons: ["https://hbct.io/logo.png"],
-      },
-    })] : []),
-    injected({
-      shimDisconnect: true,
-    }),
-  ],
-  transports: {
-    [bsc.id]: http(),
-    [bscTestnet.id]: http(),
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-  },
-  ssr: true,
-});
+// Export wagmi config from adapter
+export const wagmiConfig = wagmiAdapter.wagmiConfig;
 
 /**
  * Disconnect wallet and set flag to prevent auto-reconnection
- * Call this on logout to ensure wallet doesn't auto-reconnect
  */
 export async function disconnectWallet(): Promise<void> {
   try {
-    // Set flag to prevent auto-reconnection
     if (typeof window !== "undefined") {
       localStorage.setItem(WALLET_DISCONNECTED_KEY, "true");
     }
-
-    // Disconnect all connectors
     await wagmiDisconnect(wagmiConfig as Config);
   } catch {
     // Silently handle disconnect errors
@@ -92,8 +106,129 @@ export async function disconnectWallet(): Promise<void> {
 }
 
 /**
+ * Force disconnect - clears all wagmi/wallet state from localStorage, sessionStorage, and IndexedDB
+ * Use this when user cancels signature to ensure complete reset
+ */
+export async function forceDisconnectWallet(): Promise<void> {
+  try {
+    // First try normal disconnect
+    await wagmiDisconnect(wagmiConfig as Config);
+  } catch {
+    // Ignore errors
+  }
+
+  // Clear all wallet-related storage
+  if (typeof window !== "undefined") {
+    // Specifically clear wagmi store first (this is the main one)
+    localStorage.removeItem("wagmi.store");
+    localStorage.removeItem("wagmi.connected");
+    localStorage.removeItem("wagmi.wallet");
+    localStorage.removeItem("wagmi.recentConnectorId");
+
+    // Clear Coinbase Wallet SDK specific keys directly
+    localStorage.removeItem("-walletlink:https://www.walletlink.org:version");
+    localStorage.removeItem("-walletlink:https://www.walletlink.org:session:id");
+    localStorage.removeItem("-walletlink:https://www.walletlink.org:session:secret");
+    localStorage.removeItem("-walletlink:https://www.walletlink.org:session:linked");
+    localStorage.removeItem("walletlink:https://www.walletlink.org:version");
+    localStorage.removeItem("walletlink:https://www.walletlink.org:session:id");
+    localStorage.removeItem("walletlink:https://www.walletlink.org:session:secret");
+    localStorage.removeItem("walletlink:https://www.walletlink.org:session:linked");
+
+    // Clear localStorage - be aggressive
+    const localStorageKeysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      // Skip our own disconnect flag
+      if (key === WALLET_DISCONNECTED_KEY) continue;
+
+      if (key && (
+        key.startsWith("wagmi") ||
+        key.startsWith("wc@") ||
+        key.startsWith("wc2") ||
+        key.startsWith("W3M") ||
+        key.startsWith("@w3m") ||
+        key.startsWith("-walletlink") ||
+        key.startsWith("walletlink") ||
+        key.startsWith("coinbaseWallet") ||
+        key.startsWith("COINBASE") ||
+        key.startsWith("coinbase-") ||
+        key.startsWith("Coinbase") ||
+        key.includes("walletconnect") ||
+        key.includes("WALLETCONNECT") ||
+        key.includes("reown") ||
+        key.includes("CoinbaseWallet") ||
+        key.includes("coinbase_wallet") ||
+        key.includes("coinbase") ||
+        key.includes("Coinbase")
+      )) {
+        localStorageKeysToRemove.push(key);
+      }
+    }
+    localStorageKeysToRemove.forEach(key => localStorage.removeItem(key));
+
+    // Clear sessionStorage too (some wallets use this)
+    const sessionStorageKeysToRemove: string[] = [];
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const key = sessionStorage.key(i);
+      if (key && (
+        key.startsWith("wagmi") ||
+        key.startsWith("wc") ||
+        key.startsWith("W3M") ||
+        key.startsWith("@w3m") ||
+        key.startsWith("-walletlink") ||
+        key.startsWith("walletlink") ||
+        key.startsWith("coinbase") ||
+        key.startsWith("Coinbase") ||
+        key.includes("walletconnect") ||
+        key.includes("reown") ||
+        key.includes("CoinbaseWallet") ||
+        key.includes("coinbase")
+      )) {
+        sessionStorageKeysToRemove.push(key);
+      }
+    }
+    sessionStorageKeysToRemove.forEach(key => sessionStorage.removeItem(key));
+
+    // Clear IndexedDB databases used by wallet SDKs
+    // Coinbase Wallet SDK and WalletConnect use IndexedDB
+    try {
+      const databases = await window.indexedDB.databases();
+      for (const db of databases) {
+        if (db.name && (
+          db.name.includes("walletlink") ||
+          db.name.includes("coinbase") ||
+          db.name.includes("Coinbase") ||
+          db.name.includes("WALLET_CONNECT") ||
+          db.name.includes("wc@") ||
+          db.name.includes("reown") ||
+          db.name.toLowerCase().includes("wallet")
+        )) {
+          window.indexedDB.deleteDatabase(db.name);
+        }
+      }
+    } catch {
+      // IndexedDB.databases() might not be supported in all browsers
+    }
+
+    // Set our disconnect flag
+    localStorage.setItem(WALLET_DISCONNECTED_KEY, "true");
+  }
+}
+
+/**
+ * Force disconnect and reload page - use this as last resort
+ * This guarantees a complete reset of wallet state
+ */
+export async function forceDisconnectAndReload(): Promise<void> {
+  await forceDisconnectWallet();
+  if (typeof window !== "undefined") {
+    window.location.reload();
+  }
+}
+
+/**
  * Clear the disconnected flag to allow wallet connection
- * Call this when user explicitly connects wallet
  */
 export function clearDisconnectedFlag(): void {
   if (typeof window !== "undefined") {
@@ -115,11 +250,13 @@ interface Web3ModalProviderProps {
 
 /**
  * Component to handle wallet auto-disconnect when user logged out
- * Watches for connection changes and disconnects if the flag is set
+ * Only runs once on mount to prevent interfering with in-app wallet connections
  */
 function WalletAutoDisconnectHandler() {
   useEffect(() => {
     const checkAndDisconnect = async () => {
+      // Only disconnect on initial page load if flag is set
+      // This prevents wallet from auto-reconnecting after user logs out
       if (wasExplicitlyDisconnected()) {
         const account = getAccount(wagmiConfig as Config);
         if (account.isConnected) {
@@ -130,17 +267,9 @@ function WalletAutoDisconnectHandler() {
 
     checkAndDisconnect();
 
-    const unwatch = watchAccount(wagmiConfig as Config, {
-      onChange: async (account) => {
-        if (account.isConnected && wasExplicitlyDisconnected()) {
-          await wagmiDisconnect(wagmiConfig as Config);
-        }
-      },
-    });
-
-    return () => {
-      unwatch();
-    };
+    // NOTE: We no longer watch for account changes here because it interferes
+    // with legitimate wallet connection attempts in the app. The flag is cleared
+    // when the user initiates a new connection via useWallet.connect() or openModal().
   }, []);
 
   return null;

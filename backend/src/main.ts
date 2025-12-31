@@ -9,6 +9,11 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
+  // Trust proxy - required when behind Docker, nginx, or load balancer
+  // This enables proper extraction of client IP from X-Forwarded-For header
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', true);
+
   // Global prefix
   app.setGlobalPrefix('api');
 

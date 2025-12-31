@@ -47,10 +47,10 @@ export class BlockchainConfigService {
 
   private loadConfig(): BlockchainConfig {
     return {
-      // Network configuration
-      chainId: parseInt(this.configService.get<string>('CHAIN_ID', '56'), 10), // BSC Mainnet
-      rpcUrl: this.configService.get<string>('BSC_RPC_URL', 'https://bsc-dataseed1.binance.org'),
-      rpcUrlFallback: this.configService.get<string>('BSC_RPC_URL_FALLBACK'),
+      // Network configuration - Default to BSC Testnet for development
+      chainId: parseInt(this.configService.get<string>('CHAIN_ID', '97'), 10), // BSC Testnet (use 56 for mainnet)
+      rpcUrl: this.configService.get<string>('BSC_RPC_URL', 'https://data-seed-prebsc-1-s1.bnbchain.org:8545'),
+      rpcUrlFallback: this.configService.get<string>('BSC_RPC_URL_FALLBACK', 'https://data-seed-prebsc-2-s1.bnbchain.org:8545'),
 
       // HBCT Token
       hbctTokenAddress: this.configService.get<string>(
@@ -64,7 +64,7 @@ export class BlockchainConfigService {
         'DEPOSIT_WALLET_ADDRESS',
         '0x0000000000000000000000000000000000000000',
       ),
-      minConfirmations: parseInt(this.configService.get<string>('MIN_CONFIRMATIONS', '12'), 10),
+      minConfirmations: parseInt(this.configService.get<string>('MIN_CONFIRMATIONS', '3'), 10),
 
       // Withdrawal configuration
       withdrawalPrivateKey: this.configService.get<string>('WITHDRAWAL_PRIVATE_KEY', ''),

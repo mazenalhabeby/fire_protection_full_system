@@ -516,6 +516,26 @@ export class NotificationsService {
   }
 
   /**
+   * Notify affiliate of commission earned from a referral purchase
+   */
+  async notifyCommissionEarned(
+    userId: string,
+    commissionAmount: string,
+    purchaseAmount: string,
+    referralUsername?: string,
+  ) {
+    const fromText = referralUsername ? ` from @${referralUsername}'s purchase` : ' from a referral purchase';
+    return this.create({
+      userId,
+      type: NotificationType.TRANSACTION,
+      title: 'Commission Earned! 🎉',
+      message: `You earned ${commissionAmount} HBCT commission${fromText} of ${purchaseAmount} HBCT.`,
+      data: { commissionAmount, purchaseAmount, referralUsername },
+      actionUrl: '/affiliates',
+    });
+  }
+
+  /**
    * Notify user of a lock created
    */
   async notifyLockCreated(

@@ -7,13 +7,14 @@ import {
   Plus,
   Filter,
   ArrowLeft,
-  Loader2,
   InboxIcon,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { usePageLoading } from "@/hooks/useMinimumLoading";
 import { supportApi } from "@/lib/api";
 import { TicketCard } from "@/components/help";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { SupportTicket, TicketStatus } from "@/types/support";
 import { TICKET_STATUS_LABELS } from "@/types/support";
 
@@ -24,8 +25,11 @@ export default function TicketsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<TicketStatus | "ALL">("ALL");
+
+  // Page loading state
+  const { isLoading: isMinLoading, stopLoading } = usePageLoading();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -39,14 +43,15 @@ export default function TicketsPage() {
   }, [isAuthenticated, authLoading, locale, router]);
 
   const loadTickets = async (status?: TicketStatus) => {
-    setIsLoading(true);
+    setIsDataLoading(true);
     try {
       const data = await supportApi.getMyTickets(status);
       setTickets(data);
     } catch (error) {
       console.error("Failed to load tickets:", error);
     } finally {
-      setIsLoading(false);
+      setIsDataLoading(false);
+      stopLoading();
     }
   };
 
@@ -59,12 +64,10 @@ export default function TicketsPage() {
     }
   };
 
-  if (authLoading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-      </div>
-    );
+  const showSkeleton = authLoading || !isAuthenticated || isDataLoading || isMinLoading;
+
+  if (showSkeleton) {
+    return <TicketsSkeleton />;
   }
 
   const statusOptions: (TicketStatus | "ALL")[] = [
@@ -136,11 +139,7 @@ export default function TicketsPage() {
 
           {/* Tickets List */}
           <div className="space-y-4 animate-in fade-in duration-300 delay-200">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-              </div>
-            ) : tickets.length === 0 ? (
+            {tickets.length === 0 ? (
               <div className="text-center py-16 bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700">
                 <InboxIcon className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -162,6 +161,64 @@ export default function TicketsPage() {
                 <TicketCard key={ticket.id} ticket={ticket} locale={locale} />
               ))
             )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TicketsSkeleton() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Link */}
+        <div className="mb-8">
+          <Skeleton className="h-5 w-32" />
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-12 h-12 rounded-xl" />
+              <div>
+                <Skeleton className="h-7 w-48 mb-2" />
+                <Skeleton className="h-4 w-56" />
+              </div>
+            </div>
+            <Skeleton className="h-10 w-32 rounded-xl" />
+          </div>
+
+          {/* Filter */}
+          <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
+            <Skeleton className="w-4 h-4" />
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="h-9 w-24 rounded-lg" />
+            ))}
+          </div>
+
+          {/* Tickets List */}
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="p-5 bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="w-10 h-10 rounded-lg" />
+                    <div>
+                      <Skeleton className="h-5 w-48 mb-2" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            ))}
           </div>
         </div>
       </div>

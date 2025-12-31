@@ -18,7 +18,7 @@ import {
 import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { AdminSkeleton } from "@/components/skeletons/page-skeletons";
-import { cn } from "@/lib/utils";
+import { cn, formatName } from "@/lib/utils";
 import {
   ArrowUpRight,
   RefreshCw,
@@ -404,9 +404,9 @@ function WithdrawalRow({
           <span className="text-sm font-medium text-gray-900 dark:text-white">
             {withdrawal.user?.email || withdrawal.userId.slice(0, 8)}
           </span>
-          {withdrawal.user?.firstName && (
+          {(withdrawal.user?.firstName || withdrawal.user?.lastName) && (
             <p className="text-xs text-gray-500">
-              {withdrawal.user.firstName} {withdrawal.user.lastName}
+              {formatName(withdrawal.user.firstName, withdrawal.user.lastName)}
             </p>
           )}
         </div>

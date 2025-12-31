@@ -92,6 +92,7 @@ export class TokenPurchaseController {
       paymentAmount: new Decimal(dto.paymentAmount),
       referralCode: dto.referralCode,
       ipAddress,
+      txHash: dto.txHash,
     });
 
     return result;

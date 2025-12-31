@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { useCallback } from "react";
 
 interface LogoProps {
   variant?: "light" | "dark" | "auto";
@@ -27,6 +28,21 @@ export function Logo({
         ? "/images/logo-dark.svg"
         : "/images/logo-white.svg"; // Default to white for dark backgrounds
 
+  const handleLogoClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
+      // If already at the top or on home page, scroll to top smoothly
+      if (window.scrollY > 0) {
+        e.preventDefault();
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      }
+      // If scrollY is 0, let the default link behavior work (navigate to href)
+    },
+    []
+  );
+
   const image = (
     <Image
       src={logoSrc}
@@ -43,6 +59,7 @@ export function Logo({
     return (
       <Link
         href={href}
+        onClick={handleLogoClick}
         className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md block"
       >
         {/* White logo - visible in dark mode / dark backgrounds */}
@@ -71,6 +88,7 @@ export function Logo({
     return (
       <Link
         href={href}
+        onClick={handleLogoClick}
         className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md block"
       >
         {image}

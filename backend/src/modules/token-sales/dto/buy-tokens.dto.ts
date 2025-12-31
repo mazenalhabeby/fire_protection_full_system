@@ -23,7 +23,7 @@ export class BuyTokensDto {
   referralCode?: string;
 }
 
-export class GetQuoteDto {
+export class TokenSaleQuoteDto {
   @ApiProperty({ description: 'Amount in USD to get quote for', example: 100 })
   @IsNumber()
   @Min(1)

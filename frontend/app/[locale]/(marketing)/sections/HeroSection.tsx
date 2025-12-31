@@ -21,7 +21,7 @@ export function HeroSection({ className }: HeroSectionProps) {
     <section
       ref={sectionRef}
       className={cn(
-        "relative min-h-screen w-full overflow-hidden bg-black -mt-16",
+        "relative min-h-[calc(100vh+4rem)] w-full overflow-hidden bg-black -mt-16",
         className
       )}
     >
@@ -41,7 +41,7 @@ export function HeroSection({ className }: HeroSectionProps) {
       />
 
       {/* Content - highest z-index */}
-      <div className="relative z-30 flex min-h-screen flex-col items-center px-4 sm:px-6 lg:px-8">
+      <div className="relative z-30 flex min-h-[calc(100vh+4rem)] flex-col items-center px-4 sm:px-6 lg:px-8">
         {/* Title & Subtitle - positioned in upper area */}
         <div className="max-w-7xl mx-auto text-center w-full mt-[20vh] sm:mt-[22vh]">
           {/* Main Title with silver/white gradient and shimmer effect */}
@@ -69,9 +69,7 @@ export function HeroSection({ className }: HeroSectionProps) {
 
           {/* Subtitle */}
           <p className="text-white/60 sm:text-xl md:text-2xl max-w-3xl mx-auto animate-fade-in-up animation-delay-200">
-            <span className="tracking-widest">
-              {t("subtitle")}
-            </span>{" "}
+            <span className="tracking-widest">{t("subtitle")}</span>{" "}
             <span className="relative inline-block ml-1">
               <span
                 className="font-bebas-neue text-2xl sm:text-3xl md:text-4xl tracking-widest"

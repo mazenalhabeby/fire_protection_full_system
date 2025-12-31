@@ -8,6 +8,7 @@ import {
 import { PrismaService } from '../../../prisma/prisma.service';
 import { EmailService } from '../../email/email.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { TwoFactorService } from '../../auth/two-factor.service';
 import {
   Currency,
   TransferMethod,
@@ -51,6 +52,7 @@ export class TransferService {
     private readonly limitsService: LimitsService,
     private readonly emailService: EmailService,
     private readonly notificationsService: NotificationsService,
+    private readonly twoFactorService: TwoFactorService,
   ) {}
 
   /**
@@ -241,46 +243,142 @@ export class TransferService {
       throw new BadRequestException('Sender must have a verified email to initiate transfers');
     }
 
-    // Generate confirmation code
-    const confirmationCode = this.generateConfirmationCode();
-    const confirmationExpiresAt = new Date();
-    confirmationExpiresAt.setMinutes(confirmationExpiresAt.getMinutes() + CONFIRMATION_EXPIRY_MINUTES);
+    // Check if user has 2FA enabled - if so, use TOTP instead of email confirmation
+    const has2FAEnabled = await this.twoFactorService.isEnabled(senderId);
 
-    // Create transfer record
-    const transfer = await this.prisma.internalTransfer.create({
-      data: {
-        senderId,
-        receiverId: recipient.userId,
-        currency,
-        amount,
-        fee,
-        transferMethod,
-        recipientIdentifier,
-        status: WalletTransactionStatus.PENDING,
-        confirmationCode: this.hashCode(confirmationCode),
-        confirmationExpiresAt,
-        note,
-        ipAddress,
-      },
+    // Generate confirmation code and expiry only if NOT using 2FA
+    // For 2FA users, we use the TOTP code directly
+    let confirmationCode: string | null = null;
+    let confirmationExpiresAt: Date | null = null;
+
+    if (!has2FAEnabled) {
+      confirmationCode = this.generateConfirmationCode();
+      confirmationExpiresAt = new Date();
+      confirmationExpiresAt.setMinutes(confirmationExpiresAt.getMinutes() + CONFIRMATION_EXPIRY_MINUTES);
+    }
+
+    // Fee comes FROM the amount, so we only reserve the amount (not amount + fee)
+    // Sender pays: amount, Recipient receives: amount - fee, Fee: kept by platform
+    const totalDebit = amount;
+
+    // Create transfer record, lock funds, and create PENDING wallet transaction in a transaction
+    const transfer = await this.prisma.$transaction(async (tx) => {
+      // Get sender's balance with row-level lock to prevent race conditions
+      const [senderBalance] = await tx.$queryRaw<
+        Array<{
+          id: string;
+          userId: string;
+          currency: string;
+          availableBalance: any;
+          lockedBalance: any;
+          pendingBalance: any;
+        }>
+      >`
+        SELECT * FROM "wallet_balances"
+        WHERE "userId" = ${senderId} AND "currency" = ${currency}::"Currency"
+        FOR UPDATE
+      `;
+
+      if (!senderBalance) {
+        throw new BadRequestException('Wallet balance not found');
+      }
+
+      const currentAvailable = new Decimal(senderBalance.availableBalance.toString());
+      const currentPending = new Decimal(senderBalance.pendingBalance.toString());
+
+      // Check sufficient available balance (not already reserved)
+      if (currentAvailable.lessThan(totalDebit)) {
+        throw new BadRequestException('Insufficient available balance');
+      }
+
+      // Lock funds: move from availableBalance to pendingBalance
+      const newAvailable = currentAvailable.sub(totalDebit);
+      const newPending = currentPending.add(totalDebit);
+
+      await tx.walletBalance.update({
+        where: { userId_currency: { userId: senderId, currency } },
+        data: {
+          availableBalance: newAvailable,
+          pendingBalance: newPending,
+          lastActivityAt: new Date(),
+        },
+      });
+
+      // Create internal transfer
+      const internalTransfer = await tx.internalTransfer.create({
+        data: {
+          senderId,
+          receiverId: recipient.userId,
+          currency,
+          amount,
+          fee,
+          transferMethod,
+          recipientIdentifier,
+          status: WalletTransactionStatus.PENDING,
+          // Only store hashed confirmation code if NOT using 2FA
+          confirmationCode: confirmationCode ? this.hashCode(confirmationCode) : null,
+          confirmationExpiresAt,
+          note,
+          ipAddress,
+        },
+      });
+
+      // Create PENDING wallet transaction for sender (so it shows in transaction history)
+      await tx.walletTransaction.create({
+        data: {
+          userId: senderId,
+          currency,
+          type: WalletTransactionType.INTERNAL_TRANSFER_SEND,
+          amount,
+          fee,
+          netAmount: totalDebit,
+          balanceBefore: currentAvailable,
+          balanceAfter: newAvailable,
+          status: WalletTransactionStatus.PENDING,
+          relatedTransferId: internalTransfer.id,
+          description: `Transfer to ${recipient.displayName} (pending confirmation)`,
+          metadata: note ? { note } : undefined,
+          ipAddress,
+        },
+      });
+
+      return internalTransfer;
     });
 
-    // Send confirmation email
-    await this.sendTransferConfirmationEmail(
-      sender.email,
-      confirmationCode,
-      amount.toString(),
-      currency,
-      recipient.displayName,
-      fee.toString(),
+    // Send confirmation email only if NOT using 2FA
+    if (!has2FAEnabled && confirmationCode) {
+      await this.sendTransferConfirmationEmail(
+        sender.email,
+        confirmationCode,
+        amount.toString(),
+        currency,
+        recipient.displayName,
+        fee.toString(),
+      );
+    }
+
+    this.logger.log(
+      `Transfer initiated: ${transfer.id} from ${senderId} to ${recipient.userId} (2FA: ${has2FAEnabled})`,
     );
 
-    this.logger.log(`Transfer initiated: ${transfer.id} from ${senderId} to ${recipient.userId}`);
+    // Calculate net amount (amount after fee deduction from recipient perspective)
+    const netAmount = amount.sub(fee);
 
     return {
       success: true,
       transferId: transfer.id,
       confirmationRequired: true,
-      confirmationExpiresAt,
+      twoFactorRequired: has2FAEnabled,
+      confirmationExpiresAt: confirmationExpiresAt || undefined,
+      // Include additional fields for frontend TransferConfirmation
+      recipient: {
+        id: recipient.userId,
+        displayName: recipient.displayName,
+      },
+      amount: amount.toString(),
+      fee: fee.toString(),
+      netAmount: netAmount.toString(),
+      currency,
     };
   }
 
@@ -317,65 +415,145 @@ export class TransferService {
 
     // Check expiration
     if (transfer.confirmationExpiresAt && new Date() > transfer.confirmationExpiresAt) {
-      // Mark as expired
-      await this.prisma.internalTransfer.update({
-        where: { id: transferId },
-        data: { status: WalletTransactionStatus.EXPIRED },
+      const recipientName = this.buildDisplayName(transfer.receiver);
+      // Only the amount was reserved (fee comes from it)
+      const totalDebit = transfer.amount;
+
+      // Mark as expired and return locked funds
+      await this.prisma.$transaction(async (tx) => {
+        // Get sender's balance with row-level lock
+        const [senderBalance] = await tx.$queryRaw<
+          Array<{
+            id: string;
+            userId: string;
+            currency: string;
+            availableBalance: any;
+            lockedBalance: any;
+            pendingBalance: any;
+          }>
+        >`
+          SELECT * FROM "wallet_balances"
+          WHERE "userId" = ${transfer.senderId} AND "currency" = ${transfer.currency}::"Currency"
+          FOR UPDATE
+        `;
+
+        if (senderBalance) {
+          const currentAvailable = new Decimal(senderBalance.availableBalance.toString());
+          const currentPending = new Decimal(senderBalance.pendingBalance.toString());
+
+          // Return funds from pendingBalance to availableBalance
+          const newAvailable = currentAvailable.add(totalDebit);
+          const newPending = currentPending.sub(totalDebit);
+
+          await tx.walletBalance.update({
+            where: { userId_currency: { userId: transfer.senderId, currency: transfer.currency } },
+            data: {
+              availableBalance: newAvailable,
+              pendingBalance: newPending.lessThan(0) ? new Decimal(0) : newPending,
+              lastActivityAt: new Date(),
+            },
+          });
+        }
+
+        await tx.internalTransfer.update({
+          where: { id: transferId },
+          data: { status: WalletTransactionStatus.EXPIRED },
+        });
+
+        await tx.walletTransaction.updateMany({
+          where: {
+            relatedTransferId: transferId,
+            status: WalletTransactionStatus.PENDING,
+          },
+          data: {
+            status: WalletTransactionStatus.EXPIRED,
+            description: `Transfer to ${recipientName} (expired)`,
+          },
+        });
       });
-      throw new BadRequestException('Confirmation code has expired. Please initiate a new transfer.');
+
+      this.logger.log(`Transfer expired: ${transferId}, funds returned to sender`);
+      throw new BadRequestException('Confirmation code has expired. Funds have been returned to your wallet.');
     }
 
-    // Check for too many failed attempts (rate limiting)
-    const failedAttempts = await this.prisma.walletAuditLog.count({
-      where: {
-        userId,
-        entityType: 'InternalTransfer',
-        entityId: transferId,
-        action: 'TRANSFER_CONFIRM_FAILED',
-        createdAt: {
-          gte: new Date(Date.now() - CONFIRMATION_LOCKOUT_MINUTES * 60 * 1000),
-        },
-      },
-    });
+    // Check if user has 2FA enabled
+    const has2FAEnabled = await this.twoFactorService.isEnabled(userId);
 
-    if (failedAttempts >= MAX_CONFIRMATION_ATTEMPTS) {
-      throw new BadRequestException(
-        `Too many failed attempts. Please wait ${CONFIRMATION_LOCKOUT_MINUTES} minutes before trying again.`,
-      );
-    }
-
-    // Verify confirmation code using timing-safe comparison
-    const providedHash = this.hashCode(confirmationCode);
-    const storedHash = transfer.confirmationCode || '';
-
-    // Use timing-safe comparison to prevent timing attacks
-    const isValidCode = this.timingSafeCompare(providedHash, storedHash);
-
-    if (!isValidCode) {
-      // Log failed attempt
-      await this.prisma.walletAuditLog.create({
-        data: {
+    if (has2FAEnabled) {
+      // Verify using 2FA TOTP code
+      // TwoFactorService handles rate limiting and lockouts internally
+      try {
+        await this.twoFactorService.verifyToken(userId, confirmationCode, ipAddress);
+        this.logger.log(`Transfer ${transferId} confirmed via 2FA`);
+      } catch (error) {
+        // Log failed attempt
+        await this.prisma.walletAuditLog.create({
+          data: {
+            userId,
+            action: 'TRANSFER_CONFIRM_FAILED',
+            entityType: 'InternalTransfer',
+            entityId: transferId,
+            newValue: { reason: 'Invalid 2FA code', method: '2fa' },
+            ipAddress,
+          },
+        });
+        throw error; // Re-throw the error from TwoFactorService
+      }
+    } else {
+      // Verify using email confirmation code
+      // Check for too many failed attempts (rate limiting)
+      const failedAttempts = await this.prisma.walletAuditLog.count({
+        where: {
           userId,
-          action: 'TRANSFER_CONFIRM_FAILED',
           entityType: 'InternalTransfer',
           entityId: transferId,
-          newValue: { reason: 'Invalid confirmation code', attempt: failedAttempts + 1 },
-          ipAddress,
+          action: 'TRANSFER_CONFIRM_FAILED',
+          createdAt: {
+            gte: new Date(Date.now() - CONFIRMATION_LOCKOUT_MINUTES * 60 * 1000),
+          },
         },
       });
 
-      const remainingAttempts = MAX_CONFIRMATION_ATTEMPTS - failedAttempts - 1;
-      throw new BadRequestException(
-        remainingAttempts > 0
-          ? `Invalid confirmation code. ${remainingAttempts} attempts remaining.`
-          : `Too many failed attempts. Please wait ${CONFIRMATION_LOCKOUT_MINUTES} minutes.`,
-      );
+      if (failedAttempts >= MAX_CONFIRMATION_ATTEMPTS) {
+        throw new BadRequestException(
+          `Too many failed attempts. Please wait ${CONFIRMATION_LOCKOUT_MINUTES} minutes before trying again.`,
+        );
+      }
+
+      // Verify confirmation code using timing-safe comparison
+      const providedHash = this.hashCode(confirmationCode);
+      const storedHash = transfer.confirmationCode || '';
+
+      // Use timing-safe comparison to prevent timing attacks
+      const isValidCode = this.timingSafeCompare(providedHash, storedHash);
+
+      if (!isValidCode) {
+        // Log failed attempt
+        await this.prisma.walletAuditLog.create({
+          data: {
+            userId,
+            action: 'TRANSFER_CONFIRM_FAILED',
+            entityType: 'InternalTransfer',
+            entityId: transferId,
+            newValue: { reason: 'Invalid confirmation code', attempt: failedAttempts + 1, method: 'email' },
+            ipAddress,
+          },
+        });
+
+        const remainingAttempts = MAX_CONFIRMATION_ATTEMPTS - failedAttempts - 1;
+        throw new BadRequestException(
+          remainingAttempts > 0
+            ? `Invalid confirmation code. ${remainingAttempts} attempts remaining.`
+            : `Too many failed attempts. Please wait ${CONFIRMATION_LOCKOUT_MINUTES} minutes.`,
+        );
+      }
     }
 
     // Execute the transfer in a transaction with pessimistic locking
     const result = await this.prisma.$transaction(async (tx) => {
       // Get current balances with row-level locks to prevent race conditions
       // Using raw query with FOR UPDATE to ensure exclusive lock
+      // Note: Table name is "wallet_balances" due to @@map in Prisma schema
       const [senderBalance] = await tx.$queryRaw<
         Array<{
           id: string;
@@ -386,7 +564,7 @@ export class TransferService {
           pendingBalance: any;
         }>
       >`
-        SELECT * FROM "WalletBalance"
+        SELECT * FROM "wallet_balances"
         WHERE "userId" = ${transfer.senderId} AND "currency" = ${transfer.currency}::"Currency"
         FOR UPDATE
       `;
@@ -401,7 +579,7 @@ export class TransferService {
           pendingBalance: any;
         }>
       >`
-        SELECT * FROM "WalletBalance"
+        SELECT * FROM "wallet_balances"
         WHERE "userId" = ${transfer.receiverId} AND "currency" = ${transfer.currency}::"Currency"
         FOR UPDATE
       `;
@@ -411,29 +589,33 @@ export class TransferService {
       }
 
       const senderAvailable = new Decimal(senderBalance.availableBalance.toString());
+      const senderPending = new Decimal(senderBalance.pendingBalance.toString());
       const receiverAvailable = new Decimal(receiverBalance.availableBalance.toString());
-      const totalDebit = transfer.amount.add(transfer.fee);
+      // Fee comes from the amount, so only the amount was reserved
+      const totalDebit = transfer.amount;
+      // Receiver gets amount minus fee
+      const receiverCredit = transfer.amount.sub(transfer.fee);
 
-      // Check sufficient balance again (in case it changed)
-      if (senderAvailable.lessThan(totalDebit)) {
-        throw new BadRequestException('Insufficient balance');
+      // Funds should already be locked in pendingBalance - verify this
+      if (senderPending.lessThan(totalDebit)) {
+        // This shouldn't happen if funds were properly locked, but handle gracefully
+        throw new BadRequestException('Insufficient pending balance - funds may not have been properly reserved');
       }
 
-      // Debit sender
-      const senderBalanceBefore = senderAvailable;
-      const senderBalanceAfter = senderBalanceBefore.sub(totalDebit);
+      // Release from sender's pendingBalance (funds were already deducted from availableBalance at initiation)
+      const newSenderPending = senderPending.sub(totalDebit);
 
       await tx.walletBalance.update({
         where: { userId_currency: { userId: transfer.senderId, currency: transfer.currency } },
         data: {
-          availableBalance: senderBalanceAfter,
+          pendingBalance: newSenderPending,
           lastActivityAt: new Date(),
         },
       });
 
-      // Credit receiver
+      // Credit receiver's availableBalance (amount minus fee)
       const receiverBalanceBefore = receiverAvailable;
-      const receiverBalanceAfter = receiverBalanceBefore.add(transfer.amount);
+      const receiverBalanceAfter = receiverBalanceBefore.add(receiverCredit);
 
       await tx.walletBalance.update({
         where: { userId_currency: { userId: transfer.receiverId, currency: transfer.currency } },
@@ -443,48 +625,46 @@ export class TransferService {
         },
       });
 
-      // Update transfer status
+      // Update transfer status and clear confirmation code for security
       const updatedTransfer = await tx.internalTransfer.update({
         where: { id: transferId },
         data: {
           status: WalletTransactionStatus.COMPLETED,
           confirmedAt: new Date(),
           completedAt: new Date(),
+          confirmationCode: null, // Clear code after use
         },
       });
 
-      // Create sender transaction record
-      await tx.walletTransaction.create({
-        data: {
-          userId: transfer.senderId,
-          currency: transfer.currency,
-          type: WalletTransactionType.INTERNAL_TRANSFER_SEND,
-          amount: transfer.amount,
-          fee: transfer.fee,
-          netAmount: totalDebit,
-          balanceBefore: senderBalanceBefore,
-          balanceAfter: senderBalanceAfter,
-          status: WalletTransactionStatus.COMPLETED,
+      // Update existing PENDING sender transaction to COMPLETED
+      // Note: balanceBefore/After already set at initiation, just update status
+      await tx.walletTransaction.updateMany({
+        where: {
           relatedTransferId: transfer.id,
+          userId: transfer.senderId,
+          status: WalletTransactionStatus.PENDING,
+        },
+        data: {
+          status: WalletTransactionStatus.COMPLETED,
           description: `Transfer to ${this.buildDisplayName(transfer.receiver)}`,
-          ipAddress,
           completedAt: new Date(),
         },
       });
 
-      // Create receiver transaction record
+      // Create receiver transaction record (receiver gets amount minus fee)
       await tx.walletTransaction.create({
         data: {
           userId: transfer.receiverId,
           currency: transfer.currency,
           type: WalletTransactionType.INTERNAL_TRANSFER_RECEIVE,
-          amount: transfer.amount,
-          netAmount: transfer.amount,
+          amount: receiverCredit,
+          netAmount: receiverCredit,
           balanceBefore: receiverBalanceBefore,
           balanceAfter: receiverBalanceAfter,
           status: WalletTransactionStatus.COMPLETED,
           relatedTransferId: transfer.id,
           description: `Transfer from ${this.buildDisplayName(transfer.sender)}`,
+          metadata: transfer.note ? { note: transfer.note } : undefined,
           completedAt: new Date(),
         },
       });
@@ -496,8 +676,8 @@ export class TransferService {
           action: 'TRANSFER_SEND',
           entityType: 'InternalTransfer',
           entityId: transfer.id,
-          oldValue: { balance: senderBalanceBefore.toString() },
-          newValue: { balance: senderBalanceAfter.toString() },
+          oldValue: { availableBalance: senderAvailable.toString(), pendingBalance: senderPending.toString() },
+          newValue: { availableBalance: senderAvailable.toString(), pendingBalance: newSenderPending.toString(), amountSent: totalDebit.toString() },
           ipAddress,
         },
       });
@@ -508,8 +688,8 @@ export class TransferService {
           action: 'TRANSFER_RECEIVE',
           entityType: 'InternalTransfer',
           entityId: transfer.id,
-          oldValue: { balance: receiverBalanceBefore.toString() },
-          newValue: { balance: receiverBalanceAfter.toString() },
+          oldValue: { availableBalance: receiverBalanceBefore.toString() },
+          newValue: { availableBalance: receiverBalanceAfter.toString(), amountReceived: receiverCredit.toString() },
         },
       });
 
@@ -521,10 +701,11 @@ export class TransferService {
 
     this.logger.log(`Transfer completed: ${transferId}`);
 
-    // Notify recipient of received transfer
+    // Notify recipient of received transfer (they receive amount minus fee)
+    const receivedAmount = transfer.amount.sub(transfer.fee);
     await this.notificationsService.notifyTransferReceived(
       transfer.receiverId,
-      transfer.amount.toString(),
+      receivedAmount.toString(),
       transfer.currency,
       transfer.sender.username || transfer.sender.firstName || undefined,
     );
@@ -553,6 +734,9 @@ export class TransferService {
   async cancelTransfer(transferId: string, userId: string): Promise<{ success: boolean }> {
     const transfer = await this.prisma.internalTransfer.findUnique({
       where: { id: transferId },
+      include: {
+        receiver: { select: { id: true, username: true, firstName: true, lastName: true } },
+      },
     });
 
     if (!transfer) {
@@ -567,12 +751,69 @@ export class TransferService {
       throw new BadRequestException(`Transfer cannot be cancelled. Status: ${transfer.status}`);
     }
 
-    await this.prisma.internalTransfer.update({
-      where: { id: transferId },
-      data: { status: WalletTransactionStatus.CANCELLED },
+    const recipientName = this.buildDisplayName(transfer.receiver);
+    // Only the amount was reserved (fee comes from it)
+    const totalDebit = transfer.amount;
+
+    // Cancel transfer and return locked funds
+    await this.prisma.$transaction(async (tx) => {
+      // Get sender's balance with row-level lock
+      const [senderBalance] = await tx.$queryRaw<
+        Array<{
+          id: string;
+          userId: string;
+          currency: string;
+          availableBalance: any;
+          lockedBalance: any;
+          pendingBalance: any;
+        }>
+      >`
+        SELECT * FROM "wallet_balances"
+        WHERE "userId" = ${transfer.senderId} AND "currency" = ${transfer.currency}::"Currency"
+        FOR UPDATE
+      `;
+
+      if (!senderBalance) {
+        throw new BadRequestException('Balance not found');
+      }
+
+      const currentAvailable = new Decimal(senderBalance.availableBalance.toString());
+      const currentPending = new Decimal(senderBalance.pendingBalance.toString());
+
+      // Return funds from pendingBalance to availableBalance
+      const newAvailable = currentAvailable.add(totalDebit);
+      const newPending = currentPending.sub(totalDebit);
+
+      await tx.walletBalance.update({
+        where: { userId_currency: { userId: transfer.senderId, currency: transfer.currency } },
+        data: {
+          availableBalance: newAvailable,
+          pendingBalance: newPending.lessThan(0) ? new Decimal(0) : newPending, // Safety check
+          lastActivityAt: new Date(),
+        },
+      });
+
+      // Update transfer status
+      await tx.internalTransfer.update({
+        where: { id: transferId },
+        data: { status: WalletTransactionStatus.CANCELLED },
+      });
+
+      // Update the PENDING wallet transaction - update balances to reflect refund
+      await tx.walletTransaction.updateMany({
+        where: {
+          relatedTransferId: transferId,
+          status: WalletTransactionStatus.PENDING,
+        },
+        data: {
+          status: WalletTransactionStatus.CANCELLED,
+          balanceAfter: newAvailable, // Balance after refund
+          description: `Transfer to ${recipientName} (cancelled)`,
+        },
+      });
     });
 
-    this.logger.log(`Transfer cancelled: ${transferId}`);
+    this.logger.log(`Transfer cancelled: ${transferId}, funds returned to sender`);
 
     return { success: true };
   }
@@ -603,6 +844,7 @@ export class TransferService {
       note: t.note,
       createdAt: t.createdAt,
       completedAt: t.completedAt,
+      confirmationExpiresAt: t.confirmationExpiresAt,
       recipient: {
         id: t.receiver.id,
         displayName: this.buildDisplayName(t.receiver),

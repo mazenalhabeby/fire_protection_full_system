@@ -38,6 +38,7 @@ export interface User {
   isEmailVerified: boolean;
   authProvider: string;
   hasPassword: boolean;
+  twoFactorEnabled: boolean;
   createdAt: string;
 }
 
@@ -446,6 +447,7 @@ export type TransactionType =
   | 'BUY_DEX'
   | 'SELL_DEX'
   | 'TRANSFER'
+  | 'TRANSFER_RECEIVE'
   | 'LOCK'
   | 'UNLOCK'
   | 'REWARD_DISTRIBUTION'
@@ -569,7 +571,8 @@ export interface InitiateTransferResponse {
   transferId: string;
   status: 'PENDING';
   message: string;
-  confirmationExpiresAt: string;
+  twoFactorRequired?: boolean; // True if user should enter 2FA TOTP code instead of email code
+  confirmationExpiresAt?: string; // Only present if NOT using 2FA
   recipient: {
     id: string;
     displayName: string;
@@ -595,9 +598,9 @@ export interface ConfirmTransferResponse {
 
 export interface TransferInfo {
   id: string;
-  senderId: string;
+  senderId?: string;
   senderName?: string;
-  receiverId: string;
+  receiverId?: string;
   receiverName?: string;
   currency: WalletCurrency;
   amount: string;
@@ -608,6 +611,15 @@ export interface TransferInfo {
   note?: string;
   createdAt: string;
   completedAt?: string;
+  confirmationExpiresAt?: string;
+  recipient?: {
+    id: string;
+    displayName: string;
+  };
+  sender?: {
+    id: string;
+    displayName: string;
+  };
 }
 
 export interface RecipientLookupResponse {
@@ -629,6 +641,16 @@ export interface WalletTransaction {
   balanceAfter: string;
   status: WalletTransactionStatus;
   description?: string;
+  txHash?: string;
+  metadata?: {
+    txHash?: string;
+    paymentCurrency?: string;
+    paymentAmount?: string;
+    deliveryMethod?: string;
+    purchaseId?: string;
+    note?: string;
+    [key: string]: unknown;
+  };
   createdAt: string;
   completedAt?: string;
 }

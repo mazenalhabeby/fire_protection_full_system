@@ -6,6 +6,9 @@ import {
   Param,
   Query,
   UseGuards,
+  Req,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -13,11 +16,15 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import type { Request } from 'express';
+import * as express from 'express';
 import { AffiliatesService } from './affiliates.service';
 import {
   AffiliateProfileDto,
   AffiliateStatsDto,
   CommissionQueryDto,
+  ReferralsQueryDto,
   WithdrawDto,
 } from './dto';
 import { Public, CurrentUser } from '../../common/decorators';
@@ -30,6 +37,8 @@ export class AffiliatesController {
 
   @UseGuards(JwtAuthGuard)
   @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 per minute - prevent spam registrations
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Register as an affiliate' })
   @ApiResponse({
@@ -38,8 +47,8 @@ export class AffiliatesController {
     type: AffiliateProfileDto,
   })
   @ApiResponse({ status: 409, description: 'Already an affiliate' })
-  async register(@CurrentUser('id') userId: string) {
-    return this.affiliatesService.register(userId);
+  async register(@CurrentUser('id') userId: string, @Req() req: express.Request) {
+    return this.affiliatesService.register(userId, req);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -86,10 +95,10 @@ export class AffiliatesController {
   @Get('referrals')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get referred users' })
-  @ApiResponse({ status: 200, description: 'List of referred users' })
+  @ApiResponse({ status: 200, description: 'List of referred users with status and summary' })
   async getReferrals(
     @CurrentUser('id') userId: string,
-    @Query() query: CommissionQueryDto,
+    @Query() query: ReferralsQueryDto,
   ) {
     return this.affiliatesService.getReferrals(userId, query);
   }
@@ -108,6 +117,8 @@ export class AffiliatesController {
 
   @UseGuards(JwtAuthGuard)
   @Post('withdraw')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 3, ttl: 300000 } }) // 3 per 5 minutes - prevent abuse
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Withdraw affiliate earnings' })
   @ApiResponse({ status: 200, description: 'Withdrawal processed' })
@@ -115,18 +126,21 @@ export class AffiliatesController {
   async withdraw(
     @CurrentUser('id') userId: string,
     @Body() withdrawDto: WithdrawDto,
+    @Req() req: express.Request,
   ) {
-    return this.affiliatesService.withdraw(userId, withdrawDto.amount);
+    return this.affiliatesService.withdraw(userId, withdrawDto.amount, req);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('claim')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 per minute
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Claim all pending affiliate commissions' })
   @ApiResponse({ status: 200, description: 'Commissions claimed successfully' })
   @ApiResponse({ status: 400, description: 'No pending commissions' })
-  async claimCommissions(@CurrentUser('id') userId: string) {
-    return this.affiliatesService.claimCommissions(userId);
+  async claimCommissions(@CurrentUser('id') userId: string, @Req() req: express.Request) {
+    return this.affiliatesService.claimCommissions(userId, req);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -151,9 +165,10 @@ export class AffiliatesController {
 
   @Public()
   @Get('validate/:code')
+  @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 per minute - prevent enumeration attacks
   @ApiOperation({ summary: 'Validate a referral code' })
   @ApiResponse({ status: 200, description: 'Validation result' })
-  async validateCode(@Param('code') code: string) {
-    return this.affiliatesService.validateReferralCode(code);
+  async validateCode(@Param('code') code: string, @Req() req: express.Request) {
+    return this.affiliatesService.validateReferralCode(code, req);
   }
 }

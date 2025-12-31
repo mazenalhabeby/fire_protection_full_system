@@ -29,7 +29,7 @@ async function main() {
       id: 'tier-silver',
       name: 'Silver',
       lockMonths: 6,
-      bonusPercent: new Prisma.Decimal(7),
+      bonusPercent: new Prisma.Decimal(5),
       feeDiscountPercent: new Prisma.Decimal(10),
       minAmount: new Prisma.Decimal(100),
       isActive: true,
@@ -38,7 +38,7 @@ async function main() {
       id: 'tier-gold',
       name: 'Gold',
       lockMonths: 12,
-      bonusPercent: new Prisma.Decimal(20),
+      bonusPercent: new Prisma.Decimal(15),
       feeDiscountPercent: new Prisma.Decimal(25),
       minAmount: new Prisma.Decimal(500),
       isActive: true,
@@ -47,7 +47,7 @@ async function main() {
       id: 'tier-platinum',
       name: 'Platinum',
       lockMonths: 24,
-      bonusPercent: new Prisma.Decimal(50),
+      bonusPercent: new Prisma.Decimal(35),
       feeDiscountPercent: new Prisma.Decimal(50),
       minAmount: new Prisma.Decimal(1000),
       isActive: true,
@@ -140,7 +140,7 @@ async function main() {
   console.log('✅ Database seeded successfully!');
   console.log('\n📋 Summary:');
   console.log('- Token Config: HBCT @ $0.03');
-  console.log('- Lock Tiers: Silver 6M (+7%), Gold 12M (+20%), Platinum 24M (+50%)');
+  console.log('- Lock Tiers: Silver 6M (+5%), Gold 12M (+15%), Platinum 24M (+35%)');
   console.log('- Reward Pools: 4 pools totaling 42.5M HBCT');
   console.log('- Admin User: admin@hbctoken.com / Admin123!');
   console.log('- Sample Category: Fire Protection Equipment');

@@ -26,6 +26,7 @@ export interface TransactionInfo {
   balanceAfter: string;
   status: WalletTransactionStatus;
   description: string | null;
+  metadata?: Record<string, unknown> | null;
   createdAt: Date;
   completedAt: Date | null;
 }
@@ -41,6 +42,7 @@ export interface TransferInfo {
   note: string | null;
   createdAt: Date;
   completedAt: Date | null;
+  confirmationExpiresAt?: Date | null;
   recipient?: {
     id: string;
     displayName: string;
@@ -83,8 +85,18 @@ export interface TransferResult {
   success: boolean;
   transferId?: string;
   confirmationRequired: boolean;
+  twoFactorRequired?: boolean; // True if user has 2FA enabled and should use TOTP
   confirmationExpiresAt?: Date;
   error?: string;
+  // Additional fields for frontend
+  recipient?: {
+    id: string;
+    displayName: string;
+  };
+  amount?: string;
+  fee?: string;
+  netAmount?: string;
+  currency?: Currency;
 }
 
 export interface TransactionSummary {

@@ -1,5 +1,29 @@
-import { IsString, Length, Matches, IsOptional } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, Length, Matches, IsOptional, ValidateNested, IsNumber } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { ToLowerCase } from '../../../common/utils/transforms';
+
+class TwoFactorLocationDto {
+  @ApiPropertyOptional({ example: 48.2082, description: 'Latitude from browser geolocation' })
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @ApiPropertyOptional({ example: 16.3738, description: 'Longitude from browser geolocation' })
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
+
+  @IsOptional()
+  @IsString()
+  @ToLowerCase()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  @ToLowerCase()
+  country?: string;
+}
 
 export class VerifyTwoFactorDto {
   @ApiProperty({
@@ -62,5 +86,7 @@ export class TwoFactorLoginDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  location?: { city?: string; country?: string };
+  @ValidateNested()
+  @Type(() => TwoFactorLocationDto)
+  location?: TwoFactorLocationDto;
 }

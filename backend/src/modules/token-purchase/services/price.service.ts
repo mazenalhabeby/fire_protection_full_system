@@ -41,8 +41,8 @@ export class PriceService {
   private readonly logger = new Logger(PriceService.name);
   private readonly client;
 
-  // Price cache (5 minute TTL)
-  private readonly CACHE_TTL_MS = 5 * 60 * 1000;
+  // Price cache (30 second TTL for more real-time pricing)
+  private readonly CACHE_TTL_MS = 30 * 1000;
   private hbctPriceCache: PriceCache | null = null;
   private bnbPriceCache: PriceCache | null = null;
 

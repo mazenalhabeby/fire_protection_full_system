@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
-import { UpdateUserDto, ChangePasswordDto, UpdateUsernameDto } from './dto';
+import { UpdateUserDto, UserChangePasswordDto, UpdateUsernameDto } from './dto';
 
 @Injectable()
 export class UsersService {
@@ -61,6 +61,7 @@ export class UsersService {
         role: true,
         isEmailVerified: true,
         authProvider: true,
+        passwordHash: true,
         createdAt: true,
         updatedAt: true,
         tokenBalance: {
@@ -70,6 +71,9 @@ export class UsersService {
             totalBalance: true,
           },
         },
+        twoFactorAuth: {
+          select: { isEnabled: true },
+        },
       },
     });
 
@@ -77,7 +81,22 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      walletAddress: user.walletAddress,
+      role: user.role,
+      isEmailVerified: user.isEmailVerified,
+      authProvider: user.authProvider?.toUpperCase() || 'CREDENTIALS',
+      hasPassword: !!user.passwordHash,
+      twoFactorEnabled: user.twoFactorAuth?.isEnabled ?? false,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      tokenBalance: user.tokenBalance,
+    };
   }
 
   async getProfile(userId: string) {
@@ -151,6 +170,9 @@ export class UsersService {
         authProvider: true,
         passwordHash: true,
         createdAt: true,
+        twoFactorAuth: {
+          select: { isEnabled: true },
+        },
       },
     });
 
@@ -167,11 +189,12 @@ export class UsersService {
       isEmailVerified: user.isEmailVerified,
       authProvider: user.authProvider?.toUpperCase() || 'CREDENTIALS',
       hasPassword: !!user.passwordHash,
+      twoFactorEnabled: user.twoFactorAuth?.isEnabled ?? false,
       createdAt: user.createdAt,
     };
   }
 
-  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+  async changePassword(userId: string, changePasswordDto: UserChangePasswordDto) {
     const { currentPassword, newPassword } = changePasswordDto;
 
     const user = await this.prisma.user.findUnique({

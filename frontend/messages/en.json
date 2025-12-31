@@ -56,7 +56,26 @@
     "lockTokens": "Lock Tokens",
     "inviteFriends": "Invite Friends",
     "viewAirdrops": "View Airdrops",
-    "browseProducts": "Browse Products"
+    "browseProducts": "Browse Products",
+    "transactionTypes": {
+      "BUY_WEBSITE": "Token Purchase",
+      "TRANSFER": "Transfer Sent",
+      "TRANSFER_RECEIVE": "Transfer Received",
+      "LOCK": "Token Lock",
+      "UNLOCK": "Token Unlock",
+      "REWARD_DISTRIBUTION": "Reward",
+      "AIRDROP": "Airdrop",
+      "AFFILIATE_BONUS": "Affiliate Bonus",
+      "FEE_CASHBACK": "Fee Cashback",
+      "MARKETPLACE_PURCHASE": "Marketplace Purchase",
+      "MARKETPLACE_REFUND": "Marketplace Refund"
+    },
+    "status": {
+      "completed": "Completed",
+      "pending": "Pending",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    }
   },
   "tokenSales": {
     "title": "Buy HBCT Tokens",
@@ -592,6 +611,876 @@
       "auditedContract": "Audited Smart Contract",
       "verifiedTeam": "Verified Team",
       "securePayments": "Secure Payments"
+    }
+  },
+  "aboutUs": {
+    "hero": {
+      "badge": "About HBC Engineering",
+      "title": "Engineering Excellence,",
+      "titleHighlight": "Global Impact",
+      "subtitle": "Combining European engineering excellence with local support. We're your trusted partner in protecting investments, ensuring safety, and powering progress across the United States and Europe.",
+      "stats": {
+        "regions": "US & EU",
+        "regionsLabel": "Service Regions",
+        "projects": "750+",
+        "projectsLabel": "Projects Completed",
+        "experience": "10+",
+        "experienceLabel": "Years Experience"
+      }
+    },
+    "mission": {
+      "label": "Our Mission & Values",
+      "title": "What Drives Us Forward",
+      "subtitle": "We're committed to delivering innovative solutions that protect people, assets, and the environment while driving sustainable growth.",
+      "missionTitle": "Our Mission",
+      "missionStatement": "More than service — we're your partner in protecting investments, ensuring safety, and powering progress. We combine cutting-edge technology with decades of expertise to deliver solutions that make a real difference.",
+      "values": {
+        "experience": {
+          "title": "Proven Experience",
+          "description": "Over a decade of industry expertise delivering reliable solutions across diverse sectors."
+        },
+        "partnership": {
+          "title": "Trusted Partnership",
+          "description": "Building long-term relationships based on trust, transparency, and mutual success."
+        },
+        "innovation": {
+          "title": "Innovation Driven",
+          "description": "Continuously evolving our solutions with the latest technology and best practices."
+        },
+        "reliability": {
+          "title": "End-to-End Reliability",
+          "description": "Comprehensive support from initial consultation through implementation and beyond."
+        },
+        "flexibility": {
+          "title": "Tailored Flexibility",
+          "description": "Custom solutions designed to meet your specific requirements and challenges."
+        },
+        "commitment": {
+          "title": "Unwavering Commitment",
+          "description": "Dedicated to exceeding expectations and delivering measurable results."
+        }
+      }
+    },
+    "services": {
+      "label": "What We Do",
+      "title": "Our Core Services",
+      "subtitle": "Comprehensive solutions spanning fire protection, industrial maintenance, smart buildings, and cutting-edge IT services.",
+      "fireProtection": {
+        "title": "Fire Protection",
+        "description": "Advanced fire protection solutions including wood preservation, protective films, façade systems, and certified textile barriers.",
+        "features": ["Wood preservation treatments", "Protective film technologies", "Façade shielding systems", "Certified EV blanket technology"]
+      },
+      "industrial": {
+        "title": "Industrial Maintenance",
+        "description": "Complete industrial services including hydraulics, electrical, mechanical, welding, and 24/7 rapid response support.",
+        "features": ["Preventive & predictive maintenance", "Complex machinery relocation", "24/7 rapid response support", "Programming & automation"]
+      },
+      "smartBuilding": {
+        "title": "Intelligent Buildings",
+        "description": "Smart home automation, solar integration, security systems, and energy monitoring for modern buildings.",
+        "features": ["Smart home automation", "Solar (PV) integration", "Security & surveillance", "Energy monitoring systems"]
+      },
+      "itSolutions": {
+        "title": "IT Solutions",
+        "description": "Custom software development, cloud infrastructure, AI automation, and blockchain integration services.",
+        "features": ["Custom software development", "Cloud & DevOps infrastructure", "AI & automation systems", "Web3 & blockchain integration"]
+      }
+    },
+    "team": {
+      "label": "Leadership",
+      "title": "Meet Our Team",
+      "subtitle": "Experienced professionals dedicated to delivering excellence in every project we undertake.",
+      "members": {
+        "ceo": {
+          "name": "Michael Berg",
+          "role": "Chief Executive Officer",
+          "description": "20+ years leading global engineering initiatives with a focus on innovation and sustainable growth."
+        },
+        "cto": {
+          "name": "Alexander König",
+          "role": "Chief Technology Officer",
+          "description": "Expert in fire protection systems and smart building technologies with patents in flame-retardant materials."
+        },
+        "coo": {
+          "name": "Sarah Roberts",
+          "role": "Chief Operations Officer",
+          "description": "Specialized in scaling operations across multiple regions while maintaining quality standards."
+        },
+        "cfo": {
+          "name": "James Wilson",
+          "role": "Chief Financial Officer",
+          "description": "Strategic financial leadership with expertise in international markets and blockchain ventures."
+        }
+      }
+    },
+    "global": {
+      "label": "Global Presence",
+      "title": "Where We Operate",
+      "subtitle": "Serving clients across the United States and Europe with local expertise and global standards.",
+      "usa": {
+        "title": "United States",
+        "subtitle": "Headquarters",
+        "address": "260 Peachtree Street, Atlanta, GA 30303, USA",
+        "phone": "+1 (404) 703-3649",
+        "email": "office@hbc-engineering.com"
+      },
+      "europe": {
+        "title": "European Union",
+        "subtitle": "Regional Office",
+        "address": "European Operations Center",
+        "email": "eu@hbc-engineering.com"
+      },
+      "support": {
+        "title": "24/7 Support Available",
+        "description": "Round-the-clock assistance for critical infrastructure and emergency response.",
+        "cta": "Visit Our Website"
+      }
+    },
+    "cta": {
+      "badge": "Join the Ecosystem",
+      "title": "Ready to Get",
+      "titleHighlight": "Started?",
+      "subtitle": "Join thousands of users who trust HBC Engineering and the HBCT ecosystem for their fire protection and blockchain needs.",
+      "primaryCta": "Buy HBCT Tokens",
+      "secondaryCta": "Explore Dashboard"
+    }
+  },
+  "services": {
+    "hero": {
+      "badge": "Fire Protection Services",
+      "title": "Advanced Fire",
+      "titleHighlight": "Protection Solutions",
+      "subtitle": "Cutting-edge fire protection technology backed by decades of engineering expertise. From wood preservation to textile barriers, we deliver certified solutions that save lives and protect assets.",
+      "exploreCta": "Explore Services",
+      "learnMoreCta": "Learn More",
+      "trust": {
+        "certified": "ISO Certified",
+        "certifiedDesc": "International standards",
+        "tested": "Lab Tested",
+        "testedDesc": "5+ hour resistance",
+        "support": "24/7 Support",
+        "supportDesc": "Always available"
+      }
+    },
+    "list": {
+      "label": "Our Services",
+      "title": "Fire Protection Technologies",
+      "subtitle": "Comprehensive fire protection solutions designed to meet the highest safety standards and protect what matters most.",
+      "wood": {
+        "title": "Wood Preservation & Treatment",
+        "description": "Our advanced wood preservation treatments apply specialized fire-retardant coatings to structural wood elements, significantly reducing flammability while extending the lifespan of timber structures. Each treatment is customized based on wood type, application environment, and required fire resistance rating.",
+        "features": [
+          "Char-retardant coatings that form a protective barrier",
+          "Deep-penetrating fire-retardant impregnation",
+          "NFPA and EN certified treatments",
+          "Suitable for interior and exterior applications",
+          "Extends wood lifespan by up to 50%"
+        ]
+      },
+      "film": {
+        "title": "Protective Film Technologies",
+        "description": "Transparent protective films designed for windows, walls, and doors that slow flame spread and reduce radiant heat transfer. Our films maintain optical clarity while providing critical fire resistance, making them ideal for commercial and residential applications.",
+        "features": [
+          "Heat-reflective technology reduces thermal transfer",
+          "Smoke barrier protection blocks toxic gases",
+          "Custom formats for any window or door size",
+          "UV-resistant with 10+ year lifespan",
+          "Easy installation with minimal disruption"
+        ]
+      },
+      "facade": {
+        "title": "Façade Shielding Systems",
+        "description": "Architectural fire protection materials specifically designed to prevent flame propagation across building exteriors. Our façade systems integrate seamlessly with modern building designs while meeting stringent fire safety codes.",
+        "features": [
+          "Refractory panels with A1 fire rating",
+          "Compartmentation design prevents fire spread",
+          "Maintains visual transparency and aesthetics",
+          "Weather-resistant for all climates",
+          "Compatible with ventilated façade systems"
+        ]
+      },
+      "textile": {
+        "title": "Textile Fire Protection",
+        "description": "Revolutionary non-invasive silicone-coated glass-fiber barriers that contain flames and reduce heat without water or foam. Our certified EV-blanket technology is maintenance-free, reusable, and weather-resistant—ideal for emergency response and permanent installations.",
+        "features": [
+          "Certified EV-blanket for electric vehicle fires",
+          "Withstands temperatures up to 1100°C",
+          "Maintenance-free and fully reusable",
+          "Weather-resistant for outdoor storage",
+          "Compact design for rapid deployment"
+        ]
+      }
+    },
+    "features": {
+      "label": "Why Choose Us",
+      "title": "The HBC Advantage",
+      "subtitle": "Our fire protection solutions combine innovative technology with proven reliability to deliver unmatched safety performance.",
+      "items": {
+        "protection": {
+          "title": "Maximum Protection",
+          "description": "Our solutions provide 5+ hours of fire resistance, exceeding industry standards and giving you maximum time for evacuation and response."
+        },
+        "certified": {
+          "title": "Fully Certified",
+          "description": "All products meet or exceed NFPA, EN, and ISO certification requirements, ensuring compliance with international fire safety standards."
+        },
+        "eco": {
+          "title": "Eco-Friendly",
+          "description": "Our treatments are environmentally conscious, using non-toxic formulations that are safe for occupants and the environment."
+        },
+        "durable": {
+          "title": "Long-Lasting",
+          "description": "Engineered for durability, our solutions maintain effectiveness for decades with minimal maintenance requirements."
+        },
+        "rapid": {
+          "title": "Rapid Deployment",
+          "description": "Quick installation processes minimize disruption to your operations while maximizing protection from day one."
+        },
+        "support": {
+          "title": "Expert Support",
+          "description": "Our team of fire protection specialists provides ongoing consultation, maintenance, and 24/7 emergency support."
+        }
+      }
+    },
+    "process": {
+      "label": "How We Work",
+      "title": "Our Process",
+      "subtitle": "From initial consultation to final certification, we guide you through every step of implementing comprehensive fire protection solutions.",
+      "stats": {
+        "hours": "Hours fire resistance",
+        "compliance": "Compliance rate"
+      },
+      "steps": {
+        "consultation": {
+          "title": "Initial Consultation",
+          "description": "We begin with a thorough understanding of your needs, discussing your property type, risk factors, and specific requirements for fire protection."
+        },
+        "assessment": {
+          "title": "Site Assessment",
+          "description": "Our engineers conduct a comprehensive on-site evaluation, identifying vulnerabilities and measuring areas that require protection."
+        },
+        "solution": {
+          "title": "Custom Solution Design",
+          "description": "Based on our assessment, we design a tailored fire protection system that addresses your specific risks while optimizing cost-effectiveness."
+        },
+        "implementation": {
+          "title": "Professional Installation",
+          "description": "Our certified technicians install all fire protection systems with minimal disruption to your operations, following strict quality protocols."
+        },
+        "certification": {
+          "title": "Testing & Certification",
+          "description": "Every installation undergoes rigorous testing and documentation, providing you with complete certification for insurance and compliance purposes."
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready to Protect",
+      "titleHighlight": "Your Property?",
+      "subtitle": "Contact our fire protection specialists today for a free consultation and discover how our solutions can safeguard your assets.",
+      "primaryCta": "Get Started with HBCT",
+      "secondaryCta": "Visit HBC Engineering",
+      "contact": {
+        "phoneLabel": "Call us directly",
+        "emailLabel": "Send us an email",
+        "responseTime": "Average response time: 2 hours during business hours"
+      }
+    }
+  },
+  "project": {
+    "hero": {
+      "badge": "HBCT Token Ecosystem",
+      "title": "The Future of",
+      "titleHighlight": "Fire Protection",
+      "subtitle": "HBCT is a utility token powering a complete ecosystem — from marketplace purchases to staking rewards. Real products, real value, blockchain transparency.",
+      "primaryCta": "Buy HBCT Tokens",
+      "secondaryCta": "Explore Ecosystem",
+      "stats": {
+        "symbol": "Token Symbol",
+        "chain": "Blockchain",
+        "supply": "Total Supply",
+        "utility": "Utility Token"
+      }
+    },
+    "token": {
+      "label": "Why HBCT",
+      "title": "More Than Just",
+      "titleHighlight": "A Token",
+      "subtitle": "HBCT bridges blockchain technology with real-world fire protection products, creating tangible value beyond speculation.",
+      "features": {
+        "utility": {
+          "title": "Real Utility",
+          "description": "Use HBCT to purchase actual fire protection products from our marketplace. Real adoption, measurable impact, and genuine value creation."
+        },
+        "transparency": {
+          "title": "Blockchain Transparency",
+          "description": "Every transaction, certification, and product test is immutably recorded on-chain, creating full trust for token holders and customers."
+        },
+        "value": {
+          "title": "Long-Term Value",
+          "description": "As ecosystem demand grows through product sales and staking, the token's value is supported by real-world economic activity."
+        }
+      },
+      "benefits": {
+        "instant": {
+          "title": "Instant Transactions",
+          "description": "Off-chain transfers are instant with zero fees. On-chain transactions are fast and secure on BSC."
+        },
+        "global": {
+          "title": "Global Access",
+          "description": "Access the ecosystem from anywhere in the world with multi-currency support."
+        },
+        "secure": {
+          "title": "Enterprise Security",
+          "description": "Multi-factor authentication, audit logging, and enterprise-grade wallet protection."
+        }
+      }
+    },
+    "tokenomics": {
+      "label": "Tokenomics",
+      "title": "Token Distribution",
+      "subtitle": "A balanced allocation designed for long-term stability, ecosystem growth, and community trust.",
+      "totalSupply": "Total Supply",
+      "distribution": {
+        "reserve": {
+          "label": "Company Reserve"
+        },
+        "presale": {
+          "label": "Public Presale"
+        },
+        "ecosystem": {
+          "label": "Ecosystem Rewards"
+        },
+        "rd": {
+          "label": "R&D & Certifications"
+        },
+        "team": {
+          "label": "Team & Advisors"
+        },
+        "liquidity": {
+          "label": "Liquidity"
+        }
+      },
+      "vestingTitle": "Vesting Schedule",
+      "vesting": {
+        "presale": {
+          "title": "Presale Tokens",
+          "description": "20% at TGE, remaining vested linearly over 6-8 months to ensure price stability."
+        },
+        "rd": {
+          "title": "R&D & Ecosystem",
+          "description": "Quarterly release upon milestone completion, ensuring continuous development."
+        },
+        "reserve": {
+          "title": "Company Reserve",
+          "description": "12-month lock period, then gradual release aligned with strategic expansion."
+        }
+      },
+      "details": {
+        "network": "Network",
+        "type": "Token Type"
+      }
+    },
+    "ecosystem": {
+      "label": "Ecosystem",
+      "title": "Four Pillars of",
+      "titleHighlight": "Value",
+      "subtitle": "A comprehensive ecosystem designed to create multiple pathways for earning, spending, and growing with HBCT.",
+      "pillars": {
+        "marketplace": {
+          "title": "Marketplace",
+          "description": "Purchase real fire protection products using HBCT tokens. Real utility driving real demand.",
+          "features": [
+            "Fire protection products",
+            "HBCT payment integration",
+            "Order tracking & shipping"
+          ]
+        },
+        "locking": {
+          "title": "Token Locking",
+          "description": "Lock your tokens to earn bonus rewards. Higher tiers unlock better APY and exclusive benefits.",
+          "features": [
+            "Up to 50% APY rewards",
+            "Multiple lock duration tiers",
+            "One-click unlock & claim"
+          ]
+        },
+        "affiliate": {
+          "title": "Affiliate Program",
+          "description": "Earn up to 15% commission on referral purchases. Grow your network, grow your earnings.",
+          "features": [
+            "15% commission rate",
+            "Real-time tracking",
+            "Weekly HBCT payouts"
+          ]
+        },
+        "wallet": {
+          "title": "Integrated Wallet",
+          "description": "Manage multiple currencies with both on-chain and off-chain options. Your funds, your control.",
+          "features": [
+            "Multi-currency support",
+            "Zero-fee internal transfers",
+            "Multi-wallet linking"
+          ]
+        }
+      },
+      "learnMore": "Learn More",
+      "stats": {
+        "pillars": "Ecosystem Pillars",
+        "apy": "Max APY",
+        "commission": "Max Commission",
+        "access": "Platform Access"
+      }
+    },
+    "marketplace": {
+      "label": "Marketplace",
+      "title": "Real Products,",
+      "titleHighlight": "Real Value",
+      "subtitle": "The HBCT marketplace connects token holders with certified fire protection products. Every purchase creates real demand and utility for the token.",
+      "cta": "Browse Marketplace",
+      "benefits": [
+        "Purchase with HBCT tokens at exclusive rates",
+        "Certified fire protection products",
+        "Global shipping with order tracking",
+        "Earn loyalty rewards on purchases"
+      ],
+      "products": {
+        "woodProtection": {
+          "name": "Wood Protection Treatment",
+          "description": "Fire-retardant coating for structural wood"
+        },
+        "flameRetardant": {
+          "name": "Flame Retardant Spray",
+          "description": "Industrial-grade fire protection spray"
+        },
+        "facadeCoating": {
+          "name": "Façade Fire Coating",
+          "description": "Exterior fire protection system"
+        },
+        "textileSpray": {
+          "name": "Textile Fire Spray",
+          "description": "Non-toxic fabric fire protection"
+        }
+      },
+      "howItWorks": {
+        "title": "How It Works",
+        "steps": [
+          {
+            "title": "Buy HBCT",
+            "description": "Purchase tokens with BNB, USDT, or USDC"
+          },
+          {
+            "title": "Browse Products",
+            "description": "Explore our certified fire protection catalog"
+          },
+          {
+            "title": "Pay with HBCT",
+            "description": "Use your tokens at checkout for exclusive rates"
+          },
+          {
+            "title": "Receive & Protect",
+            "description": "Get your products delivered worldwide"
+          }
+        ]
+      }
+    },
+    "roadmap": {
+      "label": "Roadmap",
+      "title": "Project Timeline",
+      "subtitle": "Our strategic roadmap to revolutionize fire protection through blockchain technology and create lasting value.",
+      "phaseLabel": "Phase",
+      "currentPhase": "In Progress",
+      "phases": {
+        "foundation": {
+          "title": "Foundation",
+          "period": "Q1 2024",
+          "items": [
+            "Whitepaper & tokenomics finalized",
+            "Smart contract development",
+            "Website & brand launch",
+            "Community building begins"
+          ]
+        },
+        "launch": {
+          "title": "Token Launch",
+          "period": "Q2 2024",
+          "items": [
+            "HBCT presale launch",
+            "Wallet system integration",
+            "Token locking feature",
+            "Affiliate program launch"
+          ]
+        },
+        "growth": {
+          "title": "Ecosystem Growth",
+          "period": "Q3 2024",
+          "items": [
+            "Marketplace launch with products",
+            "Mobile app development",
+            "Partner onboarding",
+            "Community rewards program"
+          ]
+        },
+        "expansion": {
+          "title": "Market Expansion",
+          "period": "Q4 2024",
+          "items": [
+            "DEX liquidity deployment",
+            "CEX listing applications",
+            "International market entry",
+            "Enhanced staking tiers"
+          ]
+        },
+        "ecosystem": {
+          "title": "Full Ecosystem",
+          "period": "Q1 2025",
+          "items": [
+            "On-chain certification registry",
+            "Warranty tracking system",
+            "B2B partner portal",
+            "Governance token features"
+          ]
+        },
+        "global": {
+          "title": "Global Scale",
+          "period": "Q2 2025",
+          "items": [
+            "Multi-chain expansion",
+            "Global manufacturer partnerships",
+            "Decentralized verification nodes",
+            "Enterprise solutions launch"
+          ]
+        }
+      }
+    },
+    "cta": {
+      "title": "Join the",
+      "titleHighlight": "HBCT Ecosystem",
+      "subtitle": "Start your journey with HBCT today. Buy tokens, earn rewards, and be part of the future of fire protection.",
+      "getStarted": "Get Started",
+      "actions": {
+        "buy": {
+          "title": "Buy HBCT Tokens",
+          "description": "Purchase tokens directly with BNB, USDT, or USDC. Instant delivery to your wallet."
+        },
+        "affiliate": {
+          "title": "Join Affiliate Program",
+          "description": "Earn up to 15% commission on every referral purchase. Weekly payouts in HBCT."
+        },
+        "lock": {
+          "title": "Lock & Earn",
+          "description": "Lock your tokens to earn up to 50% APY. Multiple tiers with exclusive benefits."
+        }
+      },
+      "stats": {
+        "supply": "Total Supply",
+        "price": "Presale Price",
+        "network": "Network",
+        "standard": "Token Standard"
+      },
+      "disclaimer": "Cryptocurrency investments carry inherent risks. Please conduct your own research before investing. HBCT is a utility token, not a security."
+    }
+  },
+  "terms": {
+    "badge": "Legal Document",
+    "title": "Terms of Service",
+    "lastUpdated": "Last Updated",
+    "updateDate": "December 27, 2024",
+    "introduction": "Welcome to HBCT (HBC Fire Protection Token). These Terms of Service govern your use of our platform, including our website, token services, marketplace, and all related features. By accessing or using our services, you agree to be bound by these terms. Please read them carefully.",
+    "tableOfContents": "Table of Contents",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptance of Terms",
+        "content": "By accessing or using the HBCT platform, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service. If you do not agree to these terms, you must not access or use our services.\n\nThese terms constitute a legally binding agreement between you and HBC Engineering regarding your use of the platform. We reserve the right to modify these terms at any time, and your continued use of the platform constitutes acceptance of any modifications."
+      },
+      "eligibility": {
+        "title": "Eligibility",
+        "content": "To use our services, you must:\n\n• Be at least 18 years of age or the age of legal majority in your jurisdiction\n• Have the legal capacity to enter into binding contracts\n• Not be a resident of any jurisdiction where cryptocurrency transactions are prohibited\n• Not be on any sanctions list or subject to trade restrictions\n• Comply with all applicable laws and regulations in your jurisdiction\n\nBy using our services, you represent and warrant that you meet all eligibility requirements."
+      },
+      "account": {
+        "title": "Account Registration & Security",
+        "content": "When you create an account, you agree to:\n\n• Provide accurate, current, and complete information during registration\n• Maintain and promptly update your account information\n• Keep your password and authentication credentials secure and confidential\n• Enable two-factor authentication for enhanced security\n• Notify us immediately of any unauthorized access to your account\n• Accept responsibility for all activities that occur under your account\n\nWe reserve the right to suspend or terminate accounts that violate these terms or engage in suspicious activity."
+      },
+      "tokens": {
+        "title": "HBCT Token Terms",
+        "content": "HBCT is a utility token on the Binance Smart Chain (BSC) designed for use within the HBC ecosystem. By purchasing or holding HBCT tokens, you acknowledge that:\n\n• HBCT tokens are not securities, investments, or financial instruments\n• Token values may fluctuate and you may lose some or all of your purchase amount\n• Tokens are non-refundable once purchased\n• Token locking features have fixed terms that cannot be cancelled early\n• We do not guarantee any returns, profits, or token value appreciation\n• You are solely responsible for any tax obligations arising from token transactions\n\nToken purchases are subject to applicable transaction limits and verification requirements."
+      },
+      "marketplace": {
+        "title": "Marketplace Terms",
+        "content": "Our marketplace allows you to purchase fire protection products using HBCT tokens. When using the marketplace:\n\n• All product prices are displayed in HBCT and may vary based on token value\n• Orders are subject to product availability and shipping restrictions\n• Shipping times and costs vary by destination and are clearly displayed at checkout\n• Products may be subject to import duties and taxes in your jurisdiction\n• Returns and refunds are handled according to our Return Policy\n• We reserve the right to cancel orders that violate these terms"
+      },
+      "prohibited": {
+        "title": "Prohibited Activities",
+        "content": "You agree not to engage in any of the following prohibited activities:\n\n• Using the platform for money laundering or terrorist financing\n• Attempting to manipulate token prices or engage in market manipulation\n• Creating multiple accounts to circumvent limits or restrictions\n• Using automated systems, bots, or scripts without authorization\n• Attempting to hack, exploit, or compromise platform security\n• Impersonating other users or HBC Engineering representatives\n• Engaging in fraudulent transactions or providing false information\n• Violating any applicable laws, regulations, or third-party rights\n• Interfering with the proper operation of the platform"
+      },
+      "intellectual": {
+        "title": "Intellectual Property",
+        "content": "All content, trademarks, logos, and intellectual property on the HBCT platform are owned by or licensed to HBC Engineering. You may not:\n\n• Copy, modify, or distribute any platform content without permission\n• Use our trademarks or logos without written authorization\n• Reverse engineer or attempt to extract source code from our platform\n• Create derivative works based on our intellectual property\n\nYou retain ownership of any content you submit to the platform, but grant us a license to use such content as necessary to provide our services."
+      },
+      "disclaimer": {
+        "title": "Disclaimers",
+        "content": "THE PLATFORM AND SERVICES ARE PROVIDED \"AS IS\" AND \"AS AVAILABLE\" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED.\n\nWe do not warrant that:\n• The platform will be uninterrupted, secure, or error-free\n• Any defects will be corrected\n• The platform is free of viruses or harmful components\n• The results from using the platform will meet your expectations\n\nCryptocurrency and blockchain technologies involve inherent risks. You acknowledge that you understand these risks and accept full responsibility for your use of the platform."
+      },
+      "liability": {
+        "title": "Limitation of Liability",
+        "content": "TO THE MAXIMUM EXTENT PERMITTED BY LAW, HBC ENGINEERING AND ITS AFFILIATES SHALL NOT BE LIABLE FOR:\n\n• Any indirect, incidental, special, consequential, or punitive damages\n• Loss of profits, revenue, data, or business opportunities\n• Token value fluctuations or market losses\n• Unauthorized access to your account or data\n• Errors or inaccuracies in platform content\n• Any third-party actions or content\n\nOur total liability for any claims arising from these terms shall not exceed the amount you paid to us in the preceding 12 months."
+      },
+      "termination": {
+        "title": "Termination",
+        "content": "We may suspend or terminate your access to the platform at any time, with or without cause, and with or without notice. Upon termination:\n\n• Your right to access the platform will immediately cease\n• You must cease all use of our services\n• Provisions that by their nature should survive will remain in effect\n• You may still be able to withdraw any unlocked tokens to an external wallet\n\nYou may close your account at any time by contacting our support team."
+      },
+      "governing": {
+        "title": "Governing Law & Disputes",
+        "content": "These Terms of Service shall be governed by and construed in accordance with the laws of the State of Georgia, United States, without regard to its conflict of law provisions.\n\nAny disputes arising from these terms or your use of the platform shall be resolved through:\n\n1. Good faith negotiation between the parties\n2. Binding arbitration in Atlanta, Georgia if negotiation fails\n3. Courts of competent jurisdiction in Fulton County, Georgia for injunctive relief\n\nYou agree to waive any right to participate in class action lawsuits against HBC Engineering."
+      },
+      "changes": {
+        "title": "Changes to Terms",
+        "content": "We reserve the right to modify these Terms of Service at any time. When we make changes:\n\n• We will update the \"Last Updated\" date at the top of this page\n• We may notify you via email or platform notification for material changes\n• Your continued use of the platform constitutes acceptance of the modified terms\n• If you disagree with any changes, you should discontinue use of the platform\n\nWe encourage you to review these terms periodically to stay informed of any updates."
+      }
+    },
+    "contact": {
+      "title": "Questions About These Terms?",
+      "description": "If you have any questions about these Terms of Service, please contact our legal team."
+    },
+    "links": {
+      "privacy": "Privacy Policy",
+      "audit": "Audit Report",
+      "home": "Home"
+    }
+  },
+  "privacy": {
+    "badge": "Your Privacy Matters",
+    "title": "Privacy Policy",
+    "lastUpdated": "Last Updated",
+    "updateDate": "December 27, 2024",
+    "introduction": "At HBC Engineering, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use the HBCT platform. Please read this policy carefully to understand our practices regarding your personal data.",
+    "tableOfContents": "Table of Contents",
+    "dataOverview": "Types of Data We Collect",
+    "dataTypes": {
+      "personal": "Personal Information",
+      "personalDesc": "Name, email, phone number, and identity verification documents",
+      "wallet": "Wallet Information",
+      "walletDesc": "Cryptocurrency wallet addresses and transaction history",
+      "transaction": "Transaction Data",
+      "transactionDesc": "Purchase history, token transfers, and marketplace orders",
+      "device": "Device Information",
+      "deviceDesc": "IP address, browser type, device identifiers, and usage patterns"
+    },
+    "sections": {
+      "collection": {
+        "title": "Information We Collect",
+        "content": "We collect information you provide directly to us, including:\n\n• Account registration information (name, email, password)\n• Identity verification documents for KYC compliance\n• Payment and transaction information\n• Communications with our support team\n• Profile information and preferences\n\nWe automatically collect certain information when you use our platform:\n\n• Device and browser information\n• IP address and location data\n• Usage patterns and interaction data\n• Cookies and similar tracking technologies"
+      },
+      "usage": {
+        "title": "How We Use Your Information",
+        "content": "We use the information we collect to:\n\n• Provide, maintain, and improve our services\n• Process transactions and send related notifications\n• Verify your identity and prevent fraud\n• Comply with legal and regulatory requirements\n• Send you updates, security alerts, and support messages\n• Analyze usage patterns to improve user experience\n• Personalize content and recommendations\n• Protect the security of our platform and users"
+      },
+      "blockchain": {
+        "title": "Blockchain & Public Data",
+        "content": "Please be aware that blockchain transactions are public by nature:\n\n• Wallet addresses and transaction amounts are visible on the blockchain\n• This information cannot be deleted or modified once recorded\n• We cannot control access to public blockchain data\n• Your wallet address may be linked to your identity if disclosed\n\nWe recommend using separate wallets for privacy-sensitive transactions and being cautious about publicly associating your identity with wallet addresses."
+      },
+      "cookies": {
+        "title": "Cookies & Tracking Technologies",
+        "content": "We use cookies and similar technologies to:\n\n• Keep you logged in and remember your preferences\n• Analyze traffic and usage patterns\n• Improve platform performance and security\n• Deliver personalized content and features\n\nTypes of cookies we use:\n\n• Essential cookies: Required for platform functionality\n• Analytics cookies: Help us understand how users interact with our platform\n• Preference cookies: Remember your settings and choices\n\nYou can control cookies through your browser settings, but some features may not function properly if cookies are disabled."
+      },
+      "sharing": {
+        "title": "Information Sharing",
+        "content": "We may share your information with:\n\n• Service providers who assist in operating our platform\n• Payment processors for transaction processing\n• Identity verification services for KYC compliance\n• Law enforcement when required by law or legal process\n• Professional advisors (lawyers, auditors, consultants)\n• Business partners with your consent\n\nWe do not sell your personal information to third parties for marketing purposes.\n\nIn the event of a merger, acquisition, or sale of assets, your information may be transferred to the acquiring entity."
+      },
+      "security": {
+        "title": "Data Security",
+        "content": "We implement robust security measures to protect your information:\n\n• Encryption of data in transit and at rest (AES-256)\n• Two-factor authentication for account access\n• Regular security audits and penetration testing\n• Access controls and employee training\n• Secure data centers with physical security\n• Incident response and monitoring systems\n\nWhile we take extensive precautions, no system is completely secure. We encourage you to use strong passwords and enable all available security features."
+      },
+      "retention": {
+        "title": "Data Retention",
+        "content": "We retain your personal information for as long as necessary to:\n\n• Provide our services to you\n• Comply with legal and regulatory obligations\n• Resolve disputes and enforce agreements\n• Maintain security and prevent fraud\n\nSpecific retention periods:\n\n• Account information: Duration of account plus 5 years\n• Transaction records: 7 years for tax and regulatory compliance\n• Security logs: 2 years\n• Marketing preferences: Until you unsubscribe\n\nYou may request deletion of your data subject to legal retention requirements."
+      },
+      "rights": {
+        "title": "Your Privacy Rights",
+        "content": "Depending on your location, you may have the following rights:\n\n• Access: Request a copy of your personal data\n• Rectification: Correct inaccurate or incomplete data\n• Erasure: Request deletion of your data (with limitations)\n• Portability: Receive your data in a portable format\n• Restriction: Limit how we process your data\n• Objection: Object to certain processing activities\n• Withdraw consent: Revoke previously given consent\n\nTo exercise these rights, please contact us at privacy@hbc-engineering.com. We will respond within 30 days."
+      },
+      "international": {
+        "title": "International Data Transfers",
+        "content": "Your information may be transferred to and processed in countries other than your own, including the United States where our servers are located.\n\nWe ensure appropriate safeguards for international transfers:\n\n• Standard contractual clauses approved by regulatory authorities\n• Data processing agreements with service providers\n• Compliance with applicable data protection frameworks\n\nBy using our platform, you consent to the transfer of your information to countries that may have different data protection laws than your jurisdiction."
+      },
+      "children": {
+        "title": "Children's Privacy",
+        "content": "Our platform is not intended for individuals under 18 years of age. We do not knowingly collect personal information from children.\n\nIf we become aware that we have collected personal information from a child without parental consent, we will take steps to delete that information promptly.\n\nIf you believe we have inadvertently collected information from a child, please contact us immediately at privacy@hbc-engineering.com."
+      },
+      "changes": {
+        "title": "Changes to This Policy",
+        "content": "We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements.\n\nWhen we make changes:\n\n• We will update the \"Last Updated\" date\n• We will notify you of material changes via email or platform notification\n• We may ask for your consent if required by law\n\nWe encourage you to review this policy periodically. Your continued use of the platform after changes constitutes acceptance of the updated policy."
+      }
+    },
+    "rightsSummary": {
+      "title": "Summary of Your Rights",
+      "access": "Right to access your data",
+      "rectification": "Right to correct inaccurate data",
+      "erasure": "Right to request data deletion",
+      "portability": "Right to data portability",
+      "restriction": "Right to restrict processing",
+      "objection": "Right to object to processing"
+    },
+    "contact": {
+      "title": "Contact Our Privacy Team",
+      "description": "If you have any questions about this Privacy Policy or our data practices, please contact our Data Protection Officer.",
+      "address": "260 Peachtree Street, Atlanta, GA 30303, USA"
+    },
+    "links": {
+      "terms": "Terms of Service",
+      "audit": "Audit Report",
+      "home": "Home"
+    }
+  },
+  "audit": {
+    "badge": "Security Audit Report",
+    "title": "HBCT Security Audit",
+    "subtitle": "Comprehensive security analysis of the HBCT smart contract and platform integration",
+    "reportDate": "Report Date",
+    "version": "Version",
+    "downloadPdf": "Download Audit Report PDF",
+    "generating": "Generating PDF...",
+    "tabs": {
+      "smartContract": "Smart Contract",
+      "platform": "Platform"
+    },
+    "smartContract": {
+      "summary": "The HBCT token contract is a standard BEP-20 token deployed on the BNB Smart Chain. Our analysis confirms that the contract follows established standards with no critical vulnerabilities found in the token implementation.",
+      "recommendations": {
+        "title": "Recommendations",
+        "multisig": "Consider implementing multi-signature requirements for contract owner operations.",
+        "thirdPartyAudit": "Engage a third-party security firm for an independent smart contract audit."
+      },
+      "conclusion": "The HBCT smart contract demonstrates solid implementation of the BEP-20 standard. The token follows best practices with built-in overflow protection and standard transfer mechanics. No critical vulnerabilities were identified during this audit."
+    },
+    "platform": {
+      "summary": "The HBCT platform implements robust security measures for deposit and withdrawal operations. Our analysis confirms industry best practices including multi-factor authentication, encrypted storage, and comprehensive transaction validation.",
+      "recommendations": {
+        "title": "Recommendations",
+        "monitoring": "Set up real-time monitoring and alerting for unusual transaction patterns or large transfers.",
+        "insurance": "Consider obtaining platform insurance coverage for additional protection.",
+        "penetrationTest": "Conduct regular penetration testing to identify potential security vulnerabilities."
+      },
+      "conclusion": "The platform integration demonstrates strong security controls with multi-factor authentication, encrypted storage, comprehensive logging, and robust transaction validation. The recommended improvements are advisory enhancements rather than critical fixes."
+    },
+    "executiveSummary": {
+      "title": "Executive Summary",
+      "status": "PASSED - No Critical Vulnerabilities Found",
+      "description": "The HBCT token contract is a standard BEP-20 token deployed on the BNB Smart Chain. Our analysis confirms that the token follows established standards and the platform integration implements robust security measures for deposit and withdrawal operations."
+    },
+    "contractOverview": {
+      "title": "Contract Overview",
+      "tokenName": "Token Name",
+      "contractAddress": "Contract Address",
+      "network": "Network",
+      "tokenStandard": "Token Standard",
+      "decimals": "Decimals",
+      "totalSupply": "Total Supply",
+      "presalePrice": "Presale Price"
+    },
+    "platformWallets": {
+      "title": "Platform Wallet Addresses",
+      "depositWallet": "Deposit Wallet",
+      "depositDescription": "Platform receives HBCT deposits at this address. All incoming transfers are monitored and credited to user accounts after confirmation."
+    },
+    "contractFunctions": {
+      "title": "Smart Contract Functions",
+      "transfer": "Transfer tokens between addresses",
+      "balanceOf": "Query token balance of an address",
+      "decimals": "Returns token decimal places (18)",
+      "symbol": "Returns token symbol (HBCT)",
+      "allowance": "Check approved spending allowance",
+      "transferEvent": "Emitted on all token transfers for tracking"
+    },
+    "securityAnalysis": {
+      "title": "Security Analysis",
+      "items": {
+        "standard": {
+          "title": "BEP-20 Standard Compliance",
+          "desc": "The contract implements the standard BEP-20 interface with all required functions and events."
+        },
+        "ownership": {
+          "title": "Ownership Structure",
+          "desc": "Token ownership and transfer functions operate as expected with no hidden backdoors."
+        },
+        "reentrancy": {
+          "title": "Reentrancy Protection",
+          "desc": "Standard token transfers do not have reentrancy vulnerabilities."
+        },
+        "overflow": {
+          "title": "Integer Overflow/Underflow",
+          "desc": "Solidity 0.8+ provides built-in overflow protection for arithmetic operations."
+        },
+        "gasLimit": {
+          "title": "Gas Optimization",
+          "desc": "Token transfers operate within normal gas limits for BEP-20 tokens."
+        },
+        "centralization": {
+          "title": "Centralization Note",
+          "desc": "Platform operations (deposits/withdrawals) are managed centrally with appropriate security controls."
+        }
+      }
+    },
+    "platformSecurity": {
+      "title": "Platform Integration Security",
+      "items": {
+        "2fa": "Two-Factor Authentication (TOTP)",
+        "encryption": "AES-256-GCM Encryption for Secrets",
+        "auditLog": "Comprehensive Audit Logging",
+        "multiWallet": "Multi-Wallet Signature Verification",
+        "confirmations": "12 Block Confirmation Requirement",
+        "rateLimiting": "Rate Limiting & Lockout Protection"
+      }
+    },
+    "withdrawalSecurity": {
+      "title": "Withdrawal Security Configuration",
+      "minAmount": "Minimum Withdrawal",
+      "maxAmount": "Maximum Withdrawal",
+      "feePercent": "Withdrawal Fee",
+      "approvalThreshold": "Admin Approval Threshold",
+      "emailConfirmation": "Email Confirmation",
+      "required": "Required",
+      "gasProtection": "Gas Price Protection"
+    },
+    "depositSecurity": {
+      "title": "Deposit Security Configuration",
+      "confirmations": "Required Confirmations",
+      "eventTracking": "Event Tracking Method",
+      "transferEvents": "Transfer event monitoring via Viem",
+      "deduplication": "Event Deduplication",
+      "txHashLogIndex": "Transaction hash + Log index tracking",
+      "rpcRedundancy": "RPC Redundancy",
+      "primaryFallback": "Primary + Fallback RPC endpoints"
+    },
+    "techStack": {
+      "title": "Technology Stack",
+      "viem": "Blockchain Client",
+      "wagmi": "Wallet Connection",
+      "nestjs": "Backend Framework",
+      "nextjs": "Frontend Framework"
+    },
+    "recommendations": {
+      "title": "Recommendations",
+      "items": {
+        "multisig": "Consider implementing multi-signature requirements for high-value withdrawal wallet operations.",
+        "monitoring": "Set up real-time monitoring and alerting for unusual transaction patterns or large transfers.",
+        "insurance": "Consider obtaining smart contract insurance coverage for additional protection.",
+        "thirdPartyAudit": "Engage a third-party security firm for an independent smart contract audit."
+      }
+    },
+    "conclusion": {
+      "title": "Conclusion",
+      "content": "The HBCT token contract and platform integration demonstrate a solid security foundation. The token follows BEP-20 standards, and the platform implements industry best practices including multi-factor authentication, encrypted storage, comprehensive logging, and robust transaction validation. The recommended improvements are advisory enhancements rather than critical fixes. Overall, the system is suitable for production use with the current security measures in place."
+    },
+    "signature": {
+      "preparedBy": "Prepared By",
+      "date": "Report Date",
+      "version": "Report Version"
+    },
+    "links": {
+      "viewOnBscscan": "View on BSCScan",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "home": "Home"
     }
   }
 }

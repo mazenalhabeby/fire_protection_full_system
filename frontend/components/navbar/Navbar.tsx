@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { Menu, UserPlus, ArrowRight } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
@@ -21,13 +21,14 @@ interface NavbarProps {
   navItems?: NavItem[];
   actions?: React.ReactNode;
   className?: string;
+  hideSpacer?: boolean;
 }
 
 const defaultNavItems: NavItem[] = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/services", label: "Services" },
-  { href: "/projects", label: "Projects" },
+  { href: "#about-technology", label: "Technology" },
+  { href: "#why-hbct", label: "Token" },
+  { href: "#token-distribution", label: "Tokenomics" },
+  { href: "#timeline", label: "Roadmap" },
 ];
 
 export function Navbar({
@@ -35,10 +36,18 @@ export function Navbar({
   navItems = defaultNavItems,
   actions,
   className,
+  hideSpacer = false,
 }: NavbarProps) {
+  const pathname = usePathname();
   const { isScrolled } = useScrollPosition({ threshold: 12 });
   const { theme: sectionTheme } = useNavbarTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Hide anchor links (home page sections) on non-home pages
+  const isHomePage = pathname === "/" || pathname === "";
+  const filteredNavItems = isHomePage
+    ? navItems
+    : navItems.filter(item => !item.href.startsWith("#"));
 
   // Logo variant based on section background
   // dark section = light logo, light section = dark logo
@@ -51,12 +60,12 @@ export function Navbar({
 
   // Split nav items into left and right halves
   const { leftNavItems, rightNavItems } = useMemo(() => {
-    const midpoint = Math.ceil(navItems.length / 2);
+    const midpoint = Math.ceil(filteredNavItems.length / 2);
     return {
-      leftNavItems: navItems.slice(0, midpoint),
-      rightNavItems: navItems.slice(midpoint),
+      leftNavItems: filteredNavItems.slice(0, midpoint),
+      rightNavItems: filteredNavItems.slice(midpoint),
     };
-  }, [navItems]);
+  }, [filteredNavItems]);
 
   return (
     <>
@@ -123,6 +132,7 @@ export function Navbar({
           </button>
 
           {/* Desktop: Left nav links in glass pill */}
+          {leftNavItems.length > 0 && (
           <div
             className={cn(
               "hidden md:flex items-center justify-end flex-1",
@@ -177,6 +187,7 @@ export function Navbar({
               </div>
             </div>
           </div>
+          )}
 
           {/* Center Logo */}
           <div className="shrink-0 z-10">
@@ -186,6 +197,7 @@ export function Navbar({
           </div>
 
           {/* Desktop: Right nav links in glass pill */}
+          {rightNavItems.length > 0 && (
           <div
             className={cn(
               "hidden md:flex items-center justify-start flex-1",
@@ -239,6 +251,7 @@ export function Navbar({
               </div>
             </div>
           </div>
+          )}
 
           {/* Desktop: Language Switcher + Auth Buttons */}
           <div className="hidden md:flex items-center gap-2 z-10 ml-4">
@@ -323,7 +336,7 @@ export function Navbar({
       <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={closeMobileMenu}
-        navItems={navItems}
+        navItems={filteredNavItems}
         actions={
           <>
             {/* Premium Login Button - Mobile */}
@@ -367,7 +380,7 @@ export function Navbar({
       />
 
       {/* Spacer to prevent content from going under fixed navbar */}
-      <div className="h-16" aria-hidden="true" />
+      {!hideSpacer && <div className="h-16" aria-hidden="true" />}
     </>
   );
 }

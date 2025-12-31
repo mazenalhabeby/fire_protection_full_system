@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import { Menu, X, User, LogOut, ChevronDown, ChevronLeft, UserPlus, ArrowRight, Sun, Moon, Monitor, Globe, Check, Settings, HelpCircle, Users, Wallet, Link2, Bell } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
-import { cn } from "@/lib/utils";
+import { cn, capitalize, formatName, formatTokenBalance } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggleCompact } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
@@ -59,22 +59,11 @@ export function AppNavbar({ className }: AppNavbarProps) {
   // Get HBCT balance
   const { data: balancesData } = useWalletBalances();
   const hbctBalance = balancesData?.balances?.find(b => b.currency === "HBCT");
-  const rawBalance = hbctBalance ? parseFloat(hbctBalance.availableBalance) : 0;
+  const rawBalance = hbctBalance?.availableBalance || "0";
 
-  // Format balance in compact form (1K, 20K, 1.3M, etc.)
-  const formatCompactBalance = (num: number): string => {
-    if (num >= 1_000_000) {
-      const millions = num / 1_000_000;
-      return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`;
-    }
-    if (num >= 1_000) {
-      const thousands = num / 1_000;
-      return thousands % 1 === 0 ? `${thousands}K` : `${thousands.toFixed(1)}K`;
-    }
-    return num.toFixed(0);
-  };
-
-  const displayBalance = rawBalance > 0 ? `+${formatCompactBalance(rawBalance)}` : "0";
+  // Format balance using shared utility (handles T, B, M, K)
+  const formattedBalance = formatTokenBalance(rawBalance);
+  const displayBalance = parseFloat(rawBalance) > 0 ? `+${formattedBalance}` : "0";
 
   useEffect(() => {
     setMounted(true);
@@ -313,7 +302,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                       {/* User info */}
                       <div className="flex flex-col items-start leading-none">
                         <span className="text-xs font-semibold text-gray-900 dark:text-white max-w-[80px] truncate">
-                          {user?.firstName || user?.email?.split("@")[0]}
+                          {capitalize(user?.firstName) || user?.email?.split("@")[0]}
                         </span>
                         <span className="text-[10px] text-gray-400 dark:text-gray-500">View Profile</span>
                       </div>
@@ -351,7 +340,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-[15px] font-semibold text-gray-900 dark:text-white truncate">
-                                {user?.firstName} {user?.lastName}
+                                {formatName(user?.firstName, user?.lastName)}
                               </p>
                               <p className="text-[13px] text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
                             </div>
@@ -362,16 +351,35 @@ export function AppNavbar({ className }: AppNavbarProps) {
                         <div className="mx-4 border-t border-gray-200 dark:border-gray-700" />
 
                         {/* Menu Items */}
-                        <div className="px-2 py-2">
+                        <div className="px-2 py-2 space-y-1">
+                          {/* Wallet Button */}
+                          <Link
+                            href="/wallet"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors group"
+                          >
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:shadow-lg group-hover:shadow-emerald-500/30 transition-all">
+                              <Wallet className="h-5 w-5 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">My Wallet</span>
+                              <p className="text-[11px] text-gray-500 dark:text-gray-400">Send, receive & manage tokens</p>
+                            </div>
+                          </Link>
+
+                          {/* Affiliates Button */}
                           <Link
                             href="/affiliates"
                             onClick={() => setIsUserMenuOpen(false)}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors group"
                           >
-                            <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
-                              <Users className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md shadow-purple-500/20 group-hover:shadow-lg group-hover:shadow-purple-500/30 transition-all">
+                              <Users className="h-5 w-5 text-white" />
                             </div>
-                            <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">Affiliates</span>
+                            <div className="flex-1">
+                              <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">Affiliates</span>
+                              <p className="text-[11px] text-gray-500 dark:text-gray-400">Earn commissions on referrals</p>
+                            </div>
                           </Link>
                         </div>
 
@@ -701,7 +709,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                     </div>
                     <div>
                       <p className="text-white font-semibold">
-                        {user?.firstName || "User"}
+                        {capitalize(user?.firstName) || "User"}
                       </p>
                       <p className="text-white/50 text-xs truncate max-w-[150px]">
                         {user?.email}
@@ -796,6 +804,37 @@ export function AppNavbar({ className }: AppNavbarProps) {
                     <div className="border-t border-white/10" />
                   </li>
 
+                  {/* Wallet */}
+                  <li>
+                    <Link
+                      href="/wallet"
+                      onClick={closeMobileMenu}
+                      className={cn(
+                        "relative flex items-center gap-3 w-full text-base py-3 px-4 rounded-xl",
+                        "transition-all duration-200",
+                        isActiveLink("/wallet")
+                          ? [
+                              "text-white",
+                              "bg-gradient-to-r from-emerald-500/20 to-teal-600/20",
+                              "border border-emerald-500/30",
+                            ]
+                          : [
+                              "text-white/80 hover:text-white",
+                              "hover:bg-white/10",
+                              "border border-transparent",
+                            ]
+                      )}
+                    >
+                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                        <Wallet className="h-3.5 w-3.5 text-white" />
+                      </div>
+                      My Wallet
+                      {isActiveLink("/wallet") && (
+                        <ArrowRight className="ml-auto h-4 w-4 text-emerald-400" />
+                      )}
+                    </Link>
+                  </li>
+
                   {/* Affiliates */}
                   <li>
                     <Link
@@ -807,8 +846,8 @@ export function AppNavbar({ className }: AppNavbarProps) {
                         isActiveLink("/affiliates")
                           ? [
                               "text-white",
-                              "bg-gradient-to-r from-brand-500/20 to-brand-600/20",
-                              "border border-brand-500/30",
+                              "bg-gradient-to-r from-purple-500/20 to-indigo-600/20",
+                              "border border-purple-500/30",
                             ]
                           : [
                               "text-white/80 hover:text-white",
@@ -817,10 +856,12 @@ export function AppNavbar({ className }: AppNavbarProps) {
                             ]
                       )}
                     >
-                      <Users className="h-5 w-5 text-white/60" />
+                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                        <Users className="h-3.5 w-3.5 text-white" />
+                      </div>
                       Affiliates
                       {isActiveLink("/affiliates") && (
-                        <ArrowRight className="ml-auto h-4 w-4 text-brand-400" />
+                        <ArrowRight className="ml-auto h-4 w-4 text-purple-400" />
                       )}
                     </Link>
                   </li>

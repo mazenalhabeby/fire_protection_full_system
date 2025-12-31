@@ -10,7 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { ethers } from 'ethers';
 import { Request } from 'express';
-import { createPublicClient, http, type PublicClient, type Chain, hashMessage, recoverMessageAddress, isAddressEqual, getAddress } from 'viem';
+import { createPublicClient, http, type PublicClient, type Chain, hashMessage, recoverMessageAddress, isAddressEqual, getAddress, verifyTypedData, recoverTypedDataAddress } from 'viem';
 import { mainnet, base, polygon, arbitrum, optimism } from 'viem/chains';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TokenService, TokenPair } from './token.service';
@@ -31,6 +31,10 @@ import {
 
 const BCRYPT_ROUNDS = 12;
 
+// Re-export SecurityAlert from session.service
+export type { SecurityAlert } from './session.service';
+import type { SecurityAlert } from './session.service';
+
 export interface AuthResult {
   accessToken: string;
   refreshToken: string;
@@ -47,6 +51,7 @@ export interface AuthResult {
     createdAt: Date;
   };
   sessionId: string;
+  securityAlert?: SecurityAlert;
 }
 
 export interface MeResponse {
@@ -145,7 +150,16 @@ export class AuthService {
   // ============================================
 
   async register(registerDto: RegisterDto, req: Request): Promise<AuthResult> {
-    const { email, password, firstName, lastName, referralCode, location } = registerDto;
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      referralCode,
+      referralSource,
+      referralCapturedAt,
+      location,
+    } = registerDto;
     const normalizedEmail = email.toLowerCase().trim();
 
     // Check if user exists
@@ -157,14 +171,22 @@ export class AuthService {
       throw new ConflictException('Email already registered');
     }
 
-    // Handle referral code
+    // Handle referral code (case-insensitive lookup with format validation)
     let referredById: string | null = null;
     if (referralCode) {
-      const affiliate = await this.prisma.affiliate.findUnique({
-        where: { referralCode, isActive: true },
-      });
-      if (affiliate) {
-        referredById = affiliate.id;
+      const normalizedRefCode = referralCode.trim().toUpperCase();
+      // Validate format: must be exactly 8 alphanumeric characters
+      if (/^[A-Z0-9]{8}$/.test(normalizedRefCode)) {
+        const affiliate = await this.prisma.affiliate.findFirst({
+          where: {
+            referralCode: normalizedRefCode,
+            isActive: true,
+          },
+        });
+        if (affiliate) {
+          referredById = affiliate.id;
+          this.logger.log(`User registration with referral: ${normalizedRefCode} -> affiliate ${affiliate.id}`);
+        }
       }
     }
 
@@ -180,6 +202,12 @@ export class AuthService {
           firstName,
           lastName,
           referredById,
+          referralSource: referredById ? (referralSource || 'direct_link') : null,
+          referralCapturedAt: referredById && referralCapturedAt
+            ? new Date(referralCapturedAt)
+            : referredById
+              ? new Date()
+              : null,
           authProvider: 'CREDENTIALS',
           isEmailVerified: false,
         },
@@ -221,7 +249,7 @@ export class AuthService {
     );
 
     // Create session with browser location if provided
-    const session = await this.sessionService.createSession(user.id, refreshToken, req, location);
+    const { session } = await this.sessionService.createSession(user.id, refreshToken, req, location);
 
     // Regenerate tokens with session ID
     const tokens = await this.tokenService.generateTokenPair(
@@ -256,6 +284,11 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({
       where: { email: normalizedEmail },
+      include: {
+        twoFactorAuth: {
+          select: { isEnabled: true },
+        },
+      },
     });
 
     // Use constant-time comparison to prevent timing attacks
@@ -354,6 +387,7 @@ export class AuthService {
       isEmailVerified: boolean;
       authProvider: string;
       createdAt: Date;
+      twoFactorAuth?: { isEnabled: boolean } | null;
     },
     req: Request,
     location?: { city?: string; country?: string },
@@ -376,12 +410,17 @@ export class AuthService {
     );
 
     // Create session with browser location if provided
-    const session = await this.sessionService.createSession(
+    const { session, securityAlert } = await this.sessionService.createSession(
       user.id,
       tokens.refreshToken,
       req,
       location,
     );
+
+    // Log security alert if detected (impossible travel, new location)
+    if (securityAlert) {
+      this.logger.warn(`Security alert for user ${user.id}: ${securityAlert.type} - ${securityAlert.message}`);
+    }
 
     // Regenerate with session ID
     const finalTokens = await this.tokenService.generateTokenPair(
@@ -421,6 +460,7 @@ export class AuthService {
       ...finalTokens,
       user: this.formatUserResponse(user),
       sessionId: session.id,
+      securityAlert: securityAlert || undefined,
     };
   }
 
@@ -443,6 +483,11 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.userId },
+      include: {
+        twoFactorAuth: {
+          select: { isEnabled: true },
+        },
+      },
     });
 
     if (!user || !user.isActive) {
@@ -474,7 +519,7 @@ export class AuthService {
     sessionId: string,
     oldRefreshToken: string,
     req: Request,
-  ): Promise<TokenPair> {
+  ): Promise<TokenPair & { tokenExpiresAt: number; securityAlert?: any }> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -491,16 +536,28 @@ export class AuthService {
       sessionId,
     );
 
-    // Rotate refresh token in session (this validates the old token)
-    await this.sessionService.rotateRefreshToken(
+    // Get IP, user agent, and device fingerprint for security tracking
+    const ipAddress = this.getClientIp(req);
+    const userAgent = req.headers['user-agent'];
+    const deviceFingerprint = req.headers['x-device-fingerprint'] as string | undefined;
+
+    // Rotate refresh token with device fingerprint validation and security checks
+    const { tokenExpiresAt, securityAlert } = await this.sessionService.rotateRefreshToken(
       oldRefreshToken,
       sessionId,
       newTokens.refreshToken,
+      ipAddress,
+      userAgent,
+      deviceFingerprint,
     );
 
     this.logger.debug(`Tokens refreshed for user ${userId}`);
 
-    return newTokens;
+    return {
+      ...newTokens,
+      tokenExpiresAt: tokenExpiresAt.getTime(),
+      securityAlert,
+    };
   }
 
   // ============================================
@@ -531,6 +588,11 @@ export class AuthService {
   async getMe(userId: string, sessionId: string): Promise<MeResponse> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
+      include: {
+        twoFactorAuth: {
+          select: { isEnabled: true },
+        },
+      },
     });
 
     if (!user) {
@@ -644,9 +706,9 @@ export class AuthService {
           emailVerifiedAt: new Date(),
         },
       }),
-      this.prisma.emailVerificationToken.update({
+      // Delete token immediately after use for security
+      this.prisma.emailVerificationToken.delete({
         where: { id: verificationToken.id },
-        data: { usedAt: new Date() },
       }),
     ]);
 
@@ -690,9 +752,9 @@ export class AuthService {
           emailVerifiedAt: new Date(),
         },
       }),
-      this.prisma.emailVerificationToken.update({
+      // Delete token immediately after use for security
+      this.prisma.emailVerificationToken.delete({
         where: { id: verificationToken.id },
-        data: { usedAt: new Date() },
       }),
     ]);
 
@@ -811,10 +873,9 @@ export class AuthService {
           lockedUntil: null,
         },
       }),
-      // Mark token as used
-      this.prisma.passwordResetToken.update({
+      // Delete token immediately after use for security
+      this.prisma.passwordResetToken.delete({
         where: { id: resetToken.id },
-        data: { usedAt: new Date() },
       }),
       // Revoke all sessions for security
       this.prisma.session.updateMany({
@@ -973,12 +1034,25 @@ export class AuthService {
     // First check if wallet is in UserWallet table (multi-wallet support)
     const linkedWallet = await this.prisma.userWallet.findFirst({
       where: { walletAddress: normalizedAddress },
-      include: { user: true },
+      include: {
+        user: {
+          include: {
+            twoFactorAuth: {
+              select: { isEnabled: true },
+            },
+          },
+        },
+      },
     });
 
     // Then check legacy User.walletAddress field
     const primaryWalletUser = await this.prisma.user.findUnique({
       where: { walletAddress: normalizedAddress },
+      include: {
+        twoFactorAuth: {
+          select: { isEnabled: true },
+        },
+      },
     });
 
     // Determine which user owns this wallet
@@ -1058,7 +1132,7 @@ export class AuthService {
     }
 
     // No 2FA - complete login
-    return this.completeWalletLogin(user, req);
+    return this.completeWalletLogin(user, req, walletLoginDto.location);
   }
 
   /**
@@ -1076,8 +1150,16 @@ export class AuthService {
       isEmailVerified: boolean;
       authProvider: string;
       createdAt: Date;
+      twoFactorAuth?: { isEnabled: boolean } | null;
     },
     req: Request,
+    browserLocation?: {
+      latitude?: number;
+      longitude?: number;
+      accuracy?: number;
+      city?: string;
+      country?: string;
+    },
   ): Promise<AuthResult> {
     // Update last login info
     await this.prisma.user.update({
@@ -1096,12 +1178,18 @@ export class AuthService {
       '',
     );
 
-    // Create session
-    const session = await this.sessionService.createSession(
+    // Create session with browser location for VPN detection
+    const { session, securityAlert } = await this.sessionService.createSession(
       user.id,
       tokens.refreshToken,
       req,
+      browserLocation,
     );
+
+    // Log security alert if detected
+    if (securityAlert) {
+      this.logger.warn(`Security alert for user ${user.id}: ${securityAlert.type} - ${securityAlert.message}`);
+    }
 
     // Regenerate with session ID
     const finalTokens = await this.tokenService.generateTokenPair(
@@ -1139,8 +1227,17 @@ export class AuthService {
   }
 
   async walletRegister(walletRegisterDto: WalletRegisterDto, req: Request): Promise<AuthResult> {
-    const { walletAddress, signature, message, firstName, lastName, referralCode } =
-      walletRegisterDto;
+    const {
+      walletAddress,
+      signature,
+      message,
+      firstName,
+      lastName,
+      referralCode,
+      referralSource,
+      referralCapturedAt,
+      location,
+    } = walletRegisterDto;
     const normalizedAddress = walletAddress.toLowerCase();
 
     // Check if wallet already registered in UserWallet table
@@ -1166,14 +1263,22 @@ export class AuthService {
       throw new UnauthorizedException('Invalid signature');
     }
 
-    // Handle referral
+    // Handle referral (case-insensitive lookup with format validation)
     let referredById: string | null = null;
     if (referralCode) {
-      const affiliate = await this.prisma.affiliate.findUnique({
-        where: { referralCode, isActive: true },
-      });
-      if (affiliate) {
-        referredById = affiliate.id;
+      const normalizedRefCode = referralCode.trim().toUpperCase();
+      // Validate format: must be exactly 8 alphanumeric characters
+      if (/^[A-Z0-9]{8}$/.test(normalizedRefCode)) {
+        const affiliate = await this.prisma.affiliate.findFirst({
+          where: {
+            referralCode: normalizedRefCode,
+            isActive: true,
+          },
+        });
+        if (affiliate) {
+          referredById = affiliate.id;
+          this.logger.log(`Wallet registration with referral: ${normalizedRefCode} -> affiliate ${affiliate.id}`);
+        }
       }
     }
 
@@ -1184,9 +1289,15 @@ export class AuthService {
           walletAddress: normalizedAddress,
           firstName,
           lastName,
+          referredById,
+          referralSource: referredById ? (referralSource || 'direct_link') : null,
+          referralCapturedAt: referredById && referralCapturedAt
+            ? new Date(referralCapturedAt)
+            : referredById
+              ? new Date()
+              : null,
           authProvider: 'WALLET',
           isEmailVerified: false, // No email to verify
-          referredById,
         },
       });
 
@@ -1232,8 +1343,8 @@ export class AuthService {
       '',
     );
 
-    // Create session
-    const session = await this.sessionService.createSession(user.id, tokens.refreshToken, req);
+    // Create session with browser location for VPN detection
+    const { session } = await this.sessionService.createSession(user.id, tokens.refreshToken, req, location);
 
     // Regenerate with session ID
     const finalTokens = await this.tokenService.generateTokenPair(
@@ -1320,6 +1431,7 @@ export class AuthService {
       isEmailVerified: user.isEmailVerified,
       authProvider: user.authProvider?.toUpperCase() || 'CREDENTIALS',
       hasPassword: !!user.passwordHash, // True if user has a password set
+      twoFactorEnabled: user.twoFactorAuth?.isEnabled ?? false,
       createdAt: user.createdAt,
     };
   }
@@ -1513,6 +1625,61 @@ export class AuthService {
       }
     } catch (error) {
       this.logger.debug(`Ethers EOA verification failed`);
+    }
+
+    // Fallback: Try EIP-712 typed data verification (for wallets that don't support personal_sign)
+    try {
+      this.logger.log(`Trying EIP-712 typed data verification...`);
+
+      // EIP-712 domain used by the frontend
+      const domain = {
+        name: 'HBCT Fire Protection',
+        version: '1',
+        chainId: 56, // BSC mainnet
+      } as const;
+
+      const types = {
+        Message: [
+          { name: 'content', type: 'string' },
+        ],
+      } as const;
+
+      // Try to recover the address from the typed data signature
+      const recoveredAddress = await recoverTypedDataAddress({
+        domain,
+        types,
+        primaryType: 'Message',
+        message: { content: message },
+        signature: sigHex,
+      });
+
+      if (isAddressEqual(getAddress(recoveredAddress), getAddress(normalizedAddress))) {
+        this.logger.log(`EIP-712 signature verified`);
+        return true;
+      }
+
+      // Also try with other chain IDs (Ethereum mainnet, BSC testnet)
+      for (const chainId of [1, 97]) {
+        try {
+          const altDomain = { ...domain, chainId };
+          const altRecovered = await recoverTypedDataAddress({
+            domain: altDomain,
+            types,
+            primaryType: 'Message',
+            message: { content: message },
+            signature: sigHex,
+          });
+
+          if (isAddressEqual(getAddress(altRecovered), getAddress(normalizedAddress))) {
+            this.logger.log(`EIP-712 signature verified with chainId ${chainId}`);
+            return true;
+          }
+        } catch {
+          // Continue trying other chain IDs
+        }
+      }
+    } catch (error: any) {
+      this.logger.debug(`EIP-712 verification failed: ${error.message}`);
     }
 
     this.logger.error(`All signature verification methods failed for ${walletAddress}`);

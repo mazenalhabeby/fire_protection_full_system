@@ -26,6 +26,7 @@ import * as express from 'express';
 import { AuthService } from './auth.service';
 import { OAuthService, OAuthProfile } from './oauth.service';
 import { WalletManagementService } from './wallet-management.service';
+import { SessionService } from './session.service';
 import {
   RegisterDto,
   LoginDto,
@@ -73,6 +74,7 @@ export class AuthController {
     private readonly oauthService: OAuthService,
     private readonly walletManagementService: WalletManagementService,
     private readonly twoFactorService: TwoFactorService,
+    private readonly sessionService: SessionService,
     private readonly configService: ConfigService,
   ) {
     this.isProduction = this.configService.get('NODE_ENV') === 'production';
@@ -146,6 +148,7 @@ export class AuthController {
 
     return {
       user: result.user,
+      securityAlert: result.securityAlert,
     };
   }
 
@@ -171,7 +174,12 @@ export class AuthController {
 
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
-    return { success: true };
+    // Return tokenExpiresAt and security alerts for frontend
+    return {
+      success: true,
+      tokenExpiresAt: result.tokenExpiresAt,
+      securityAlert: result.securityAlert,
+    };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -242,6 +250,53 @@ export class AuthController {
   ) {
     await this.authService.revokeSession(user.id, sessionId);
     return { success: true };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('sessions/:sessionId/trust')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Mark a session/device as trusted' })
+  @ApiResponse({ status: 200, description: 'Device marked as trusted' })
+  @ApiResponse({ status: 404, description: 'Session not found' })
+  async trustDevice(
+    @CurrentUser() user: any,
+    @Param('sessionId') sessionId: string,
+    @Body() body: { deviceName?: string },
+  ) {
+    await this.sessionService.trustDevice(sessionId, user.id, body.deviceName);
+    return { success: true, message: 'Device marked as trusted' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('sessions/:sessionId/trust')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remove trusted status from a session/device' })
+  @ApiResponse({ status: 200, description: 'Device trust removed' })
+  @ApiResponse({ status: 404, description: 'Session not found' })
+  async untrustDevice(
+    @CurrentUser() user: any,
+    @Param('sessionId') sessionId: string,
+  ) {
+    await this.sessionService.untrustDevice(sessionId, user.id);
+    return { success: true, message: 'Device trust removed' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('sessions/activities')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get recent session activities for security audit' })
+  @ApiResponse({ status: 200, description: 'Returns recent session activities' })
+  async getSessionActivities(
+    @CurrentUser() user: any,
+    @Query('limit') limit?: string,
+  ) {
+    const activities = await this.sessionService.getUserRecentActivity(
+      user.id,
+      limit ? parseInt(limit, 10) : 50,
+    );
+    return { activities };
   }
 
   // ============================================
@@ -394,7 +449,7 @@ export class AuthController {
 
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
-    return { user: result.user };
+    return { user: result.user, securityAlert: result.securityAlert };
   }
 
   @Public()
@@ -431,6 +486,28 @@ export class AuthController {
       walletLinkDto.signature,
       walletLinkDto.message,
     );
+  }
+
+  @Public()
+  @Get('wallet/check/:address')
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 per minute
+  @ApiOperation({ summary: 'Check if a wallet address is available (not linked to any account)' })
+  @ApiResponse({ status: 200, description: 'Returns wallet availability status' })
+  @ApiResponse({ status: 400, description: 'Invalid wallet address format' })
+  async checkWalletAvailability(@Param('address') address: string) {
+    return this.walletManagementService.checkWalletAvailability(address);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('wallet/check-authenticated/:address')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Check wallet availability for authenticated user (includes ownership check)' })
+  @ApiResponse({ status: 200, description: 'Returns wallet availability with ownership info' })
+  async checkWalletAvailabilityAuthenticated(
+    @CurrentUser() user: any,
+    @Param('address') address: string,
+  ) {
+    return this.walletManagementService.checkWalletAvailability(address, user.id);
   }
 
   // ============================================
@@ -768,6 +845,6 @@ export class AuthController {
 
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
-    return { user: result.user };
+    return { user: result.user, securityAlert: result.securityAlert };
   }
 }

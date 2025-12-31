@@ -34,6 +34,7 @@ export interface PurchaseOffChainRequest {
   paymentCurrency: "BNB" | "USDT" | "USDC";
   paymentAmount: string;
   referralCode?: string;
+  txHash?: string; // Blockchain transaction hash of the payment
 }
 
 export interface PurchaseOnChainRequest extends PurchaseOffChainRequest {

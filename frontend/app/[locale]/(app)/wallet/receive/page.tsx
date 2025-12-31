@@ -19,6 +19,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { CurrencyIcon } from "@/components/wallet-internal";
+import { formatName } from "@/lib/utils";
 
 export default function ReceivePage() {
   const router = useRouter();
@@ -45,8 +46,8 @@ export default function ReceivePage() {
     email: user?.email || "",
     username: user?.username || "",
     userId: user?.id || "",
-    displayName: user?.firstName
-      ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ""}`
+    displayName: user?.firstName || user?.lastName
+      ? formatName(user?.firstName, user?.lastName)
       : user?.username
         ? `@${user.username}`
         : user?.email?.split("@")[0] || "User",

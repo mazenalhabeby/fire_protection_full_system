@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
 interface UseMinimumLoadingOptions {
-  /** Minimum time to show loading state (default: 2000ms) */
+  /** Minimum time to show loading state (default: 0ms - no artificial delay) */
   minimumDuration?: number;
   /** Initial loading state (default: true) */
   initialLoading?: boolean;
@@ -19,12 +19,12 @@ interface UseMinimumLoadingReturn {
 }
 
 /**
- * Hook that ensures loading state shows for a minimum duration
- * Creates a premium feel by preventing flash of loading state
+ * Hook that manages loading state with optional minimum duration
+ * Shows skeleton while data is loading
  *
  * @example
  * ```tsx
- * const { isLoading, stopLoading } = useMinimumLoading({ minimumDuration: 2000 });
+ * const { isLoading, stopLoading } = useMinimumLoading();
  *
  * useEffect(() => {
  *   fetchData().finally(() => stopLoading());
@@ -36,7 +36,7 @@ interface UseMinimumLoadingReturn {
 export function useMinimumLoading(
   options: UseMinimumLoadingOptions = {}
 ): UseMinimumLoadingReturn {
-  const { minimumDuration = 2000, initialLoading = true } = options;
+  const { minimumDuration = 0, initialLoading = true } = options;
 
   const [isLoading, setIsLoading] = useState(initialLoading);
   const loadingStartTime = useRef<number>(Date.now());
@@ -111,7 +111,7 @@ export function useMinimumLoading(
  * }, []);
  * ```
  */
-export function usePageLoading(minimumDuration = 2000) {
+export function usePageLoading(minimumDuration = 0) {
   return useMinimumLoading({
     minimumDuration,
     initialLoading: true,

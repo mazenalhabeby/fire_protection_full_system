@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { authApi, type TwoFactorStatus } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import { ActiveSessionsSection } from "./ActiveSessionsSection";
+import { SessionActivitySection } from "./SessionActivitySection";
 import { TwoFactorSetupModal } from "./TwoFactorSetupModal";
 
 export function SecuritySection() {
@@ -498,6 +499,9 @@ Generated: ${new Date().toISOString()}
 
       {/* Active Sessions */}
       <ActiveSessionsSection />
+
+      {/* Session Activity */}
+      <SessionActivitySection />
     </div>
   );
 }

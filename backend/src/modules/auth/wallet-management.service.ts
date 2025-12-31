@@ -9,6 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { TokenService } from './token.service';
 import { ethers } from 'ethers';
 import * as crypto from 'crypto';
+import { recoverTypedDataAddress, getAddress, isAddressEqual } from 'viem';
 
 // Maximum wallets per user
 const MAX_WALLETS_PER_USER = 3;
@@ -412,6 +413,73 @@ export class WalletManagementService {
     return Math.max(0, MAX_WALLETS_PER_USER - count);
   }
 
+  /**
+   * Check if a wallet address is available (not linked to any account)
+   * This is a public endpoint - no authentication required
+   */
+  async checkWalletAvailability(
+    walletAddress: string,
+    currentUserId?: string,
+  ): Promise<{
+    available: boolean;
+    linkedToCurrentUser: boolean;
+    message?: string;
+  }> {
+    // Validate wallet address format
+    if (!ethers.isAddress(walletAddress)) {
+      throw new BadRequestException('Invalid wallet address format');
+    }
+
+    const normalizedAddress = walletAddress.toLowerCase();
+
+    // Check if wallet is linked to any account
+    const existingWallet = await this.prisma.userWallet.findUnique({
+      where: { walletAddress: normalizedAddress },
+      select: {
+        userId: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!existingWallet) {
+      return {
+        available: true,
+        linkedToCurrentUser: false,
+      };
+    }
+
+    // Wallet is linked to someone
+    const isLinkedToCurrentUser = currentUserId
+      ? existingWallet.userId === currentUserId
+      : false;
+
+    if (isLinkedToCurrentUser) {
+      return {
+        available: false,
+        linkedToCurrentUser: true,
+        message: 'This wallet is already linked to your account',
+      };
+    }
+
+    // Mask the email for privacy
+    const email = existingWallet.user?.email;
+    const maskedEmail = email
+      ? `${email.substring(0, 2)}***@${email.split('@')[1]}`
+      : undefined;
+
+    return {
+      available: false,
+      linkedToCurrentUser: false,
+      message: maskedEmail
+        ? `This wallet is already linked to another account (${maskedEmail})`
+        : 'This wallet is already linked to another account',
+    };
+  }
+
   // ============================================
   // PRIVATE HELPER METHODS
   // ============================================
@@ -425,12 +493,69 @@ export class WalletManagementService {
     signature: string,
     expectedAddress: string,
   ): Promise<boolean> {
+    const sigHex = signature as `0x${string}`;
+    const normalizedAddress = expectedAddress.toLowerCase() as `0x${string}`;
+
+    // Try standard personal_sign verification first
     try {
       const recoveredAddress = ethers.verifyMessage(message, signature);
-      return recoveredAddress.toLowerCase() === expectedAddress.toLowerCase();
+      if (recoveredAddress.toLowerCase() === expectedAddress.toLowerCase()) {
+        return true;
+      }
     } catch {
-      return false;
+      // Continue to EIP-712 fallback
     }
+
+    // Try EIP-712 typed data verification (for WalletConnect and other wallets)
+    try {
+      const domain = {
+        name: 'HBCT Fire Protection',
+        version: '1',
+        chainId: 56, // BSC mainnet
+      } as const;
+
+      const types = {
+        Message: [
+          { name: 'content', type: 'string' },
+        ],
+      } as const;
+
+      const recoveredAddress = await recoverTypedDataAddress({
+        domain,
+        types,
+        primaryType: 'Message',
+        message: { content: message },
+        signature: sigHex,
+      });
+
+      if (isAddressEqual(getAddress(recoveredAddress), getAddress(normalizedAddress))) {
+        return true;
+      }
+
+      // Try other chain IDs
+      for (const chainId of [1, 97]) {
+        try {
+          const altDomain = { ...domain, chainId };
+          const altRecovered = await recoverTypedDataAddress({
+            domain: altDomain,
+            types,
+            primaryType: 'Message',
+            message: { content: message },
+            signature: sigHex,
+          });
+
+          if (isAddressEqual(getAddress(altRecovered), getAddress(normalizedAddress))) {
+            return true;
+          }
+        } catch {
+          // Continue trying
+        }
+      }
+    } catch {
+      // EIP-712 verification failed
+    }
+
+    return false;
   }
 
   private parseDeviceInfo(userAgent: string): string {

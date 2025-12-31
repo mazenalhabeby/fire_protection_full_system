@@ -66,6 +66,12 @@ export class PurchaseOffChainDto {
   @IsOptional()
   @IsString()
   referralCode?: string;
+
+  @ApiPropertyOptional({ description: 'Blockchain transaction hash of payment' })
+  @IsOptional()
+  @IsString()
+  @Matches(/^0x[a-fA-F0-9]{64}$/, { message: 'Invalid transaction hash format' })
+  txHash?: string;
 }
 
 export class PurchaseOnChainDto extends PurchaseOffChainDto {

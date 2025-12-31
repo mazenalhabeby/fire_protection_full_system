@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useAuth, useRequireAuth } from "@/hooks/useAuth";
-import { useLockTiers, useUserLocks, useCreateLock, useUnlock } from "@/hooks/useAppData";
+import { useUserLocks, useCreateLock, useUnlock } from "@/hooks/useAppData";
 import { useWalletBalances } from "@/hooks/useWalletData";
 import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PremiumButton } from "@/components/ui/premium-button";
 import { ScrollableList } from "@/components/ui/scrollable-list";
-import { getTierStyle } from "@/lib/config/tiers";
+import { getTierStyle, lockTiers } from "@/lib/config/tiers";
 
 export default function LockingPage() {
   const t = useTranslations("locking");
@@ -33,13 +33,13 @@ export default function LockingPage() {
   const { isLoading: authLoading } = useRequireAuth(`/${locale}/login`);
 
   // Use cached data hooks - data is prefetched on login
-  const { data: tiersData, isLoading: tiersLoading } = useLockTiers();
+  // Tiers are now fixed from config instead of fetched from API
   const { data: locksData, isLoading: locksLoading } = useUserLocks();
   const { data: balancesData } = useWalletBalances();
 
   // Get HBCT available balance
   const hbctBalance = balancesData?.balances?.find(b => b.currency === "HBCT");
-  const availableBalance = parseFloat(hbctBalance?.available || "0");
+  const availableBalance = parseFloat(hbctBalance?.availableBalance || "0");
 
   // Mutations with optimistic updates
   const createLockMutation = useCreateLock();
@@ -51,8 +51,8 @@ export default function LockingPage() {
   // Minimum loading duration for premium feel
   const { isLoading: isMinLoading, stopLoading } = usePageLoading();
 
-  // Data is loading if any of the queries are loading
-  const isDataLoading = tiersLoading || locksLoading;
+  // Data is loading if locks query is loading (tiers are now fixed)
+  const isDataLoading = locksLoading;
 
   // Stop minimum loading when data is ready
   useEffect(() => {
@@ -61,8 +61,8 @@ export default function LockingPage() {
     }
   }, [isDataLoading, stopLoading]);
 
-  // Get tiers and locks from query results
-  const tiers = tiersData ?? [];
+  // Use fixed tiers from config and locks from query results
+  const tiers = lockTiers;
   const locks = locksData?.locks ?? [];
 
   // Set default selected tier from API data

@@ -1,6 +1,7 @@
 import { IsEnum, IsOptional, IsString, IsNumber, Min, Max, MaxLength, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Currency, TransferMethod } from '@prisma/client';
+import { ToLowerCase } from '../../../common/utils/transforms';
 
 export class InitiateTransferDto {
   @IsEnum(Currency)
@@ -17,11 +18,13 @@ export class InitiateTransferDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
+  @ToLowerCase()
   recipientIdentifier: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(500)
+  @ToLowerCase()
   note?: string;
 }
 
@@ -38,6 +41,7 @@ export class LookupRecipientDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
+  @ToLowerCase()
   identifier: string;
 }
 

@@ -10,6 +10,7 @@ import {
   Mail,
   Clock,
   Shield,
+  Smartphone,
 } from "lucide-react";
 import { PremiumButton } from "@/components/ui/premium-button";
 import type { InitiateTransferResponse } from "@/types/api";
@@ -22,7 +23,8 @@ interface TransferConfirmationProps {
   error?: string;
 }
 
-const CODE_LENGTH = 8; // 8-character alphanumeric code
+const EMAIL_CODE_LENGTH = 8; // 8-character alphanumeric code for email
+const TOTP_CODE_LENGTH = 6; // 6-digit code for 2FA
 
 export function TransferConfirmation({
   transfer,
@@ -31,7 +33,10 @@ export function TransferConfirmation({
   isConfirming,
   error,
 }: TransferConfirmationProps) {
-  const [code, setCode] = useState(Array(CODE_LENGTH).fill(""));
+  const is2FA = transfer.twoFactorRequired;
+  const codeLength = is2FA ? TOTP_CODE_LENGTH : EMAIL_CODE_LENGTH;
+
+  const [code, setCode] = useState(Array(codeLength).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Focus first input on mount
@@ -39,11 +44,17 @@ export function TransferConfirmation({
     inputRefs.current[0]?.focus();
   }, []);
 
-  // Calculate time remaining
+  // Calculate time remaining (only for email confirmation)
   const [timeRemaining, setTimeRemaining] = useState<string>("");
   useEffect(() => {
+    // Skip timer for 2FA - TOTP codes regenerate every 30 seconds
+    if (is2FA || !transfer.confirmationExpiresAt) {
+      setTimeRemaining("");
+      return;
+    }
+
     const updateTime = () => {
-      const expires = new Date(transfer.confirmationExpiresAt);
+      const expires = new Date(transfer.confirmationExpiresAt!);
       const now = new Date();
       const diff = expires.getTime() - now.getTime();
 
@@ -60,25 +71,30 @@ export function TransferConfirmation({
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, [transfer.confirmationExpiresAt]);
+  }, [transfer.confirmationExpiresAt, is2FA]);
 
   const handleInput = (index: number, value: string) => {
-    // Only allow alphanumeric characters, convert to uppercase
-    const char = value.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(-1);
+    // For 2FA: only digits; For email: alphanumeric, uppercase
+    let char: string;
+    if (is2FA) {
+      char = value.replace(/[^0-9]/g, "").slice(-1);
+    } else {
+      char = value.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(-1);
+    }
 
     const newCode = [...code];
     newCode[index] = char;
     setCode(newCode);
 
     // Auto-advance to next input
-    if (char && index < CODE_LENGTH - 1) {
+    if (char && index < codeLength - 1) {
       inputRefs.current[index + 1]?.focus();
     }
 
     // Auto-submit when complete
-    if (char && index === CODE_LENGTH - 1) {
+    if (char && index === codeLength - 1) {
       const fullCode = newCode.join("");
-      if (fullCode.length === CODE_LENGTH) {
+      if (fullCode.length === codeLength) {
         onConfirm(fullCode);
       }
     }
@@ -92,8 +108,13 @@ export function TransferConfirmation({
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, CODE_LENGTH);
-    const newCode = pasted.split("").concat(Array(CODE_LENGTH - pasted.length).fill(""));
+    let pasted: string;
+    if (is2FA) {
+      pasted = e.clipboardData.getData("text").replace(/[^0-9]/g, "").slice(0, codeLength);
+    } else {
+      pasted = e.clipboardData.getData("text").replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, codeLength);
+    }
+    const newCode = pasted.split("").concat(Array(codeLength - pasted.length).fill(""));
     setCode(newCode);
 
     // Focus appropriate input
@@ -107,7 +128,7 @@ export function TransferConfirmation({
   };
 
   const isComplete = code.every((c) => c);
-  const isExpired = timeRemaining === "Expired";
+  const isExpired = !is2FA && timeRemaining === "Expired";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/70 backdrop-blur-sm">
@@ -115,14 +136,25 @@ export function TransferConfirmation({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center">
-              <Shield className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+            <div className={cn(
+              "w-10 h-10 rounded-xl flex items-center justify-center",
+              is2FA
+                ? "bg-purple-50 dark:bg-purple-500/10"
+                : "bg-brand-50 dark:bg-brand-500/10"
+            )}>
+              {is2FA ? (
+                <Smartphone className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              ) : (
+                <Shield className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+              )}
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Confirm Transfer
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Enter the code sent to your email</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {is2FA ? "Enter your authenticator code" : "Enter the code sent to your email"}
+              </p>
             </div>
           </div>
           <button
@@ -141,7 +173,7 @@ export function TransferConfirmation({
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500 dark:text-gray-400">Sending to</span>
               <span className="text-sm font-medium text-gray-900 dark:text-white">
-                {transfer.recipient.displayName}
+                {transfer.recipient?.displayName || 'Unknown recipient'}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -164,37 +196,58 @@ export function TransferConfirmation({
             </div>
           </div>
 
-          {/* Email Notice */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-            <Mail className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              We've sent an 8-character code to your email address
-            </p>
+          {/* Confirmation Method Notice */}
+          <div className={cn(
+            "flex items-center gap-3 p-3 rounded-xl border",
+            is2FA
+              ? "bg-purple-50 dark:bg-purple-500/10 border-purple-200 dark:border-purple-500/30"
+              : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+          )}>
+            {is2FA ? (
+              <>
+                <Smartphone className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <p className="text-sm text-purple-700 dark:text-purple-300">
+                  Enter the 6-digit code from your authenticator app
+                </p>
+              </>
+            ) : (
+              <>
+                <Mail className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  We've sent an 8-character code to your email address
+                </p>
+              </>
+            )}
           </div>
 
           {/* Code Input */}
           <div>
             <div className="flex justify-center gap-2" onPaste={handlePaste}>
-              {code.map((char, index) => (
+              {Array.from({ length: codeLength }).map((_, index) => (
                 <input
                   key={index}
                   ref={(el) => {
                     inputRefs.current[index] = el;
                   }}
                   type="text"
-                  inputMode="text"
-                  autoCapitalize="characters"
+                  inputMode={is2FA ? "numeric" : "text"}
+                  autoCapitalize={is2FA ? "off" : "characters"}
                   maxLength={1}
-                  value={char}
+                  value={code[index] || ""}
                   onChange={(e) => handleInput(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   disabled={isConfirming || isExpired}
                   className={cn(
-                    "w-10 h-12 text-center text-xl font-bold rounded-xl border-2 transition-all uppercase",
-                    "focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500",
+                    "w-10 h-12 text-center text-xl font-bold rounded-xl border-2 transition-all",
+                    "focus:outline-none focus:ring-2",
                     "bg-gray-50 dark:bg-gray-800",
-                    char
-                      ? "border-brand-500 text-gray-900 dark:text-white"
+                    is2FA
+                      ? "focus:ring-purple-500/20 focus:border-purple-500"
+                      : "focus:ring-brand-500/20 focus:border-brand-500 uppercase",
+                    code[index]
+                      ? is2FA
+                        ? "border-purple-500 text-gray-900 dark:text-white"
+                        : "border-brand-500 text-gray-900 dark:text-white"
                       : "border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white",
                     isExpired && "opacity-50 cursor-not-allowed"
                   )}
@@ -202,13 +255,22 @@ export function TransferConfirmation({
               ))}
             </div>
 
-            {/* Timer */}
-            <div className="flex items-center justify-center gap-2 mt-3">
-              <Clock className={cn("h-4 w-4", isExpired ? "text-red-500" : "text-gray-500 dark:text-gray-400")} />
-              <span className={cn("text-sm font-medium", isExpired ? "text-red-500" : "text-gray-500 dark:text-gray-400")}>
-                {isExpired ? "Code expired" : `Expires in ${timeRemaining}`}
-              </span>
-            </div>
+            {/* Timer (only for email confirmation) */}
+            {!is2FA && timeRemaining && (
+              <div className="flex items-center justify-center gap-2 mt-3">
+                <Clock className={cn("h-4 w-4", isExpired ? "text-red-500" : "text-gray-500 dark:text-gray-400")} />
+                <span className={cn("text-sm font-medium", isExpired ? "text-red-500" : "text-gray-500 dark:text-gray-400")}>
+                  {isExpired ? "Code expired" : `Expires in ${timeRemaining}`}
+                </span>
+              </div>
+            )}
+
+            {/* 2FA info */}
+            {is2FA && (
+              <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-3">
+                Code refreshes every 30 seconds
+              </p>
+            )}
           </div>
 
           {/* Error */}
@@ -236,7 +298,7 @@ export function TransferConfirmation({
             <PremiumButton
               onClick={() => onConfirm(code.join(""))}
               disabled={!isComplete || isConfirming || isExpired}
-              variant="brand"
+              variant={is2FA ? "purple" : "brand"}
               className="flex-1"
             >
               {isConfirming ? (

@@ -24,6 +24,8 @@ import { DepositsModule } from './modules/deposits/deposits.module';
 import { WithdrawalsModule } from './modules/withdrawals/withdrawals.module';
 import { TokenPurchaseModule } from './modules/token-purchase/token-purchase.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { DatabaseMaintenanceModule } from './modules/database-maintenance/database-maintenance.module';
+import { HealthModule } from './modules/health/health.module';
 import { JwtAuthGuard } from './modules/auth/guards';
 import { RequestLoggerMiddleware } from './common/middleware';
 
@@ -64,6 +66,8 @@ import { RequestLoggerMiddleware } from './common/middleware';
     WithdrawalsModule,
     TokenPurchaseModule,
     NotificationsModule,
+    DatabaseMaintenanceModule,
+    HealthModule,
   ],
   providers: [
     {
