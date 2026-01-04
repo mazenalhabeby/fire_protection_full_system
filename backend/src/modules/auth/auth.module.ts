@@ -20,6 +20,7 @@ import {
 import { EmailModule } from '../email/email.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { ACCESS_TOKEN_EXPIRY } from '../../config/cookie.config';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: '15m',
+          expiresIn: ACCESS_TOKEN_EXPIRY,
         },
       }),
       inject: [ConfigService],

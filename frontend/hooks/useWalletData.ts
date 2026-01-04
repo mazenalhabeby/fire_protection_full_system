@@ -23,6 +23,31 @@ import type {
 // QUERY KEYS - Centralized for consistency
 // ============================================
 
+// User-scoped wallet query key factory
+// Including user ID ensures each user has their own cache entries
+// This prevents data leakage between different users/accounts
+export const createWalletQueryKeys = (userId: string | null) => ({
+  // Balances
+  balances: ["user", userId, "walletBalances"] as const,
+  balance: (currency: WalletCurrency) => ["user", userId, "walletBalance", currency] as const,
+
+  // Transfers
+  transfers: (params?: TransferHistoryParams) => ["user", userId, "walletTransfers", params] as const,
+  pendingTransfers: ["user", userId, "walletPendingTransfers"] as const,
+
+  // Transactions
+  transactions: (params?: TransactionHistoryParams) => ["user", userId, "walletTransactions", params] as const,
+  transaction: (id: string) => ["user", userId, "walletTransaction", id] as const,
+  transactionSummary: (currency?: WalletCurrency, period?: string) =>
+    ["user", userId, "walletTransactionSummary", currency, period] as const,
+  recentTransactions: ["user", userId, "walletRecentTransactions"] as const,
+
+  // Limits
+  limits: ["user", userId, "walletLimits"] as const,
+});
+
+// Legacy query keys - kept for backward compatibility
+// TODO: Remove once all usages are migrated to createWalletQueryKeys
 export const walletQueryKeys = {
   // Balances
   balances: ["walletBalances"] as const,
@@ -51,14 +76,15 @@ export const walletQueryKeys = {
  * Fetch and cache all wallet balances
  */
 export function useWalletBalances() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: walletQueryKeys.balances,
+    queryKey: userKeys.balances,
     queryFn: async (): Promise<WalletBalances> => {
       return walletApi.getBalances();
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 30 * 1000, // 30 seconds
     refetchOnMount: true, // Always refetch when component mounts
     refetchOnWindowFocus: true, // Refetch when user returns to tab
@@ -69,14 +95,15 @@ export function useWalletBalances() {
  * Fetch and cache balance for a specific currency
  */
 export function useWalletBalance(currency: WalletCurrency) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: walletQueryKeys.balance(currency),
+    queryKey: userKeys.balance(currency),
     queryFn: async (): Promise<WalletBalance> => {
       return walletApi.getBalance(currency);
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 30 * 1000, // 30 seconds
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -92,16 +119,18 @@ export function useWalletBalance(currency: WalletCurrency) {
  */
 export function useInitiateTransfer() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return useMutation({
     mutationFn: async (data: InitiateTransferRequest): Promise<InitiateTransferResponse> => {
       return walletApi.initiateTransfer(data);
     },
     onSuccess: () => {
-      // Invalidate pending transfers and balances (funds are now locked in pendingBalance)
-      queryClient.invalidateQueries({ queryKey: walletQueryKeys.pendingTransfers });
-      queryClient.invalidateQueries({ queryKey: walletQueryKeys.balances });
-      queryClient.invalidateQueries({ queryKey: walletQueryKeys.recentTransactions });
+      // Force instant refetch for immediate UI updates (funds are now locked in pendingBalance)
+      queryClient.refetchQueries({ queryKey: userKeys.pendingTransfers });
+      queryClient.refetchQueries({ queryKey: userKeys.balances });
+      queryClient.refetchQueries({ queryKey: userKeys.recentTransactions });
     },
   });
 }
@@ -111,6 +140,8 @@ export function useInitiateTransfer() {
  */
 export function useConfirmTransfer() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return useMutation({
     mutationFn: async ({
@@ -124,16 +155,16 @@ export function useConfirmTransfer() {
     },
     onMutate: async ({ transferId }) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: walletQueryKeys.pendingTransfers });
+      await queryClient.cancelQueries({ queryKey: userKeys.pendingTransfers });
 
       // Snapshot previous value
       const previousPending = queryClient.getQueryData<{ transfers: TransferInfo[]; total: number }>(
-        walletQueryKeys.pendingTransfers
+        userKeys.pendingTransfers
       );
 
       // Optimistically remove from pending
       if (previousPending) {
-        queryClient.setQueryData(walletQueryKeys.pendingTransfers, {
+        queryClient.setQueryData(userKeys.pendingTransfers, {
           transfers: previousPending.transfers.filter((t) => t.id !== transferId),
           total: previousPending.total - 1,
         });
@@ -144,17 +175,22 @@ export function useConfirmTransfer() {
     onError: (_err, _vars, context) => {
       // Rollback on error
       if (context?.previousPending) {
-        queryClient.setQueryData(walletQueryKeys.pendingTransfers, context.previousPending);
+        queryClient.setQueryData(userKeys.pendingTransfers, context.previousPending);
       }
     },
     onSettled: () => {
-      // Refetch to ensure sync - invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: walletQueryKeys.balances });
-      queryClient.invalidateQueries({ queryKey: walletQueryKeys.pendingTransfers });
-      queryClient.invalidateQueries({ queryKey: walletQueryKeys.recentTransactions });
-      queryClient.invalidateQueries({ queryKey: walletQueryKeys.limits });
-      // Also invalidate transaction history since confirming updates WalletTransaction status
-      queryClient.invalidateQueries({ queryKey: ["walletTransactions"] });
+      // Force instant refetch for immediate UI updates
+      queryClient.refetchQueries({ queryKey: userKeys.balances });
+      queryClient.refetchQueries({ queryKey: userKeys.pendingTransfers });
+      queryClient.refetchQueries({ queryKey: userKeys.recentTransactions });
+      queryClient.refetchQueries({ queryKey: userKeys.limits });
+      // Also refetch transaction history using predicate to match all user wallet transactions
+      queryClient.refetchQueries({
+        predicate: (query) =>
+          query.queryKey[0] === 'user' &&
+          query.queryKey[1] === user?.id &&
+          query.queryKey[2] === 'walletTransactions'
+      });
     },
   });
 }
@@ -164,6 +200,8 @@ export function useConfirmTransfer() {
  */
 export function useCancelTransfer() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return useMutation({
     mutationFn: async (transferId: string) => {
@@ -171,16 +209,16 @@ export function useCancelTransfer() {
     },
     onMutate: async (transferId) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: walletQueryKeys.pendingTransfers });
+      await queryClient.cancelQueries({ queryKey: userKeys.pendingTransfers });
 
       // Snapshot previous value
       const previousPending = queryClient.getQueryData<{ transfers: TransferInfo[]; total: number }>(
-        walletQueryKeys.pendingTransfers
+        userKeys.pendingTransfers
       );
 
       // Optimistically remove from pending
       if (previousPending) {
-        queryClient.setQueryData(walletQueryKeys.pendingTransfers, {
+        queryClient.setQueryData(userKeys.pendingTransfers, {
           transfers: previousPending.transfers.filter((t) => t.id !== transferId),
           total: previousPending.total - 1,
         });
@@ -191,17 +229,22 @@ export function useCancelTransfer() {
     onError: (_err, _vars, context) => {
       // Rollback on error
       if (context?.previousPending) {
-        queryClient.setQueryData(walletQueryKeys.pendingTransfers, context.previousPending);
+        queryClient.setQueryData(userKeys.pendingTransfers, context.previousPending);
       }
     },
     onSettled: () => {
-      // Refetch to ensure sync - invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: walletQueryKeys.pendingTransfers });
-      // Also invalidate balances since funds are returned from pendingBalance to availableBalance
-      queryClient.invalidateQueries({ queryKey: walletQueryKeys.balances });
-      // Also invalidate transaction history since cancelling updates WalletTransaction status
-      queryClient.invalidateQueries({ queryKey: ["walletTransactions"] });
-      queryClient.invalidateQueries({ queryKey: walletQueryKeys.recentTransactions });
+      // Force instant refetch for immediate UI updates
+      queryClient.refetchQueries({ queryKey: userKeys.pendingTransfers });
+      // Refetch balances since funds are returned from pendingBalance to availableBalance
+      queryClient.refetchQueries({ queryKey: userKeys.balances });
+      // Also refetch transaction history using predicate to match all user wallet transactions
+      queryClient.refetchQueries({
+        predicate: (query) =>
+          query.queryKey[0] === 'user' &&
+          query.queryKey[1] === user?.id &&
+          query.queryKey[2] === 'walletTransactions'
+      });
+      queryClient.refetchQueries({ queryKey: userKeys.recentTransactions });
     },
   });
 }
@@ -210,14 +253,15 @@ export function useCancelTransfer() {
  * Fetch and cache transfer history
  */
 export function useTransferHistory(params?: TransferHistoryParams) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: walletQueryKeys.transfers(params),
+    queryKey: userKeys.transfers(params),
     queryFn: async () => {
       return walletApi.getTransfers(params);
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 1 * 60 * 1000, // 1 minute
   });
 }
@@ -226,14 +270,15 @@ export function useTransferHistory(params?: TransferHistoryParams) {
  * Fetch and cache pending transfers
  */
 export function usePendingTransfers() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: walletQueryKeys.pendingTransfers,
+    queryKey: userKeys.pendingTransfers,
     queryFn: async () => {
       return walletApi.getPendingTransfers();
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 30 * 1000, // 30 seconds
     refetchInterval: 60 * 1000, // Refetch every minute to check for expired transfers
   });
@@ -268,14 +313,15 @@ export function useLookupRecipient() {
  * Fetch and cache transaction history
  */
 export function useWalletTransactionHistory(params?: TransactionHistoryParams) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: walletQueryKeys.transactions(params),
+    queryKey: userKeys.transactions(params),
     queryFn: async () => {
       return walletApi.getTransactions(params);
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 1 * 60 * 1000, // 1 minute
   });
 }
@@ -284,14 +330,15 @@ export function useWalletTransactionHistory(params?: TransactionHistoryParams) {
  * Fetch and cache a single transaction
  */
 export function useWalletTransaction(transactionId: string) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: walletQueryKeys.transaction(transactionId),
+    queryKey: userKeys.transaction(transactionId),
     queryFn: async (): Promise<WalletTransaction> => {
       return walletApi.getTransaction(transactionId);
     },
-    enabled: isAuthenticated && !!transactionId,
+    enabled: isAuthenticated && !!user?.id && !!transactionId,
     staleTime: 5 * 60 * 1000, // 5 minutes - transactions don't change
   });
 }
@@ -303,14 +350,15 @@ export function useWalletTransactionSummary(options?: {
   currency?: WalletCurrency;
   period?: "day" | "week" | "month" | "all";
 }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: walletQueryKeys.transactionSummary(options?.currency, options?.period),
+    queryKey: userKeys.transactionSummary(options?.currency, options?.period),
     queryFn: async (): Promise<WalletTransactionSummary> => {
       return walletApi.getTransactionSummary(options);
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
@@ -319,14 +367,15 @@ export function useWalletTransactionSummary(options?: {
  * Fetch and cache recent transactions for dashboard
  */
 export function useRecentWalletTransactions() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: walletQueryKeys.recentTransactions,
+    queryKey: userKeys.recentTransactions,
     queryFn: async () => {
       return walletApi.getRecentTransactions();
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 30 * 1000, // 30 seconds
   });
 }
@@ -339,14 +388,15 @@ export function useRecentWalletTransactions() {
  * Fetch and cache transfer limits
  */
 export function useTransferLimits() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: walletQueryKeys.limits,
+    queryKey: userKeys.limits,
     queryFn: async (): Promise<TransferLimits> => {
       return walletApi.getLimits();
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 1 * 60 * 1000, // 1 minute
   });
 }
@@ -423,17 +473,25 @@ export function useTransferSummary(currency?: WalletCurrency) {
 // ============================================
 
 /**
- * Invalidate all wallet-related caches
+ * Invalidate all wallet-related caches for the current user
  */
 export function useInvalidateWalletCache() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userKeys = createWalletQueryKeys(user?.id ?? null);
 
   return () => {
-    queryClient.invalidateQueries({ queryKey: ["wallet"] });
-    queryClient.invalidateQueries({ queryKey: walletQueryKeys.balances });
-    queryClient.invalidateQueries({ queryKey: walletQueryKeys.pendingTransfers });
-    queryClient.invalidateQueries({ queryKey: walletQueryKeys.recentTransactions });
-    queryClient.invalidateQueries({ queryKey: walletQueryKeys.limits });
+    queryClient.invalidateQueries({ queryKey: userKeys.balances });
+    queryClient.invalidateQueries({ queryKey: userKeys.pendingTransfers });
+    queryClient.invalidateQueries({ queryKey: userKeys.recentTransactions });
+    queryClient.invalidateQueries({ queryKey: userKeys.limits });
+    // Also invalidate all user wallet queries using predicate
+    queryClient.invalidateQueries({
+      predicate: (query) =>
+        query.queryKey[0] === 'user' &&
+        query.queryKey[1] === user?.id &&
+        (query.queryKey[2] as string)?.startsWith('wallet')
+    });
   };
 }
 
@@ -442,23 +500,26 @@ export function useInvalidateWalletCache() {
  */
 export function usePrefetchWalletData() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return async () => {
+    const userKeys = createWalletQueryKeys(user?.id ?? null);
+
     await Promise.all([
       queryClient.prefetchQuery({
-        queryKey: walletQueryKeys.balances,
+        queryKey: userKeys.balances,
         queryFn: () => walletApi.getBalances(),
       }),
       queryClient.prefetchQuery({
-        queryKey: walletQueryKeys.pendingTransfers,
+        queryKey: userKeys.pendingTransfers,
         queryFn: () => walletApi.getPendingTransfers(),
       }),
       queryClient.prefetchQuery({
-        queryKey: walletQueryKeys.recentTransactions,
+        queryKey: userKeys.recentTransactions,
         queryFn: () => walletApi.getRecentTransactions(),
       }),
       queryClient.prefetchQuery({
-        queryKey: walletQueryKeys.limits,
+        queryKey: userKeys.limits,
         queryFn: () => walletApi.getLimits(),
       }),
     ]);

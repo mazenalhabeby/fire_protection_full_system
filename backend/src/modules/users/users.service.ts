@@ -26,7 +26,7 @@ export class UsersService {
           firstName: true,
           lastName: true,
           walletAddress: true,
-          role: true,
+          legacyRole: true,
           isEmailVerified: true,
           authProvider: true,
           createdAt: true,
@@ -58,7 +58,7 @@ export class UsersService {
         firstName: true,
         lastName: true,
         walletAddress: true,
-        role: true,
+        legacyRole: true,
         isEmailVerified: true,
         authProvider: true,
         passwordHash: true,
@@ -88,7 +88,7 @@ export class UsersService {
       firstName: user.firstName,
       lastName: user.lastName,
       walletAddress: user.walletAddress,
-      role: user.role,
+      role: user.legacyRole,
       isEmailVerified: user.isEmailVerified,
       authProvider: user.authProvider?.toUpperCase() || 'CREDENTIALS',
       hasPassword: !!user.passwordHash,
@@ -165,7 +165,7 @@ export class UsersService {
         lastName: true,
         phoneNumber: true,
         walletAddress: true,
-        role: true,
+        legacyRole: true,
         isEmailVerified: true,
         authProvider: true,
         passwordHash: true,
@@ -185,7 +185,7 @@ export class UsersService {
       lastName: user.lastName,
       phoneNumber: user.phoneNumber,
       walletAddress: user.walletAddress,
-      role: user.role,
+      role: user.legacyRole,
       isEmailVerified: user.isEmailVerified,
       authProvider: user.authProvider?.toUpperCase() || 'CREDENTIALS',
       hasPassword: !!user.passwordHash,
@@ -218,7 +218,7 @@ export class UsersService {
       throw new BadRequestException('Current password is incorrect');
     }
 
-    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+    const newPasswordHash = await bcrypt.hash(newPassword, 13);
 
     await this.prisma.user.update({
       where: { id: userId },
@@ -273,7 +273,7 @@ export class UsersService {
         firstName: true,
         lastName: true,
         walletAddress: true,
-        role: true,
+        legacyRole: true,
         isEmailVerified: true,
         authProvider: true,
         createdAt: true,

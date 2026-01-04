@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import {
   MessageSquare,
   Mail,
@@ -145,7 +145,6 @@ export default function HelpPage() {
   const { isAuthenticated } = useAuth();
   const [faqCategories, setFaqCategories] =
     useState<FAQCategory[]>(mockFAQCategories);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadFAQ = async () => {
@@ -154,11 +153,8 @@ export default function HelpPage() {
         if (data && data.length > 0) {
           setFaqCategories(data);
         }
-      } catch (error) {
-        console.error("Failed to load FAQ:", error);
-        // Keep using mock data
-      } finally {
-        setIsLoading(false);
+      } catch {
+        // Keep using mock data on error
       }
     };
 

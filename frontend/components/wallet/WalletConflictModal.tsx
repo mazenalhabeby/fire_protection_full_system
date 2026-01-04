@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Link } from "@/i18n/navigation";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useWallet, formatAddress } from "@/hooks/useWallet";
@@ -136,13 +137,13 @@ export function WalletConflictModal() {
           {/* Footer */}
           <div className="relative px-6 pb-5">
             <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent mb-4" />
-            <a
+            <Link
               href="/help"
               className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors"
             >
               <span>Think this is a mistake? Contact support</span>
               <ExternalLink className="w-3 h-3" />
-            </a>
+            </Link>
           </div>
         </div>
       </DialogContent>

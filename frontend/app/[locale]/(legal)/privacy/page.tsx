@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useRegisterSection } from "@/hooks/useNavbarTheme";
 import { Shield, Eye, Database, Lock, Globe, UserCheck, Bell, Mail } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 export default function PrivacyPolicyPage() {
   const heroRef = useRegisterSection("privacy-hero", "dark");

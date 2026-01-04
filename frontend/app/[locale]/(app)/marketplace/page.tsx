@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { marketplaceApi } from "@/lib/api/marketplace";
@@ -39,8 +39,8 @@ export default function MarketplacePage() {
         ]);
         setProducts(productsData.products);
         setCategories(categoriesData);
-      } catch (err) {
-        console.error("Failed to fetch marketplace data:", err);
+      } catch {
+        // Failed to fetch marketplace data - products list will be empty
       } finally {
         setIsDataLoading(false);
         stopLoading();
@@ -89,7 +89,7 @@ export default function MarketplacePage() {
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button
-              variant={selectedCategory === "" ? "primary" : "outline"}
+              variant={selectedCategory === "" ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedCategory("")}
             >
@@ -98,7 +98,7 @@ export default function MarketplacePage() {
             {categories.map((cat) => (
               <Button
                 key={cat.id}
-                variant={selectedCategory === cat.id ? "primary" : "outline"}
+                variant={selectedCategory === cat.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(cat.id)}
               >
@@ -175,7 +175,7 @@ export default function MarketplacePage() {
                       </Link>
                     </Button>
                     {isAuthenticated && (product.inventory?.stock ?? 0) > 0 && (
-                      <Button variant="primary" size="sm">
+                      <Button variant="default" size="sm">
                         <ShoppingCart className="h-4 w-4" />
                       </Button>
                     )}

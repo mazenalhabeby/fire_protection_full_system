@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock, MessageCircle, ArrowRight } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import type { SupportTicket } from "@/types/support";
 import { TICKET_CATEGORY_LABELS } from "@/types/support";
 import { TicketStatusBadge, TicketPriorityBadge } from "./TicketStatusBadge";
@@ -34,7 +34,7 @@ export function TicketCard({ ticket, locale = "en" }: TicketCardProps) {
   return (
     <div
       className="bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer group"
-      onClick={() => router.push(`/${locale}/help/tickets/${ticket.id}`)}
+      onClick={() => router.push(`/help/tickets/${ticket.id}`)}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex-1 min-w-0">

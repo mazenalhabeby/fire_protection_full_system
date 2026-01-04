@@ -205,15 +205,29 @@ export class PriceService {
   }
 
   /**
-   * Get BNB price in USD from PancakeSwap
+   * Get BNB price in USD from Binance API (primary) or PancakeSwap (fallback)
    */
   async getBnbPriceUsd(): Promise<Decimal> {
     // Check cache first
     if (this.bnbPriceCache && Date.now() - this.bnbPriceCache.timestamp < this.CACHE_TTL_MS) {
-      this.logger.log(`BNB price (cached): $${this.bnbPriceCache.price.toFixed(2)}`);
       return this.bnbPriceCache.price;
     }
 
+    // Try Binance API first (most accurate for BNB)
+    try {
+      const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BNBUSDT');
+      if (response.ok) {
+        const data = await response.json();
+        const price = new Decimal(data.price);
+        this.bnbPriceCache = { price, timestamp: Date.now() };
+        this.logger.log(`BNB price from Binance: $${price.toFixed(2)}`);
+        return price;
+      }
+    } catch (error) {
+      this.logger.warn(`Failed to fetch BNB price from Binance: ${error.message}`);
+    }
+
+    // Fallback to PancakeSwap
     try {
       const price = await this.getPriceFromPancakeSwap(
         BSC_TOKENS.WBNB,
@@ -224,11 +238,11 @@ export class PriceService {
 
       if (price) {
         this.bnbPriceCache = { price, timestamp: Date.now() };
-        this.logger.log(`BNB live price from PancakeSwap: $${price.toFixed(2)}`);
+        this.logger.log(`BNB price from PancakeSwap: $${price.toFixed(2)}`);
         return price;
       }
     } catch (error) {
-      this.logger.warn(`Failed to fetch BNB price: ${error.message}`);
+      this.logger.warn(`Failed to fetch BNB price from PancakeSwap: ${error.message}`);
     }
 
     this.logger.log(`BNB price (fallback): $${this.fallbackBnbPrice.toFixed(2)}`);

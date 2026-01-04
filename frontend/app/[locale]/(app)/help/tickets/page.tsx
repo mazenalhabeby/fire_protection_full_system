@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { Link, useRouter } from "@/i18n/navigation";
 import {
   Ticket,
   Plus,
@@ -9,7 +9,7 @@ import {
   ArrowLeft,
   InboxIcon,
 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { usePageLoading } from "@/hooks/useMinimumLoading";
 import { supportApi } from "@/lib/api";
@@ -19,9 +19,8 @@ import type { SupportTicket, TicketStatus } from "@/types/support";
 import { TICKET_STATUS_LABELS } from "@/types/support";
 
 export default function TicketsPage() {
-  const params = useParams();
   const router = useRouter();
-  const locale = params.locale as string;
+  const locale = useLocale();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -33,7 +32,7 @@ export default function TicketsPage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push(`/${locale}/login`);
+      router.push('/login');
       return;
     }
 

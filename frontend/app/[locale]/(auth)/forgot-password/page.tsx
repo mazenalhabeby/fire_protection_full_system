@@ -116,7 +116,7 @@ export default function ForgotPasswordPage() {
                 </div>
 
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                  Didn't receive the email?{" "}
+                  Didn&apos;t receive the email?{" "}
                   <button
                     onClick={() => setIsSuccess(false)}
                     className="text-brand-500 hover:text-brand-600 font-medium"
@@ -129,7 +129,6 @@ export default function ForgotPasswordPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <Input
                   type="email"
-                  label="Email"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

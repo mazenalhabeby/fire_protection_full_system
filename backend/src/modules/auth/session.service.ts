@@ -4,7 +4,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TokenService } from './token.service';
 import { GeolocationService } from './geolocation.service';
-import { SESSION_EXPIRY_DAYS } from '../../config/cookie.config';
+import { SESSION_EXPIRY_DAYS, ACCESS_TOKEN_MAX_AGE } from '../../config/cookie.config';
 import * as UAParser from 'ua-parser-js';
 
 // Session limits
@@ -26,6 +26,7 @@ export interface SessionInfo {
 
 export interface SessionData {
   id: string;
+  authMethod: string;  // password, google, facebook, wallet
   deviceType: string | null;
   deviceName: string | null;
   browser: string | null;
@@ -270,6 +271,7 @@ export class SessionService {
   /**
    * Create a new session or reuse existing session for the same device
    * @param browserLocation - Optional location from browser geolocation API (more accurate than IP)
+   * @param authMethod - Authentication method used (password, google, facebook, wallet)
    * @returns Object containing session and optional security alert
    */
   async createSession(
@@ -284,6 +286,7 @@ export class SessionService {
       accuracy?: number;
     },
     deviceFingerprint?: string,
+    authMethod: string = 'password',
   ): Promise<{ session: any; securityAlert: SecurityAlert | null; vpnDetected?: boolean }> {
     const sessionInfo = this.parseUserAgent(req);
     const hashedToken = this.tokenService.hashToken(refreshToken);
@@ -363,6 +366,7 @@ export class SessionService {
     const sessionData = {
       refreshToken: hashedToken,
       tokenFamily: this.tokenService.generateTokenFamily(),
+      authMethod,
       ipAddress: sessionInfo.ipAddress,
       // Primary location (prefer browser GPS on localhost, else IP-based with GPS fallback)
       country: primaryCountry,
@@ -836,8 +840,8 @@ export class SessionService {
     const newExpiresAt = new Date();
     newExpiresAt.setDate(newExpiresAt.getDate() + SESSION_EXPIRY_DAYS);
 
-    // Access token expiry (15 minutes from now)
-    const tokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    // Access token expiry
+    const tokenExpiresAt = new Date(Date.now() + ACCESS_TOKEN_MAX_AGE);
 
     // Use optimistic locking with version field to prevent race conditions
     const updateResult = await this.prisma.session.updateMany({
@@ -1150,6 +1154,7 @@ export class SessionService {
       },
       select: {
         id: true,
+        authMethod: true,
         deviceType: true,
         deviceName: true,
         browser: true,

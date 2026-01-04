@@ -4,10 +4,16 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule);
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  const app = await NestFactory.create(AppModule, {
+    // Enable debug logging in development for token debugging
+    logger: isProduction ? ['error', 'warn', 'log'] : ['error', 'warn', 'log', 'debug'],
+  });
 
   // Trust proxy - required when behind Docker, nginx, or load balancer
   // This enables proper extraction of client IP from X-Forwarded-For header
@@ -17,19 +23,36 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api');
 
-  // Security middleware
+  // Security middleware with explicit CSP
   app.use(helmet({
-    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+    contentSecurityPolicy: isProduction ? {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+        fontSrc: ["'self'"],
+        connectSrc: ["'self'"],
+        frameSrc: ["'none'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    } : false,
+    crossOriginEmbedderPolicy: isProduction,
+    crossOriginOpenerPolicy: isProduction ? { policy: 'same-origin' } : false,
+    crossOriginResourcePolicy: isProduction ? { policy: 'same-origin' } : false,
   }));
 
   // Cookie parser for HttpOnly cookies
   app.use(cookieParser());
 
   // CORS configuration
-  const isProduction = process.env.NODE_ENV === 'production';
   const allowedOrigins = isProduction
-    ? [process.env.FRONTEND_URL].filter(Boolean)
-    : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+    ? [process.env.FRONTEND_URL, process.env.ADMIN_URL].filter(Boolean)
+    : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3002', 'http://127.0.0.1:3002'];
 
   app.enableCors({
     origin: (origin, callback) => {
@@ -45,9 +68,12 @@ async function bootstrap() {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Device-Fingerprint'],
     exposedHeaders: ['Set-Cookie'],
   });
+
+  // Global exception filter - prevents stack traces in production
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // Global validation pipe
   app.useGlobalPipes(

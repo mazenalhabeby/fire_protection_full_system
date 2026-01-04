@@ -10,6 +10,7 @@ import {
   TransactionStatus,
 } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
+import * as crypto from 'crypto';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreateOrderDto, UpdateOrderStatusDto, OrderQueryDto } from '../dto';
 
@@ -30,7 +31,7 @@ export class OrdersService {
 
   private generateOrderNumber(): string {
     const timestamp = Date.now().toString(36).toUpperCase();
-    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const random = crypto.randomBytes(3).toString('hex').substring(0, 4).toUpperCase();
     return `HBC-${timestamp}-${random}`;
   }
 

@@ -85,29 +85,35 @@ export interface UseWalletReturn extends WalletInfo {
 }
 
 export function useWallet(): UseWalletReturn {
-  const { address, isConnected, isConnecting } = useAccount();
+  const { address, isConnected, isConnecting: wagmiIsConnecting } = useAccount();
   const chainId = useChainId();
   const { disconnect: wagmiDisconnect } = useDisconnect();
   const { switchChain: wagmiSwitchChain } = useSwitchChain();
-  const { connect: wagmiConnect, isPending } = useConnect();
+  const { connect: wagmiConnect, isPending, reset: resetConnect } = useConnect();
   const wagmiConnectors = useConnectors();
   const { isAuthenticated } = useAuth();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendingConnector, setPendingConnector] = useState<string | null>(null);
+  const [localIsConnecting, setLocalIsConnecting] = useState(false);
 
   // Wallet conflict detection
   const [walletConflict, setWalletConflict] = useState<WalletConflictError | null>(null);
   const [isCheckingWallet, setIsCheckingWallet] = useState(false);
   const lastCheckedAddress = useRef<string | null>(null);
 
-  // Auto-close modal when wallet connects
+  // Auto-close modal and reset connecting state when wallet connects
   useEffect(() => {
-    if (isConnected && isModalOpen) {
-      setIsModalOpen(false);
+    if (isConnected) {
+      setLocalIsConnecting(false);
       setPendingConnector(null);
+      // Reset wagmi's connect mutation state to clear isPending
+      resetConnect();
+      if (isModalOpen) {
+        setIsModalOpen(false);
+      }
     }
-  }, [isConnected, isModalOpen]);
+  }, [isConnected, isModalOpen, resetConnect]);
 
   // Check wallet availability when connected
   // IMPORTANT: Only check when user is AUTHENTICATED (logged in)
@@ -160,9 +166,8 @@ export function useWallet(): UseWalletReturn {
         } else {
           setWalletConflict(null);
         }
-      } catch (error) {
+      } catch {
         // Silently handle errors - don't block the user
-        console.warn("Failed to check wallet availability:", error);
         setWalletConflict(null);
       } finally {
         setIsCheckingWallet(false);
@@ -219,6 +224,7 @@ export function useWallet(): UseWalletReturn {
     (connectorId?: string) => {
       if (!connectorId) {
         setIsModalOpen(true);
+        setLocalIsConnecting(true);
         return;
       }
 
@@ -229,6 +235,7 @@ export function useWallet(): UseWalletReturn {
       }
 
       setPendingConnector(connectorId);
+      setLocalIsConnecting(true);
       // Clear the disconnected flag BEFORE connecting so watchAccount doesn't disconnect
       clearDisconnectedFlag();
       wagmiConnect(
@@ -238,9 +245,11 @@ export function useWallet(): UseWalletReturn {
             toast.success("Wallet connected!");
             setIsModalOpen(false);
             setPendingConnector(null);
+            setLocalIsConnecting(false);
           },
           onError: (error) => {
             setPendingConnector(null);
+            setLocalIsConnecting(false);
 
             // Handle user rejection gracefully - don't show error toast
             const errorMessage = error.message?.toLowerCase() || "";
@@ -297,15 +306,28 @@ export function useWallet(): UseWalletReturn {
     // Clear the disconnected flag when opening modal so user can connect
     clearDisconnectedFlag();
     setIsModalOpen(true);
+    setLocalIsConnecting(true);
   }, []);
-  const closeModal = useCallback(() => setIsModalOpen(false), []);
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    // Always reset connecting state when modal closes
+    // If user connected, the isConnected effect will handle the state
+    // If user cancelled, we need to reset to show "Connect Web3" button
+    setLocalIsConnecting(false);
+    setPendingConnector(null);
+    // Reset wagmi's connect mutation to clear any pending connections
+    resetConnect();
+  }, [resetConnect]);
 
   return {
     // Wallet info
     address,
     shortAddress: address ? formatAddress(address) : "",
     isConnected,
-    isConnecting: isConnecting || isPending,
+    // Use ONLY local state for isConnecting - wagmi's isConnecting can stay stuck
+    // after WalletConnect QR code is initiated but modal is closed
+    // When connected (has address), always show as not connecting
+    isConnecting: address ? false : localIsConnecting,
     chainId,
     chainName,
     balance,

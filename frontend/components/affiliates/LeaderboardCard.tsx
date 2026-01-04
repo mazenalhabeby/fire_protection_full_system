@@ -51,8 +51,8 @@ export function LeaderboardCard({ entries, myRank, className }: LeaderboardCardP
             {(["week", "month", "all"] as Period[]).map((p) => (
               <Button
                 key={p}
-                variant={period === p ? "primary" : "ghost"}
-                size="xs"
+                variant={period === p ? "default" : "ghost"}
+                size="sm"
                 onClick={() => setPeriod(p)}
                 className="text-xs"
               >

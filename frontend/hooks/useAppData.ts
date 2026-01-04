@@ -19,6 +19,34 @@ import type {
 // QUERY KEYS - Centralized for consistency
 // ============================================
 
+// User-scoped query key factory
+// Including user ID ensures each user has their own cache entries
+// This prevents data leakage between different users/accounts
+export const createUserQueryKeys = (userId: string | null) => ({
+  // Dashboard - user-specific
+  balance: ["user", userId, "balance"] as const,
+  transactions: (page: number, limit: number) => ["user", userId, "transactions", page, limit] as const,
+  referralCount: ["user", userId, "referralCount"] as const,
+
+  // Locking - user-specific (except tiers which are global)
+  userLocks: ["user", userId, "userLocks"] as const,
+
+  // Affiliate - user-specific
+  affiliate: ["user", userId, "affiliate"] as const,
+  affiliateStats: ["user", userId, "affiliateStats"] as const,
+  commissions: (page: number, limit: number) => ["user", userId, "commissions", page, limit] as const,
+  referrals: (page: number, limit: number) => ["user", userId, "referrals", page, limit] as const,
+});
+
+// Global query keys (not user-specific)
+export const globalQueryKeys = {
+  lockTiers: ["lockTiers"] as const,
+  leaderboard: ["leaderboard"] as const,
+  tokenPrice: ["tokenPrice"] as const,
+};
+
+// Legacy query keys - kept for backward compatibility
+// TODO: Migrate all usages to use createUserQueryKeys with user ID
 export const queryKeys = {
   // Dashboard
   balance: ["balance"] as const,
@@ -48,15 +76,25 @@ export const queryKeys = {
 // ============================================
 
 /**
+ * Hook to get user-scoped query keys
+ * Returns query keys that include the current user's ID
+ */
+export function useUserQueryKeys() {
+  const { user } = useAuth();
+  return createUserQueryKeys(user?.id ?? null);
+}
+
+/**
  * Fetch and cache token balance from wallet
  * Uses the wallet API which is where purchased tokens are stored
  * Refreshes on window focus and when mutations invalidate the cache
  */
 export function useBalance() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: queryKeys.balance,
+    queryKey: userKeys.balance,
     queryFn: async (): Promise<TokenBalance> => {
       // Get HBCT balance from wallet
       const walletBalance = await walletApi.getBalance('HBCT');
@@ -68,7 +106,7 @@ export function useBalance() {
         totalBalance: walletBalance.totalBalance,
       };
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 60 * 1000, // 1 minute
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -81,10 +119,11 @@ export function useBalance() {
  * Refreshes on window focus and when mutations invalidate the cache
  */
 export function useTransactions(page = 1, limit = 10) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: queryKeys.transactions(page, limit),
+    queryKey: userKeys.transactions(page, limit),
     queryFn: async () => {
       const result = await walletApi.getTransactions({
         currency: 'HBCT',
@@ -113,7 +152,7 @@ export function useTransactions(page = 1, limit = 10) {
         },
       };
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 60 * 1000, // 1 minute
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -140,6 +179,83 @@ function mapWalletTypeToTransactionType(walletType: string): Transaction['type']
 }
 
 // ============================================
+// ACTIVITY TYPES FOR COMBINED VIEW
+// ============================================
+
+export type ActivityType = 'transaction' | 'lock';
+
+export interface ActivityItem {
+  id: string;
+  type: ActivityType;
+  action: string;
+  amount: string;
+  status: string;
+  createdAt: string;
+  // Transaction specific
+  txHash?: string;
+  // Lock specific
+  tierName?: string;
+  rewardAmount?: string;
+  penaltyAmount?: string;
+}
+
+/**
+ * Fetch and cache combined recent activity (transactions + lock history)
+ * Perfect for dashboard overview
+ */
+export function useRecentActivity(limit = 10) {
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
+
+  return useQuery({
+    queryKey: ["user", user?.id, "recentActivity", limit] as const,
+    queryFn: async (): Promise<ActivityItem[]> => {
+      // Fetch both in parallel
+      const [txResult, lockResult] = await Promise.all([
+        walletApi.getTransactions({ currency: 'HBCT', page: 1, limit }),
+        lockingApi.getLockHistory({ page: 1, limit }),
+      ]);
+
+      // Transform transactions to ActivityItem
+      const txActivities: ActivityItem[] = txResult.transactions.map((tx) => ({
+        id: tx.id,
+        type: 'transaction' as const,
+        action: mapWalletTypeToTransactionType(tx.type),
+        amount: tx.amount,
+        status: tx.status,
+        createdAt: tx.createdAt,
+        txHash: tx.txHash || tx.metadata?.txHash,
+      }));
+
+      // Transform lock history to ActivityItem
+      const lockActivities: ActivityItem[] = lockResult.history.map((entry) => ({
+        id: entry.id,
+        type: 'lock' as const,
+        action: entry.action,
+        amount: entry.amount,
+        status: 'COMPLETED', // Lock history entries are always completed
+        createdAt: entry.createdAt,
+        tierName: entry.tierName,
+        rewardAmount: entry.rewardAmount,
+        penaltyAmount: entry.penaltyAmount,
+      }));
+
+      // Combine and sort by date (newest first)
+      const combined = [...txActivities, ...lockActivities].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      // Return only the requested limit
+      return combined.slice(0, limit);
+    },
+    enabled: isAuthenticated && !!user?.id,
+    staleTime: 60 * 1000, // 1 minute
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
+}
+
+// ============================================
 // LOCKING HOOKS
 // ============================================
 
@@ -161,17 +277,17 @@ export function useLockTiers() {
  * Fetch and cache user's locks
  */
 export function useUserLocks() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: queryKeys.userLocks,
-    queryFn: async () => {
-      return lockingApi.getUserLocks();
-    },
-    enabled: isAuthenticated,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchOnMount: true,
+    queryKey: userKeys.userLocks,
+    queryFn: () => lockingApi.getUserLocks(),
+    enabled: isAuthenticated && !!user?.id,
+    staleTime: 30 * 1000,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: true,
+    retry: 1,
   });
 }
 
@@ -180,6 +296,8 @@ export function useUserLocks() {
  */
 export function useCreateLock() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
 
   return useMutation({
     mutationFn: async (data: { lockTierId: string; amount: number }) => {
@@ -187,15 +305,15 @@ export function useCreateLock() {
     },
     onMutate: async (newLock) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: queryKeys.userLocks });
-      await queryClient.cancelQueries({ queryKey: queryKeys.balance });
+      await queryClient.cancelQueries({ queryKey: userKeys.userLocks });
+      await queryClient.cancelQueries({ queryKey: userKeys.balance });
 
       // Snapshot previous values
-      const previousLocks = queryClient.getQueryData(queryKeys.userLocks);
-      const previousBalance = queryClient.getQueryData(queryKeys.balance);
+      const previousLocks = queryClient.getQueryData(userKeys.userLocks);
+      const previousBalance = queryClient.getQueryData(userKeys.balance);
 
       // Optimistically update balance (reduce available)
-      queryClient.setQueryData(queryKeys.balance, (old: TokenBalance | undefined) => {
+      queryClient.setQueryData(userKeys.balance, (old: TokenBalance | undefined) => {
         if (!old) return old;
         const available = parseFloat(old.availableBalance) - newLock.amount;
         const locked = parseFloat(old.lockedBalance) + newLock.amount;
@@ -211,17 +329,22 @@ export function useCreateLock() {
     onError: (_err, _newLock, context) => {
       // Rollback on error
       if (context?.previousLocks) {
-        queryClient.setQueryData(queryKeys.userLocks, context.previousLocks);
+        queryClient.setQueryData(userKeys.userLocks, context.previousLocks);
       }
       if (context?.previousBalance) {
-        queryClient.setQueryData(queryKeys.balance, context.previousBalance);
+        queryClient.setQueryData(userKeys.balance, context.previousBalance);
       }
     },
     onSettled: () => {
-      // Refetch to ensure sync with server
-      queryClient.invalidateQueries({ queryKey: queryKeys.userLocks });
-      queryClient.invalidateQueries({ queryKey: queryKeys.balance });
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions(1, 10) });
+      // Force immediate refetch to ensure sync with server
+      queryClient.refetchQueries({ queryKey: userKeys.userLocks });
+      queryClient.refetchQueries({ queryKey: userKeys.balance });
+      // Refetch wallet balances for navbar and wallet page
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "walletBalances"] });
+      // Refetch lock history and recent activity
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "lockHistory"] });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "recentActivity"] });
+      queryClient.invalidateQueries({ queryKey: userKeys.transactions(1, 10) });
     },
   });
 }
@@ -231,17 +354,86 @@ export function useCreateLock() {
  */
 export function useUnlock() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
 
   return useMutation({
     mutationFn: async (lockId: string) => {
       return lockingApi.unlock(lockId);
     },
     onSuccess: () => {
-      // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.userLocks });
-      queryClient.invalidateQueries({ queryKey: queryKeys.balance });
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions(1, 10) });
+      // Force immediate refetch for instant updates
+      queryClient.refetchQueries({ queryKey: userKeys.userLocks });
+      queryClient.refetchQueries({ queryKey: userKeys.balance });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "walletBalances"] });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "lockHistory"] });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "recentActivity"] });
+      queryClient.invalidateQueries({ queryKey: userKeys.transactions(1, 10) });
     },
+  });
+}
+
+/**
+ * Early unlock mutation with penalty
+ */
+export function useEarlyUnlock() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
+
+  return useMutation({
+    mutationFn: async (lockId: string) => {
+      return lockingApi.earlyUnlock(lockId);
+    },
+    onSuccess: () => {
+      // Force immediate refetch for instant updates
+      queryClient.refetchQueries({ queryKey: userKeys.userLocks });
+      queryClient.refetchQueries({ queryKey: userKeys.balance });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "walletBalances"] });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "lockHistory"] });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "recentActivity"] });
+      queryClient.invalidateQueries({ queryKey: userKeys.transactions(1, 10) });
+    },
+  });
+}
+
+/**
+ * Cancel lock mutation (within grace period)
+ */
+export function useCancelLock() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
+
+  return useMutation({
+    mutationFn: async (lockId: string) => {
+      return lockingApi.cancelLock(lockId);
+    },
+    onSuccess: () => {
+      // Force immediate refetch for instant updates
+      queryClient.refetchQueries({ queryKey: userKeys.userLocks });
+      queryClient.refetchQueries({ queryKey: userKeys.balance });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "walletBalances"] });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "lockHistory"] });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "recentActivity"] });
+      queryClient.invalidateQueries({ queryKey: userKeys.transactions(1, 10) });
+    },
+  });
+}
+
+/**
+ * Fetch lock history
+ */
+export function useLockHistory(params?: { page?: number; limit?: number }) {
+  const { isAuthenticated, user } = useAuth();
+
+  return useQuery({
+    queryKey: ["user", user?.id, "lockHistory", params?.page, params?.limit],
+    queryFn: async () => {
+      return lockingApi.getLockHistory(params);
+    },
+    enabled: isAuthenticated && !!user?.id,
+    staleTime: 1 * 60 * 1000, // 1 minute
   });
 }
 
@@ -254,10 +446,11 @@ export function useUnlock() {
  * Refreshes on window focus and when mutations invalidate the cache
  */
 export function useAffiliate() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: queryKeys.affiliate,
+    queryKey: userKeys.affiliate,
     queryFn: async (): Promise<Affiliate | null> => {
       try {
         return await affiliatesApi.getMyAffiliate();
@@ -265,7 +458,7 @@ export function useAffiliate() {
         return null;
       }
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -276,10 +469,11 @@ export function useAffiliate() {
  * Fetch and cache affiliate stats
  */
 export function useAffiliateStats() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
 
   return useQuery({
-    queryKey: queryKeys.affiliateStats,
+    queryKey: userKeys.affiliateStats,
     queryFn: async (): Promise<AffiliateStats | null> => {
       try {
         return await affiliatesApi.getStats();
@@ -287,7 +481,7 @@ export function useAffiliateStats() {
         return null;
       }
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -323,11 +517,12 @@ export function useReferrals(params?: {
   status?: 'all' | 'pending' | 'active' | 'converted' | 'inactive';
   search?: string;
 }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
   const { page = 1, limit = 10, status, search } = params || {};
 
   return useQuery({
-    queryKey: [...queryKeys.referrals(page, limit), status, search],
+    queryKey: [...userKeys.referrals(page, limit), status, search],
     queryFn: async () => {
       try {
         const response = await affiliatesApi.getReferrals({
@@ -345,7 +540,7 @@ export function useReferrals(params?: {
         };
       }
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -360,11 +555,12 @@ export function useCommissions(params?: {
   limit?: number;
   status?: 'all' | 'paid' | 'pending';
 }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
   const { page = 1, limit = 10, status } = params || {};
 
   return useQuery({
-    queryKey: [...queryKeys.commissions(page, limit), status],
+    queryKey: [...userKeys.commissions(page, limit), status],
     queryFn: async () => {
       try {
         const response = await affiliatesApi.getCommissions({
@@ -381,7 +577,7 @@ export function useCommissions(params?: {
         };
       }
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!user?.id,
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -393,6 +589,8 @@ export function useCommissions(params?: {
  */
 export function useRegisterAffiliate() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
 
   return useMutation({
     mutationFn: async () => {
@@ -400,9 +598,9 @@ export function useRegisterAffiliate() {
     },
     onSuccess: (data) => {
       // Set the new affiliate data directly
-      queryClient.setQueryData(queryKeys.affiliate, data);
+      queryClient.setQueryData(userKeys.affiliate, data);
       // Invalidate stats to refetch
-      queryClient.invalidateQueries({ queryKey: queryKeys.affiliateStats });
+      queryClient.invalidateQueries({ queryKey: userKeys.affiliateStats });
     },
   });
 }
@@ -412,6 +610,8 @@ export function useRegisterAffiliate() {
  */
 export function useClaimCommission() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
 
   return useMutation({
     mutationFn: async () => {
@@ -419,14 +619,14 @@ export function useClaimCommission() {
     },
     onMutate: async () => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: queryKeys.affiliateStats });
+      await queryClient.cancelQueries({ queryKey: userKeys.affiliateStats });
 
       // Snapshot previous value
-      const previousStats = queryClient.getQueryData<AffiliateStats>(queryKeys.affiliateStats);
+      const previousStats = queryClient.getQueryData<AffiliateStats>(userKeys.affiliateStats);
 
       // Optimistically update stats (set pending to 0)
       if (previousStats) {
-        queryClient.setQueryData(queryKeys.affiliateStats, {
+        queryClient.setQueryData(userKeys.affiliateStats, {
           ...previousStats,
           pendingCommission: "0",
         });
@@ -437,14 +637,15 @@ export function useClaimCommission() {
     onError: (_err, _vars, context) => {
       // Rollback on error
       if (context?.previousStats) {
-        queryClient.setQueryData(queryKeys.affiliateStats, context.previousStats);
+        queryClient.setQueryData(userKeys.affiliateStats, context.previousStats);
       }
     },
     onSettled: () => {
-      // Refetch to ensure sync
-      queryClient.invalidateQueries({ queryKey: queryKeys.affiliateStats });
-      queryClient.invalidateQueries({ queryKey: queryKeys.balance });
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions(1, 10) });
+      // Force instant refetch for immediate UI updates
+      queryClient.refetchQueries({ queryKey: userKeys.affiliateStats });
+      queryClient.refetchQueries({ queryKey: userKeys.balance });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "walletBalances"] });
+      queryClient.invalidateQueries({ queryKey: userKeys.transactions(1, 10) });
     },
   });
 }
@@ -474,6 +675,8 @@ export function useTokenPrice() {
  */
 export function useBuyTokens() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
 
   return useMutation({
     mutationFn: async (data: { amountUsd: number; tokenPrice: number; paymentMethod?: string; referralCode?: string }) => {
@@ -485,9 +688,11 @@ export function useBuyTokens() {
       });
     },
     onSuccess: () => {
-      // Invalidate balance and transactions to refetch
-      queryClient.invalidateQueries({ queryKey: queryKeys.balance });
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions(1, 10) });
+      // Force instant refetch for immediate UI updates
+      queryClient.refetchQueries({ queryKey: userKeys.balance });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "walletBalances"] });
+      queryClient.refetchQueries({ queryKey: ["user", user?.id, "walletRecentTransactions"] });
+      queryClient.invalidateQueries({ queryKey: userKeys.transactions(1, 10) });
     },
   });
 }
@@ -498,17 +703,22 @@ export function useBuyTokens() {
 
 /**
  * Prefetch all initial data after login
- * Call this after successful authentication
+ * Call this after successful authentication with the user ID
+ * @deprecated Use prefetchUserData in useAuth.tsx instead for proper user-scoped caching
  */
 export function usePrefetchInitialData() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return async () => {
+    const userId = user?.id ?? null;
+    const userKeys = createUserQueryKeys(userId);
+
     // Prefetch in parallel
     await Promise.all([
-      // Dashboard data
+      // Dashboard data (user-scoped)
       queryClient.prefetchQuery({
-        queryKey: queryKeys.balance,
+        queryKey: userKeys.balance,
         queryFn: async () => {
           const walletBalance = await walletApi.getBalance('HBCT');
           return {
@@ -519,7 +729,7 @@ export function usePrefetchInitialData() {
         },
       }),
       queryClient.prefetchQuery({
-        queryKey: queryKeys.transactions(1, 10),
+        queryKey: userKeys.transactions(1, 10),
         queryFn: async () => {
           const result = await walletApi.getTransactions({ currency: 'HBCT', page: 1, limit: 10 });
           return {
@@ -537,19 +747,19 @@ export function usePrefetchInitialData() {
         },
       }),
 
-      // Locking data
+      // Locking data - tiers are global, user locks are user-scoped
       queryClient.prefetchQuery({
-        queryKey: queryKeys.lockTiers,
+        queryKey: globalQueryKeys.lockTiers,
         queryFn: () => lockingApi.getTiers(),
       }),
       queryClient.prefetchQuery({
-        queryKey: queryKeys.userLocks,
+        queryKey: userKeys.userLocks,
         queryFn: () => lockingApi.getUserLocks(),
       }),
 
-      // Affiliate data
+      // Affiliate data (user-scoped)
       queryClient.prefetchQuery({
-        queryKey: queryKeys.affiliate,
+        queryKey: userKeys.affiliate,
         queryFn: async () => {
           try {
             return await affiliatesApi.getMyAffiliate();
@@ -559,7 +769,7 @@ export function usePrefetchInitialData() {
         },
       }),
       queryClient.prefetchQuery({
-        queryKey: queryKeys.affiliateStats,
+        queryKey: userKeys.affiliateStats,
         queryFn: async () => {
           try {
             return await affiliatesApi.getStats();
@@ -568,17 +778,18 @@ export function usePrefetchInitialData() {
           }
         },
       }),
+      // Leaderboard is global
       queryClient.prefetchQuery({
-        queryKey: queryKeys.leaderboard,
+        queryKey: globalQueryKeys.leaderboard,
         queryFn: async () => {
           const response = await affiliatesApi.getLeaderboard({ limit: 10 });
           return response.leaderboard;
         },
       }),
 
-      // Token price
+      // Token price is global
       queryClient.prefetchQuery({
-        queryKey: queryKeys.tokenPrice,
+        queryKey: globalQueryKeys.tokenPrice,
         queryFn: async () => {
           const response = await tokensApi.getPrice();
           return parseFloat(response.price);
@@ -605,31 +816,39 @@ export function useClearCache() {
  */
 export function useInvalidateDashboard() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const userKeys = createUserQueryKeys(user?.id ?? null);
 
   return {
     // Invalidate all dashboard data
     invalidateAll: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.balance });
-      // Use predicate to match all transaction queries regardless of page/limit
+      queryClient.invalidateQueries({ queryKey: userKeys.balance });
+      // Use predicate to match all user transaction queries
       queryClient.invalidateQueries({
-        predicate: (query) => query.queryKey[0] === 'transactions'
+        predicate: (query) =>
+          query.queryKey[0] === 'user' &&
+          query.queryKey[1] === user?.id &&
+          query.queryKey[2] === 'transactions'
       });
-      queryClient.invalidateQueries({ queryKey: queryKeys.userLocks });
-      queryClient.invalidateQueries({ queryKey: queryKeys.affiliate });
-      queryClient.invalidateQueries({ queryKey: queryKeys.affiliateStats });
+      queryClient.invalidateQueries({ queryKey: userKeys.userLocks });
+      queryClient.invalidateQueries({ queryKey: userKeys.affiliate });
+      queryClient.invalidateQueries({ queryKey: userKeys.affiliateStats });
     },
     // Invalidate only balance and transactions
     invalidateBalance: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.balance });
-      // Use predicate to match all transaction queries regardless of page/limit
+      queryClient.invalidateQueries({ queryKey: userKeys.balance });
+      // Use predicate to match all user transaction queries
       queryClient.invalidateQueries({
-        predicate: (query) => query.queryKey[0] === 'transactions'
+        predicate: (query) =>
+          query.queryKey[0] === 'user' &&
+          query.queryKey[1] === user?.id &&
+          query.queryKey[2] === 'transactions'
       });
     },
     // Invalidate only affiliate data
     invalidateAffiliate: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.affiliate });
-      queryClient.invalidateQueries({ queryKey: queryKeys.affiliateStats });
+      queryClient.invalidateQueries({ queryKey: userKeys.affiliate });
+      queryClient.invalidateQueries({ queryKey: userKeys.affiliateStats });
     },
   };
 }

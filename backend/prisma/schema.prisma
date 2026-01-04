@@ -207,6 +207,63 @@ enum NotificationChannel {
 }
 
 // ============================================
+// ROLE-BASED ACCESS CONTROL (RBAC)
+// ============================================
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  isSystem    Boolean  @default(false) // System roles can be modified but marked as default
+  isActive    Boolean  @default(true)
+  color       String?  // For UI display (e.g., "#7c3aed")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  permissions RolePermission[]
+  users       User[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  code        String   @unique  // e.g., "users.view", "withdrawals.approve"
+  name        String            // e.g., "View Users", "Approve Withdrawals"
+  description String?
+  module      String            // e.g., "users", "withdrawals", "roles"
+  action      String            // e.g., "view", "create", "edit", "delete", "approve"
+
+  createdAt   DateTime @default(now())
+
+  // Relations
+  roles       RolePermission[]
+
+  @@unique([module, action])
+  @@index([module])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+// ============================================
 // CORE USER & AUTH
 // ============================================
 
@@ -221,7 +278,11 @@ model User {
   walletAddress String?      @unique
   walletNonce   String?      // Nonce for wallet signature verification
   authProvider  AuthProvider @default(CREDENTIALS)
-  role          UserRole     @default(USER)
+  legacyRole    UserRole     @default(USER)  // Deprecated: kept for migration
+
+  // RBAC - New role system
+  roleId        String?
+  adminRole     Role?        @relation(fields: [roleId], references: [id])
 
   // Email verification
   isEmailVerified Boolean   @default(false)
@@ -233,6 +294,20 @@ model User {
   lastLoginIp         String?
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
+
+  // Ban status
+  isBanned      Boolean   @default(false)
+  banReason     String?
+  bannedAt      DateTime?
+
+  // Soft delete & Account Deletion
+  isDeleted           Boolean   @default(false)
+  deletedAt           DateTime?
+  originalEmail       String?               // Preserved email before anonymization
+  deletionReason      String?               // user_requested, admin_action, fraud, inactive, compliance
+  deletionRequestedBy String?               // "user" or admin userId
+  retentionExpiresAt  DateTime?             // When data can be permanently purged (1 year)
+  canRecover          Boolean   @default(true)  // False after grace period (30 days)
 
   // Legacy field for backward compatibility
   isVerified    Boolean   @default(false)
@@ -305,6 +380,7 @@ model User {
   // Session activity logging
   sessionActivities         SessionActivity[]
 
+  @@index([roleId])
   @@map("users")
 }
 
@@ -353,6 +429,9 @@ model Session {
   refreshToken    String    @unique  // Hashed refresh token
   tokenFamily     String    // For refresh token rotation detection
 
+  // Authentication method used for this session
+  authMethod      String    @default("password")  // password, google, facebook, wallet
+
   // Device/Session fingerprinting
   deviceId          String?
   deviceFingerprint String?   // Stable device fingerprint for token binding security
@@ -400,6 +479,11 @@ model Session {
   refreshFailureCount   Int       @default(0)
   lastRefreshFailureAt  DateTime?
   lastRefreshIp         String?   // Last IP that attempted refresh
+
+  // Admin step-up authentication
+  adminVerifiedAt       DateTime?  // When admin access was verified via 2FA
+  adminVerifiedIp       String?    // IP address when admin was verified
+  adminVerifiedUntil    DateTime?  // Admin verification expires (30 min default)
 
   // Timestamps
   createdAt       DateTime  @default(now())
@@ -646,23 +730,42 @@ model Transaction {
 // AFFILIATE SYSTEM
 // ============================================
 
+model AffiliateTier {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  commissionRate  Decimal  @db.Decimal(5, 4)  // e.g., 0.05 = 5%
+  minReferrals    Int      @default(0)        // Min referrals to qualify
+  color           String?                     // For UI display
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  affiliates      Affiliate[]
+
+  @@map("affiliate_tiers")
+}
+
 model Affiliate {
   id             String   @id @default(cuid())
   userId         String   @unique
   referralCode   String   @unique
-  commissionRate Decimal  @default(0.05) @db.Decimal(5, 4)
+  tierId         String?
+  commissionRate Decimal  @default(0.05) @db.Decimal(5, 4) // Override or from tier
   totalEarnings  Decimal  @default(0) @db.Decimal(36, 18)
   totalReferrals Int      @default(0)
+  totalVolume    Decimal  @default(0) @db.Decimal(36, 18)  // Track referral volume
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  referredUsers User[]       @relation("ReferredUsers")
+  tier          AffiliateTier? @relation(fields: [tierId], references: [id], onDelete: SetNull)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referredUsers User[]         @relation("ReferredUsers")
   commissions   Commission[]
   tokenSales    TokenSale[]
   auditLogs     AffiliateAuditLog[]
 
+  @@index([tierId])
   @@map("affiliates")
 }
 
@@ -1605,4 +1708,52 @@ model NotificationPreference {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notification_preferences")
+}
+
+// ============================================
+// ACCOUNT DELETION AUDIT LOG
+// ============================================
+
+model AccountDeletionLog {
+  id                    String    @id @default(cuid())
+  userId                String
+
+  // Original user data snapshot (for compliance/audit)
+  originalEmail         String
+  originalUsername      String?
+  originalWalletAddress String?
+
+  // Deletion details
+  reason                String    // user_requested, admin_action, fraud, inactive, compliance
+  requestedBy           String    // "user" or admin userId
+  adminNotes            String?   @db.Text  // Internal notes from admin
+
+  // Financial state at deletion
+  availableBalance      Decimal   @db.Decimal(36, 18)
+  lockedBalance         Decimal   @db.Decimal(36, 18)
+  pendingWithdrawals    Int       @default(0)
+  activeLocks           Int       @default(0)
+
+  // Recovery tracking
+  gracePeriodEndsAt     DateTime  // 30 days after deletion for recovery
+  retentionExpiresAt    DateTime  // 1 year after deletion for permanent purge
+  recoveredAt           DateTime?
+  recoveredBy           String?   // "user" or admin userId
+
+  // Permanent purge tracking
+  permanentlyPurgedAt   DateTime?
+  purgeJobId            String?   // Reference to cleanup job
+
+  // Audit trail
+  ipAddress             String?
+  userAgent             String?
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([originalEmail])
+  @@index([gracePeriodEndsAt])
+  @@index([retentionExpiresAt])
+  @@map("account_deletion_logs")
 }

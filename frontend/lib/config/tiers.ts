@@ -137,30 +137,30 @@ export type StatusType = keyof typeof statusStyles;
 
 /**
  * Lock tiers with fixed bonus percentages
- * These are static values used for display purposes
+ * These IDs must match the database seed values
  */
 export const lockTiers: LockTier[] = [
   {
-    id: "1",
+    id: "tier-silver",
     name: "Silver",
     lockMonths: 6,
-    bonusPercent: "7",
+    bonusPercent: "5",
     minAmount: "100",
     maxAmount: "50000",
   },
   {
-    id: "2",
+    id: "tier-gold",
     name: "Gold",
     lockMonths: 12,
-    bonusPercent: "20",
+    bonusPercent: "15",
     minAmount: "500",
     maxAmount: "100000",
   },
   {
-    id: "3",
+    id: "tier-platinum",
     name: "Platinum",
     lockMonths: 24,
-    bonusPercent: "50",
+    bonusPercent: "35",
     minAmount: "1000",
     maxAmount: "500000",
   },

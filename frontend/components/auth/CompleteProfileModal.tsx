@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
-import { User, Mail, CheckCircle, Loader2, AlertCircle, Send, Pencil, ArrowLeft } from "lucide-react";
+import { User, Mail, CheckCircle, Loader2, AlertCircle, Send, Pencil, ArrowLeft, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CompleteProfileModalProps {
@@ -14,7 +14,8 @@ interface CompleteProfileModalProps {
 }
 
 export function CompleteProfileModal({ isOpen }: CompleteProfileModalProps) {
-  const { user, refreshUser, verifyEmailCode, resendVerificationEmail } = useAuth();
+  const { user, refreshUser, verifyEmailCode, resendVerificationEmail, logout } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const [step, setStep] = useState<"profile" | "verify-email" | "edit-email">("profile");
   const [formData, setFormData] = useState({
@@ -202,6 +203,17 @@ export function CompleteProfileModal({ isOpen }: CompleteProfileModalProps) {
     setStep("edit-email");
   };
 
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await logout();
+      // Redirect will be handled by the auth context
+    } catch {
+      toast.error("Failed to sign out. Please try again.");
+      setIsSigningOut(false);
+    }
+  };
+
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -348,7 +360,7 @@ export function CompleteProfileModal({ isOpen }: CompleteProfileModalProps) {
 
                 <Button
                   type="submit"
-                  variant="primary"
+                  variant="default"
                   className="w-full"
                   disabled={isLoading}
                 >
@@ -501,7 +513,7 @@ export function CompleteProfileModal({ isOpen }: CompleteProfileModalProps) {
                 {/* Submit button */}
                 <Button
                   type="submit"
-                  variant="primary"
+                  variant="default"
                   className="w-full"
                   disabled={isUpdatingEmail}
                 >
@@ -516,6 +528,36 @@ export function CompleteProfileModal({ isOpen }: CompleteProfileModalProps) {
                 </Button>
               </form>
             )}
+
+            {/* Sign Out Option */}
+            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+                className={cn(
+                  "w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg",
+                  "text-sm font-medium",
+                  "text-gray-500 dark:text-gray-400",
+                  "hover:text-red-600 dark:hover:text-red-400",
+                  "hover:bg-red-50 dark:hover:bg-red-900/20",
+                  "transition-colors duration-200",
+                  "disabled:opacity-50 disabled:cursor-not-allowed"
+                )}
+              >
+                {isSigningOut ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Signing out...
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="h-4 w-4" />
+                    Wrong account? Sign out
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

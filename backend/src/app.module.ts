@@ -5,6 +5,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { PrismaModule } from './prisma/prisma.module';
+import { CommonModule } from './common/common.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { TokensModule } from './modules/tokens/tokens.module';
@@ -26,6 +27,7 @@ import { TokenPurchaseModule } from './modules/token-purchase/token-purchase.mod
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { DatabaseMaintenanceModule } from './modules/database-maintenance/database-maintenance.module';
 import { HealthModule } from './modules/health/health.module';
+import { RolesModule } from './modules/roles/roles.module';
 import { JwtAuthGuard } from './modules/auth/guards';
 import { RequestLoggerMiddleware } from './common/middleware';
 
@@ -46,6 +48,7 @@ import { RequestLoggerMiddleware } from './common/middleware';
     // Scheduled tasks (session cleanup, etc.)
     ScheduleModule.forRoot(),
     PrismaModule,
+    CommonModule,
     AuthModule,
     UsersModule,
     TokensModule,
@@ -68,6 +71,7 @@ import { RequestLoggerMiddleware } from './common/middleware';
     NotificationsModule,
     DatabaseMaintenanceModule,
     HealthModule,
+    RolesModule,
   ],
   providers: [
     {

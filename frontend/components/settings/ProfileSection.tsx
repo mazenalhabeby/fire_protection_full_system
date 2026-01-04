@@ -348,7 +348,7 @@ export function ProfileSection({ user }: ProfileSectionProps) {
           {/* Save Button */}
           <div className="flex justify-end mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
             <Button
-              variant="primary"
+              variant="default"
               onClick={handleSave}
               disabled={isSaving}
             >
@@ -423,20 +423,9 @@ export function ProfileSection({ user }: ProfileSectionProps) {
               </p>
             </div>
 
-            {/* User ID info */}
-            <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                <span className="font-medium">Your User ID:</span>{" "}
-                <span className="font-mono text-gray-700 dark:text-gray-300">{user?.id}</span>
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                Others can also send you HBCT using this ID
-              </p>
-            </div>
-
             <div className="flex justify-end pt-2">
               <Button
-                variant="primary"
+                variant="default"
                 onClick={handleSaveUsername}
                 disabled={!usernameAvailable || isSavingUsername || username === user?.username}
               >

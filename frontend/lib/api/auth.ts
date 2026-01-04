@@ -13,14 +13,23 @@ export interface SecurityAlert {
 // Auth Response Types
 export interface AuthResponse {
   user: User;
+  tokenExpiresAt?: number; // Unix timestamp in ms when access token expires
   message?: string;
   securityAlert?: SecurityAlert;
+}
+
+export interface AvailableAuthMethods {
+  password: boolean;
+  google: boolean;
+  facebook: boolean;
+  wallet: string | null;  // wallet address if linked, null otherwise
 }
 
 export interface MeResponse {
   user: User;
   currentSession: {
     id: string;
+    authMethod: string;  // password, google, facebook, wallet
     deviceType: string | null;
     browser: string | null;
     os: string | null;
@@ -28,6 +37,7 @@ export interface MeResponse {
     lastActivityAt: string;
     createdAt: string;
   };
+  availableAuthMethods: AvailableAuthMethods;
   pendingActions: {
     emailVerification: boolean;
   };
@@ -518,4 +528,82 @@ export const authApi = {
   verifyTwoFactorLogin: async (data: TwoFactorLoginRequest): Promise<AuthResponse> => {
     return api.post<AuthResponse>('/auth/2fa/verify', data);
   },
+
+  // ============================================
+  // ADMIN STEP-UP AUTHENTICATION
+  // ============================================
+
+  /**
+   * Get admin access status
+   */
+  getAdminStatus: async (): Promise<AdminStatusResponse> => {
+    return api.get<AdminStatusResponse>('/auth/admin/status');
+  },
+
+  /**
+   * Verify admin access with 2FA code (step-up authentication)
+   */
+  verifyAdminAccess: async (code: string): Promise<AdminVerifyResponse> => {
+    return api.post<AdminVerifyResponse>('/auth/admin/verify', { code });
+  },
+
+  /**
+   * Revoke admin verification (logout from admin)
+   */
+  revokeAdminAccess: async (): Promise<{ success: boolean }> => {
+    return api.post<{ success: boolean }>('/auth/admin/revoke');
+  },
+
+  // ============================================
+  // ACCOUNT DELETION (SELF-SERVICE)
+  // ============================================
+
+  /**
+   * Check if account can be deleted (pre-deletion validation)
+   * Returns blockers if any exist (balance, locks, pending withdrawals)
+   */
+  checkDeletionEligibility: async (): Promise<DeletionEligibilityResponse> => {
+    return api.get<DeletionEligibilityResponse>('/auth/account/deletion-eligibility');
+  },
+
+  /**
+   * Delete own account (soft delete with 30-day grace period)
+   * User can recover within 30 days, data retained for 1 year
+   */
+  deleteMyAccount: async (): Promise<DeleteAccountResponse> => {
+    return api.delete<DeleteAccountResponse>('/auth/account');
+  },
 };
+
+// Admin Step-Up Authentication Types
+export interface AdminStatusResponse {
+  isAdmin: boolean;
+  isVerified: boolean;
+  has2FAEnabled: boolean;
+  expiresAt: string | null;
+}
+
+export interface AdminVerifyResponse {
+  success: boolean;
+  expiresAt: string;
+  redirectUrl: string;
+}
+
+// Account Deletion Types
+export interface DeletionEligibilityResponse {
+  canDelete: boolean;
+  blockers: Array<{
+    type: 'balance' | 'locks' | 'withdrawals';
+    message: string;
+    count?: number;
+    amount?: string;
+  }>;
+  gracePeriodDays: number;
+  retentionDays: number;
+}
+
+export interface DeleteAccountResponse {
+  message: string;
+  gracePeriodEndsAt: string;
+  retentionExpiresAt: string;
+}

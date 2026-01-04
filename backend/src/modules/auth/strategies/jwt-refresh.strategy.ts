@@ -56,14 +56,12 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     // Validate session by the refresh token
     const session = await this.sessionService.validateSessionByToken(refreshToken);
     if (!session) {
-      this.logger.warn(`Invalid refresh token for user ${payload.sub}`);
       throw new UnauthorizedException('Session expired or revoked');
     }
 
     // Verify session belongs to the user in the token
     if (session.userId !== payload.sub) {
       this.logger.error(`Token user mismatch: ${payload.sub} vs ${session.userId}`);
-      // Security violation - revoke the session
       await this.sessionService.revokeSession(session.id, 'security');
       throw new UnauthorizedException('Invalid session');
     }
@@ -77,7 +75,8 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
         firstName: true,
         lastName: true,
         walletAddress: true,
-        role: true,
+        legacyRole: true,
+        roleId: true,
         isActive: true,
         isEmailVerified: true,
       },
@@ -91,11 +90,12 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
       throw new UnauthorizedException('Account is deactivated');
     }
 
-    // Return user with session info and refresh token for rotation
+    // Map legacyRole to role for backward compatibility
     return {
       ...user,
+      role: user.legacyRole,
       sessionId: session.id,
-      refreshToken, // Needed for token rotation
+      refreshToken,
     };
   }
 }

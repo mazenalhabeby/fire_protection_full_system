@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Link } from "@/i18n/navigation";
 import { ChevronDown, ThumbsUp, ThumbsDown, Search } from "lucide-react";
 import { supportApi } from "@/lib/api";
 import type { FAQCategory, FAQItem } from "@/types/support";
@@ -178,12 +179,12 @@ export function FAQAccordion({ categories }: FAQAccordionProps) {
           </p>
           <p className="text-sm text-gray-400 dark:text-gray-500">
             Try different keywords or{" "}
-            <a
+            <Link
               href="/help/contact"
               className="text-indigo-600 dark:text-indigo-400 hover:underline"
             >
               contact support
-            </a>
+            </Link>
           </p>
         </div>
       )}

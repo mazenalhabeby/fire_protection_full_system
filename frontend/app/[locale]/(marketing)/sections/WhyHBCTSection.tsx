@@ -22,7 +22,7 @@ function FeatureCard({
 }: FeatureCardProps) {
   return (
     <div
-      className="group relative animate-fade-in-up"
+      className="group relative z-10 animate-fade-in-up"
       style={{ animationDelay: `${delay}ms` }}
     >
       {/* Subtle glow on hover */}
@@ -101,96 +101,98 @@ export function WhyHBCTSection({ className }: WhyHBCTSectionProps) {
         }}
       />
 
-      {/* Floating tokens - scattered around */}
-      {/* Top left area */}
-      <FloatingToken
-        src="/images/token/token1.png"
-        size={80}
-        blur
-        className="animate-float-slow"
-        style={{ top: "10%", left: "5%" }}
-      />
-      <FloatingToken
-        src="/images/token/token3.png"
-        size={50}
-        className="animate-float-medium"
-        style={{ top: "20%", left: "15%" }}
-      />
+      {/* Floating tokens - hidden on mobile/tablet, visible on desktop */}
+      <div className="hidden lg:block z-0">
+        {/* Top left area */}
+        <FloatingToken
+          src="/images/token/token1.png"
+          size={80}
+          blur
+          className="animate-float-slow"
+          style={{ top: "10%", left: "5%" }}
+        />
+        <FloatingToken
+          src="/images/token/token3.png"
+          size={50}
+          className="animate-float-medium"
+          style={{ top: "20%", left: "15%" }}
+        />
 
-      {/* Top right area */}
-      <FloatingToken
-        src="/images/token/token1.png"
-        size={60}
-        className="animate-float-fast"
-        style={{ top: "8%", right: "10%" }}
-      />
-      <FloatingToken
-        src="/images/token/token3.png"
-        size={90}
-        blur
-        className="animate-float-slow"
-        style={{ top: "25%", right: "5%" }}
-      />
+        {/* Top right area */}
+        <FloatingToken
+          src="/images/token/token1.png"
+          size={60}
+          className="animate-float-fast"
+          style={{ top: "8%", right: "10%" }}
+        />
+        <FloatingToken
+          src="/images/token/token3.png"
+          size={90}
+          blur
+          className="animate-float-slow"
+          style={{ top: "25%", right: "5%" }}
+        />
 
-      {/* Middle left */}
-      <FloatingToken
-        src="/images/token/token1.png"
-        size={45}
-        className="animate-float-medium"
-        style={{ top: "45%", left: "3%" }}
-      />
-      <FloatingToken
-        src="/images/token/token3.png"
-        size={70}
-        blur
-        className="animate-float-slow"
-        style={{ top: "55%", left: "12%" }}
-      />
+        {/* Middle left */}
+        <FloatingToken
+          src="/images/token/token1.png"
+          size={45}
+          className="animate-float-medium"
+          style={{ top: "45%", left: "3%" }}
+        />
+        <FloatingToken
+          src="/images/token/token3.png"
+          size={70}
+          blur
+          className="animate-float-slow"
+          style={{ top: "55%", left: "12%" }}
+        />
 
-      {/* Middle right */}
-      <FloatingToken
-        src="/images/token/token1.png"
-        size={55}
-        blur
-        className="animate-float-fast"
-        style={{ top: "40%", right: "8%" }}
-      />
-      <FloatingToken
-        src="/images/token/token3.png"
-        size={40}
-        className="animate-float-medium"
-        style={{ top: "60%", right: "15%" }}
-      />
+        {/* Middle right */}
+        <FloatingToken
+          src="/images/token/token1.png"
+          size={55}
+          blur
+          className="animate-float-fast"
+          style={{ top: "40%", right: "8%" }}
+        />
+        <FloatingToken
+          src="/images/token/token3.png"
+          size={40}
+          className="animate-float-medium"
+          style={{ top: "60%", right: "15%" }}
+        />
 
-      {/* Bottom area */}
-      <FloatingToken
-        src="/images/token/token1.png"
-        size={65}
-        className="animate-float-slow"
-        style={{ bottom: "15%", left: "8%" }}
-      />
-      <FloatingToken
-        src="/images/token/token3.png"
-        size={50}
-        blur
-        className="animate-float-fast"
-        style={{ bottom: "20%", right: "12%" }}
-      />
-      <FloatingToken
-        src="/images/token/token1.png"
-        size={35}
-        className="animate-float-medium"
-        style={{ bottom: "10%", left: "25%" }}
-      />
-      <FloatingToken
-        src="/images/token/token3.png"
-        size={45}
-        blur
-        className="animate-float-slow"
-        style={{ bottom: "8%", right: "25%" }}
-      />
+        {/* Bottom area */}
+        <FloatingToken
+          src="/images/token/token1.png"
+          size={65}
+          className="animate-float-slow"
+          style={{ bottom: "15%", left: "8%" }}
+        />
+        <FloatingToken
+          src="/images/token/token3.png"
+          size={50}
+          blur
+          className="animate-float-fast"
+          style={{ bottom: "20%", right: "12%" }}
+        />
+        <FloatingToken
+          src="/images/token/token1.png"
+          size={35}
+          className="animate-float-medium"
+          style={{ bottom: "10%", left: "25%" }}
+        />
+        <FloatingToken
+          src="/images/token/token3.png"
+          size={45}
+          blur
+          className="animate-float-slow"
+          style={{ bottom: "8%", right: "25%" }}
+        />
+      </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 md:mb-20">
           <p className="text-brand-400 font-medium tracking-wide uppercase text-sm mb-4 animate-fade-in-up">

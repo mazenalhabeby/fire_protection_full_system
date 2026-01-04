@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   useWalletTransactionHistory,
   useWalletTransactionSummary,
@@ -29,7 +29,6 @@ import type {
 
 export default function TransactionsPage() {
   const router = useRouter();
-  const locale = useLocale();
   const searchParams = useSearchParams();
 
   // Filters from URL
@@ -79,9 +78,8 @@ export default function TransactionsPage() {
     setPage(1);
   };
 
-  const handleExport = (format: "csv" | "pdf") => {
-    // TODO: Implement export
-    console.log("Export", format);
+  const handleExport = (_format: "csv" | "pdf") => {
+    // Export functionality not yet implemented
   };
 
   const showSkeleton = transactionsLoading || isMinLoading;
@@ -97,7 +95,7 @@ export default function TransactionsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => router.push(`/${locale}/wallet`)}
+              onClick={() => router.push('/wallet')}
               className="p-2.5 rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700 shadow-sm"
             >
               <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />

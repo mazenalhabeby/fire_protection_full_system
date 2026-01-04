@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import {
   Shield,
@@ -28,7 +27,6 @@ interface WithdrawalFormProps {
 
 export function WithdrawalForm({ onSuccess, onCancel }: WithdrawalFormProps) {
   const router = useRouter();
-  const locale = useLocale();
   const { data: balancesData } = useWalletBalances();
   const requestWithdrawal = useRequestWithdrawal();
 
@@ -149,7 +147,7 @@ export function WithdrawalForm({ onSuccess, onCancel }: WithdrawalFormProps) {
           </p>
         </div>
         <PremiumButton
-          onClick={() => router.push(`/${locale}/settings?tab=wallets`)}
+          onClick={() => router.push('/settings?tab=wallets')}
           variant="brand"
           icon={Plus}
         >
@@ -269,7 +267,7 @@ export function WithdrawalForm({ onSuccess, onCancel }: WithdrawalFormProps) {
                 <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
                   <button
                     type="button"
-                    onClick={() => router.push(`/${locale}/settings?tab=wallets`)}
+                    onClick={() => router.push('/settings?tab=wallets')}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-brand-600 dark:text-brand-400"
                   >
                     <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-500/20 flex items-center justify-center">

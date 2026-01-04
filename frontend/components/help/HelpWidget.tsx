@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { Link, usePathname } from "@/i18n/navigation";
 import {
   HelpCircle,
   X,
@@ -12,7 +12,7 @@ import {
   ChevronRight,
   ExternalLink,
 } from "lucide-react";
-import { useParams, usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { QuickContactForm } from "./QuickContactForm";
 import { cn } from "@/lib/utils";

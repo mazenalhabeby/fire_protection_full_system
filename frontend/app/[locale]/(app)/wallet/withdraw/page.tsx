@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { WithdrawalForm } from "@/components/wallet-internal/WithdrawalForm";
@@ -12,7 +11,6 @@ import type { WithdrawalRequest } from "@/types/withdrawals";
 
 export default function WithdrawPage() {
   const router = useRouter();
-  const locale = useLocale();
   const [showForm, setShowForm] = useState(true);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null);
   const [pendingWithdrawalId, setPendingWithdrawalId] = useState<string | null>(null);
@@ -48,7 +46,7 @@ export default function WithdrawPage() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Back Button */}
         <button
-          onClick={() => router.push(`/${locale}/wallet`)}
+          onClick={() => router.push('/wallet')}
           className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -91,7 +89,7 @@ export default function WithdrawPage() {
             <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6">
               <WithdrawalForm
                 onSuccess={handleWithdrawalSuccess}
-                onCancel={() => router.push(`/${locale}/wallet`)}
+                onCancel={() => router.push('/wallet')}
               />
             </div>
           ) : (

@@ -13,11 +13,11 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import type { Request } from 'express';
-import { Throttle } from '@nestjs/throttler';
 import { TransferMethod, Currency, WalletTransactionStatus } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { JwtAuthGuard } from '../auth/guards';
 import { CurrentUser } from '../../common/decorators';
+import { SmartThrottleGuard, SmartThrottle } from '../../common/guards/smart-throttle.guard';
 import { BalanceService, TransferService, LimitsService, HistoryService } from './services';
 import {
   TransactionHistoryQueryDto,
@@ -68,10 +68,12 @@ export class WalletController {
   // ============================================
 
   @Post('transfers')
-  @Throttle({ default: { limit: 10, ttl: 3600000 } }) // 10 per hour
+  @UseGuards(SmartThrottleGuard)
+  @SmartThrottle('transfer_create')
   @ApiOperation({ summary: 'Initiate an internal transfer' })
   @ApiResponse({ status: 201, description: 'Transfer initiated' })
   @ApiResponse({ status: 400, description: 'Invalid request or insufficient balance' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded - check X-RateLimit headers' })
   async initiateTransfer(
     @CurrentUser('id') userId: string,
     @Body() dto: InitiateTransferDto,
@@ -90,10 +92,13 @@ export class WalletController {
   }
 
   @Post('transfers/:id/confirm')
+  @UseGuards(SmartThrottleGuard)
+  @SmartThrottle('transfer_confirm')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Confirm a pending transfer with confirmation code' })
   @ApiResponse({ status: 200, description: 'Transfer confirmed and executed' })
   @ApiResponse({ status: 400, description: 'Invalid or expired confirmation code' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded - check X-RateLimit headers' })
   async confirmTransfer(
     @CurrentUser('id') userId: string,
     @Param('id') transferId: string,
@@ -152,7 +157,6 @@ export class WalletController {
   // ============================================
 
   @Get('lookup/:method/:identifier')
-  @Throttle({ default: { limit: 50, ttl: 3600000 } }) // 50 per hour
   @ApiOperation({ summary: 'Lookup recipient by method and identifier' })
   @ApiResponse({ status: 200, description: 'Recipient found' })
   @ApiResponse({ status: 404, description: 'Recipient not found' })

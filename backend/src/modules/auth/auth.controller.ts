@@ -36,6 +36,9 @@ import {
   SetPasswordDto,
   VerifyEmailDto,
   VerifyEmailCodeDto,
+  AdminVerifyDto,
+  AdminVerifyResponseDto,
+  AdminStatusResponseDto,
 } from './dto';
 import {
   VerifyTwoFactorDto,
@@ -90,6 +93,10 @@ export class AuthController {
     res.cookie(REFRESH_TOKEN_COOKIE, refreshToken, getRefreshTokenCookieOptions(this.isProduction));
   }
 
+  private setAccessTokenCookie(res: express.Response, accessToken: string): void {
+    res.cookie(ACCESS_TOKEN_COOKIE, accessToken, getAccessTokenCookieOptions(this.isProduction));
+  }
+
   private clearAuthCookies(res: express.Response): void {
     res.cookie(ACCESS_TOKEN_COOKIE, '', getClearCookieOptions(this.isProduction));
     res.cookie(REFRESH_TOKEN_COOKIE, '', getClearCookieOptions(this.isProduction));
@@ -115,9 +122,12 @@ export class AuthController {
     // Set cookies
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
+    this.logger.log(`User registered: ${result.user.id}`);
+
     // Return user data only (tokens are in cookies)
     return {
       user: result.user,
+      tokenExpiresAt: result.tokenExpiresAt,
       message: 'Registration successful. Please verify your email.',
     };
   }
@@ -146,12 +156,16 @@ export class AuthController {
 
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
+    this.logger.log(`User logged in: ${result.user.id}`);
+
     return {
       user: result.user,
+      tokenExpiresAt: result.tokenExpiresAt,
       securityAlert: result.securityAlert,
     };
   }
 
+  @Public() // Skip global JwtAuthGuard - this endpoint uses JwtRefreshGuard instead
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
@@ -172,13 +186,13 @@ export class AuthController {
       req,
     );
 
-    this.setAuthCookies(res, result.accessToken, result.refreshToken);
+    // Only set new access token cookie (refresh token stays the same)
+    this.setAccessTokenCookie(res, result.accessToken);
 
-    // Return tokenExpiresAt and security alerts for frontend
+    // Return tokenExpiresAt for frontend
     return {
       success: true,
       tokenExpiresAt: result.tokenExpiresAt,
-      securityAlert: result.securityAlert,
     };
   }
 
@@ -449,7 +463,7 @@ export class AuthController {
 
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
-    return { user: result.user, securityAlert: result.securityAlert };
+    return { user: result.user, tokenExpiresAt: result.tokenExpiresAt, securityAlert: result.securityAlert };
   }
 
   @Public()
@@ -468,7 +482,7 @@ export class AuthController {
 
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
-    return { user: result.user };
+    return { user: result.user, tokenExpiresAt: result.tokenExpiresAt };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -845,6 +859,113 @@ export class AuthController {
 
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
-    return { user: result.user, securityAlert: result.securityAlert };
+    return { user: result.user, tokenExpiresAt: result.tokenExpiresAt, securityAlert: result.securityAlert };
+  }
+
+  // ============================================
+  // USER PERMISSIONS (for RBAC)
+  // ============================================
+
+  @UseGuards(JwtAuthGuard)
+  @Get('my-permissions')
+  @SkipThrottle()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user\'s role and permissions' })
+  @ApiResponse({ status: 200, description: 'Returns user role and permissions' })
+  async getMyPermissions(@CurrentUser() user: any) {
+    return this.authService.getUserPermissions(user.id);
+  }
+
+  // ============================================
+  // ADMIN STEP-UP AUTHENTICATION
+  // ============================================
+
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/status')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get admin access status' })
+  @ApiResponse({ status: 200, description: 'Admin status', type: AdminStatusResponseDto })
+  async getAdminStatus(
+    @CurrentUser() user: any,
+    @Req() req: express.Request,
+  ): Promise<AdminStatusResponseDto> {
+    const ipAddress = req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
+    return this.authService.getAdminStatus(user.id, user.sessionId, ipAddress);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('admin/verify')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 per minute
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verify admin access with 2FA code (step-up authentication)' })
+  @ApiResponse({ status: 200, description: 'Admin access verified', type: AdminVerifyResponseDto })
+  @ApiResponse({ status: 400, description: '2FA not enabled' })
+  @ApiResponse({ status: 401, description: 'Invalid verification code or not admin' })
+  async verifyAdminAccess(
+    @CurrentUser() user: any,
+    @Body() dto: AdminVerifyDto,
+    @Req() req: express.Request,
+  ): Promise<AdminVerifyResponseDto> {
+    const ipAddress = req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
+    return this.authService.verifyAdminAccess(
+      user.id,
+      user.sessionId,
+      dto.code,
+      ipAddress,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('admin/revoke')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Revoke admin verification (logout from admin panel)' })
+  @ApiResponse({ status: 200, description: 'Admin verification revoked' })
+  async revokeAdminAccess(
+    @CurrentUser() user: any,
+  ): Promise<{ success: boolean }> {
+    await this.authService.revokeAdminVerification(user.sessionId);
+    return { success: true };
+  }
+
+  // ============================================
+  // ACCOUNT DELETION (SELF-SERVICE)
+  // ============================================
+
+  @UseGuards(JwtAuthGuard)
+  @Get('account/deletion-eligibility')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Check if account can be deleted (pre-deletion validation)' })
+  @ApiResponse({ status: 200, description: 'Returns deletion eligibility status' })
+  async checkDeletionEligibility(@CurrentUser() user: any) {
+    return this.authService.checkDeletionEligibility(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('account')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 3, ttl: 3600000 } }) // 3 per hour - prevent abuse
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete own account (soft delete with 30-day grace period)' })
+  @ApiResponse({ status: 200, description: 'Account deleted successfully' })
+  @ApiResponse({ status: 400, description: 'Cannot delete - has balance, locks, or pending withdrawals' })
+  async deleteMyAccount(
+    @CurrentUser() user: any,
+    @Req() req: express.Request,
+    @Res({ passthrough: true }) res: express.Response,
+  ) {
+    const ipAddress = req.ip || req.headers['x-forwarded-for']?.toString();
+    const userAgent = req.headers['user-agent'];
+
+    const result = await this.authService.deleteMyAccount(user.id, {
+      ipAddress,
+      userAgent,
+    });
+
+    // Clear auth cookies after deletion
+    this.clearAuthCookies(res);
+
+    return result;
   }
 }

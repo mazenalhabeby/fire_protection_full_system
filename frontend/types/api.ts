@@ -35,6 +35,7 @@ export interface User {
   phoneNumber: string | null;
   walletAddress: string | null;
   role: 'USER' | 'ADMIN';
+  roleId: string | null; // RBAC role ID - if set, user has admin panel access
   isEmailVerified: boolean;
   authProvider: string;
   hasPassword: boolean;

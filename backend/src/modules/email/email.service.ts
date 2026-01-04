@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import * as crypto from 'crypto';
 
 // Logo embedded as base64 data URI
 const LOGO_BASE64 = 'data:image/png;base64,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';
@@ -345,7 +346,7 @@ export class EmailService {
 
     try {
       // Generate unique Message-ID for better deliverability
-      const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@fire-protection.tech>`;
+      const messageId = `<${Date.now()}.${crypto.randomBytes(8).toString('hex')}@fire-protection.tech>`;
 
       await this.transporter.sendMail({
         from: `"${this.fromName}" <${this.fromEmail}>`,
@@ -1160,6 +1161,250 @@ export class EmailService {
     return this.sendEmail({
       to: userEmail,
       subject: '🔒 Account Locked - Too Many 2FA Attempts - HBC Fire Protection',
+      html,
+    });
+  }
+
+  // ============================================
+  // ACCOUNT STATUS EMAILS
+  // ============================================
+
+  async sendAccountSuspendedEmail(
+    userEmail: string,
+    reason?: string,
+  ): Promise<boolean> {
+    const reasonText = reason
+      ? `
+        <div style="margin: 20px 0; padding: 16px; background-color: #FEF2F2; border-radius: 8px; border-left: 4px solid ${BRAND.danger};">
+          <p style="margin: 0; font-size: 14px; color: ${BRAND.danger}; font-weight: 600;">Reason for suspension:</p>
+          <p style="margin: 8px 0 0 0; font-size: 14px; color: ${BRAND.textPrimary};">${reason}</p>
+        </div>
+      `
+      : '';
+
+    const content = `
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        We regret to inform you that your <strong>HBC Fire Protection</strong> account has been suspended.
+      </p>
+      ${reasonText}
+      <p style="margin: 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        During this suspension, you will not be able to:
+      </p>
+      <ul style="margin: 0 0 20px 0; padding-left: 24px; color: ${BRAND.textPrimary};">
+        <li style="margin-bottom: 8px;">Log in to your account</li>
+        <li style="margin-bottom: 8px;">Access platform features</li>
+        <li style="margin-bottom: 8px;">Make transactions</li>
+      </ul>
+      <p style="margin: 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        If you believe this suspension was made in error or would like to appeal this decision, please contact our support team.
+      </p>
+      ${this.getButton('Contact Support', `${this.frontendUrl}/help/contact`, BRAND.primary)}
+      ${this.getInfoBox('Your account data remains secure. Once the suspension is lifted, you will regain full access to your account.', 'info')}
+    `;
+
+    const html = this.getBaseTemplate({
+      title: 'Account Suspended',
+      subtitle: 'Your account access has been restricted',
+      content,
+      footerText: 'This is an automated security notification.',
+    });
+
+    return this.sendEmail({
+      to: userEmail,
+      subject: '⚠️ Account Suspended - HBC Fire Protection',
+      html,
+    });
+  }
+
+  async sendAccountReinstatedEmail(userEmail: string): Promise<boolean> {
+    const content = `
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        Great news! Your <strong>HBC Fire Protection</strong> account has been reinstated and is now fully active.
+      </p>
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        You can now log in and access all platform features as usual.
+      </p>
+      ${this.getButton('Log In Now', `${this.frontendUrl}/login`, BRAND.success)}
+      <p style="margin: 20px 0 0 0; font-size: 14px; color: ${BRAND.textSecondary}; line-height: 1.7;">
+        Thank you for your patience. If you have any questions, please don't hesitate to contact our support team.
+      </p>
+    `;
+
+    const html = this.getBaseTemplate({
+      title: 'Account Reinstated',
+      subtitle: 'Welcome back to HBC Fire Protection',
+      content,
+      footerText: 'This is an automated notification.',
+    });
+
+    return this.sendEmail({
+      to: userEmail,
+      subject: '✅ Account Reinstated - HBC Fire Protection',
+      html,
+    });
+  }
+
+  // ============================================
+  // ACCOUNT DELETION EMAILS
+  // ============================================
+
+  async sendAccountDeletedEmail(
+    userEmail: string,
+    gracePeriodEndsAt: Date,
+  ): Promise<boolean> {
+    const formattedDate = gracePeriodEndsAt.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    const content = `
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        Your <strong>HBC Fire Protection</strong> account has been scheduled for deletion.
+      </p>
+      <div style="margin: 20px 0; padding: 16px; background-color: #FEF2F2; border-radius: 8px; border-left: 4px solid ${BRAND.warning};">
+        <p style="margin: 0; font-size: 14px; color: ${BRAND.warning}; font-weight: 600;">Important Notice:</p>
+        <p style="margin: 8px 0 0 0; font-size: 14px; color: ${BRAND.textPrimary};">
+          You have until <strong>${formattedDate}</strong> to recover your account. After this date, account recovery will no longer be possible.
+        </p>
+      </div>
+      <p style="margin: 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        During the deletion period:
+      </p>
+      <ul style="margin: 0 0 20px 0; padding-left: 24px; color: ${BRAND.textPrimary};">
+        <li style="margin-bottom: 8px;">Your account cannot be accessed</li>
+        <li style="margin-bottom: 8px;">Your data is preserved but inactive</li>
+        <li style="margin-bottom: 8px;">You can request account recovery within 30 days</li>
+      </ul>
+      <p style="margin: 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        If you did not request this deletion or wish to recover your account, please contact our support team immediately.
+      </p>
+      ${this.getButton('Contact Support', `${this.frontendUrl}/help/contact`, BRAND.primary)}
+      ${this.getInfoBox('Your account data will be retained for 1 year for compliance purposes before permanent deletion.', 'info')}
+    `;
+
+    const html = this.getBaseTemplate({
+      title: 'Account Deletion Scheduled',
+      subtitle: 'Your account has been deactivated',
+      content,
+      footerText: 'This is an automated notification.',
+    });
+
+    return this.sendEmail({
+      to: userEmail,
+      subject: '⚠️ Account Deletion Scheduled - HBC Fire Protection',
+      html,
+    });
+  }
+
+  async sendAccountRecoveredEmail(userEmail: string): Promise<boolean> {
+    const content = `
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        Great news! Your <strong>HBC Fire Protection</strong> account has been successfully recovered and is now fully active.
+      </p>
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        All your data has been restored and you can now log in and access all platform features as usual.
+      </p>
+      ${this.getButton('Log In Now', `${this.frontendUrl}/login`, BRAND.success)}
+      <p style="margin: 20px 0 0 0; font-size: 14px; color: ${BRAND.textSecondary}; line-height: 1.7;">
+        If you did not request this recovery or have any concerns, please contact our support team immediately.
+      </p>
+    `;
+
+    const html = this.getBaseTemplate({
+      title: 'Account Recovered',
+      subtitle: 'Welcome back to HBC Fire Protection',
+      content,
+      footerText: 'This is an automated notification.',
+    });
+
+    return this.sendEmail({
+      to: userEmail,
+      subject: '✅ Account Recovered - HBC Fire Protection',
+      html,
+    });
+  }
+
+  // ============================================
+  // AFFILIATE STATUS EMAILS
+  // ============================================
+
+  async sendAffiliateDeactivatedEmail(
+    userEmail: string,
+    reason?: string,
+  ): Promise<boolean> {
+    const reasonText = reason
+      ? `
+        <div style="margin: 20px 0; padding: 16px; background-color: #FEF2F2; border-radius: 8px; border-left: 4px solid ${BRAND.danger};">
+          <p style="margin: 0; font-size: 14px; color: ${BRAND.danger}; font-weight: 600;">Reason:</p>
+          <p style="margin: 8px 0 0 0; font-size: 14px; color: ${BRAND.textPrimary};">${reason}</p>
+        </div>
+      `
+      : '';
+
+    const content = `
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        We're writing to inform you that your <strong>Affiliate Program</strong> account has been temporarily deactivated.
+      </p>
+      ${reasonText}
+      <p style="margin: 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        While your affiliate account is deactivated:
+      </p>
+      <ul style="margin: 0 0 20px 0; padding-left: 24px; color: ${BRAND.textPrimary};">
+        <li style="margin-bottom: 8px;">Your referral code will not be valid for new registrations</li>
+        <li style="margin-bottom: 8px;">You will not earn commissions from referred users' purchases</li>
+        <li style="margin-bottom: 8px;">You will not appear on the affiliate leaderboard</li>
+      </ul>
+      ${this.getInfoBox('Your existing referral relationships and earned commissions remain intact. Once reactivated, you will regain full affiliate privileges.', 'info')}
+      <p style="margin: 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        If you have questions about this decision or would like to discuss reactivation, please contact our support team.
+      </p>
+      ${this.getButton('Contact Support', `${this.frontendUrl}/help/contact`, BRAND.primary)}
+    `;
+
+    const html = this.getBaseTemplate({
+      title: 'Affiliate Account Deactivated',
+      subtitle: 'Your affiliate privileges have been temporarily suspended',
+      content,
+      footerText: 'This is an automated notification from the Affiliate Program.',
+    });
+
+    return this.sendEmail({
+      to: userEmail,
+      subject: 'Affiliate Account Deactivated - HBC Fire Protection',
+      html,
+    });
+  }
+
+  async sendAffiliateReactivatedEmail(userEmail: string): Promise<boolean> {
+    const content = `
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        Great news! Your <strong>Affiliate Program</strong> account has been reactivated and is now fully active.
+      </p>
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        You can now enjoy all affiliate benefits:
+      </p>
+      <ul style="margin: 0 0 20px 0; padding-left: 24px; color: ${BRAND.textPrimary};">
+        <li style="margin-bottom: 8px;">Your referral code is active again</li>
+        <li style="margin-bottom: 8px;">You'll earn commissions from referred users' purchases</li>
+        <li style="margin-bottom: 8px;">You're visible on the affiliate leaderboard</li>
+      </ul>
+      ${this.getButton('View Affiliate Dashboard', `${this.frontendUrl}/affiliates`, BRAND.success)}
+      <p style="margin: 20px 0 0 0; font-size: 14px; color: ${BRAND.textSecondary}; line-height: 1.7;">
+        Thank you for being part of our affiliate program. If you have any questions, please don't hesitate to contact our support team.
+      </p>
+    `;
+
+    const html = this.getBaseTemplate({
+      title: 'Affiliate Account Reactivated',
+      subtitle: 'Welcome back to the Affiliate Program',
+      content,
+      footerText: 'This is an automated notification from the Affiliate Program.',
+    });
+
+    return this.sendEmail({
+      to: userEmail,
+      subject: 'Affiliate Account Reactivated - HBC Fire Protection',
       html,
     });
   }

@@ -1,47 +1,34 @@
 # ============================================
+# HBCT Fire Protection Platform - .gitignore
+# Structure: backend/ + frontend/ + admin/
+# ============================================
+
+# ============================================
 # Dependencies
 # ============================================
 node_modules/
-.pnp
-.pnp.js
-.yarn/install-state.gz
 
 # ============================================
-# Environment Variables (CRITICAL - NEVER COMMIT)
+# Environment Variables (NEVER COMMIT)
 # ============================================
 .env
-.env.local
-.env.development
-.env.development.local
-.env.test
-.env.test.local
-.env.production
-.env.production.local
-.env.staging
-*.env
-
-# Keep example files
+.env.*
 !.env.example
 !.env.sample
-!.env.docker.example
+!.env.template
 
 # ============================================
 # Build Outputs
 # ============================================
-# Next.js
-frontend/.next/
-frontend/out/
+# Next.js (frontend, admin)
+.next/
+out/
 
-# NestJS
-backend/dist/
+# NestJS (backend)
+dist/
 
 # TypeScript
 *.tsbuildinfo
-
-# Generic build folders
-build/
-dist/
-.build/
 
 # ============================================
 # Testing & Coverage
@@ -54,47 +41,42 @@ playwright-report/
 playwright/.cache/
 
 # ============================================
+# Database
+# ============================================
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+
+# ============================================
 # Logs
 # ============================================
 logs/
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
 # ============================================
 # OS Generated Files
 # ============================================
 # macOS
 .DS_Store
-.AppleDouble
-.LSOverride
 ._*
-.Spotlight-V100
-.Trashes
 
 # Windows
 Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
-*.stackdump
 [Dd]esktop.ini
-$RECYCLE.BIN/
 
 # Linux
 *~
-.fuse_hidden*
-.directory
-.Trash-*
-.nfs*
 
 # ============================================
 # IDE & Editors
 # ============================================
-# VS Code (keep settings but ignore local history)
+# VS Code
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -102,41 +84,13 @@ $RECYCLE.BIN/
 !.vscode/extensions.json
 .history/
 
-# JetBrains (WebStorm, IntelliJ, etc.)
+# JetBrains
 .idea/
 *.iml
-*.ipr
-*.iws
 
 # Vim
 *.swp
 *.swo
-*.swn
-*~
-
-# Sublime Text
-*.sublime-workspace
-*.sublime-project
-
-# ============================================
-# Package Manager Locks (keep one, ignore others)
-# ============================================
-# Uncomment the ones you don't use:
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
-
-# ============================================
-# Database
-# ============================================
-# SQLite
-*.sqlite
-*.sqlite3
-*.db
-
-# Prisma
-backend/prisma/*.db
-backend/prisma/*.db-journal
 
 # ============================================
 # Secrets & Credentials
@@ -145,94 +99,74 @@ backend/prisma/*.db-journal
 *.key
 *.cert
 *.crt
-*.p12
-*.pfx
 secrets/
 .secrets/
 credentials.json
-service-account.json
-firebase-adminsdk*.json
+service-account*.json
+
+# Web3 / Blockchain
+.secret
+mnemonic.txt
+private-keys.txt
 
 # ============================================
-# Cache & Temporary Files
+# Cache
 # ============================================
 .cache/
 .temp/
 .tmp/
-tmp/
-temp/
 *.cache
-
-# Next.js cache
-.next/cache/
-
-# ESLint & Prettier cache
 .eslintcache
-.prettiercache
-
-# Turbo
-.turbo/
 
 # ============================================
-# Vercel
+# Package Manager
+# ============================================
+# Using npm - ignore others
+pnpm-lock.yaml
+yarn.lock
+.yarn/
+.pnpm-store/
+
+# ============================================
+# Deployment
 # ============================================
 .vercel/
+.netlify/
 
 # ============================================
 # Docker
 # ============================================
-# Ignore docker override files
 docker-compose.override.yml
-!docker-compose.yml
-!docker-compose.dev.yml
-!docker-compose.prod.yml
+docker-compose.local.yml
 
 # ============================================
-# Claude Code / AI Tools
+# Generated Files
 # ============================================
-.claude/
+**/generated/
 
 # ============================================
-# Miscellaneous
+# PWA & Service Workers
 # ============================================
-# Storybook
-storybook-static/
-
-# Debug files
-*.pid
-*.seed
-*.pid.lock
-
-# Optional npm cache directory
-.npm/
-
-# Optional eslint cache
-.eslintcache
-
-# TypeDoc
-docs/api/
-
-# Sentry
-.sentryclirc
-
-# Local Netlify folder
-.netlify/
-
-# Parcel cache
-.parcel-cache/
-
-# PWA files
 **/public/sw.js
 **/public/workbox-*.js
 
-# Uploaded files (if storing locally during development)
+# ============================================
+# Uploads
+# ============================================
 uploads/
-public/uploads/
+**/public/uploads/
 
 # ============================================
-# Project Specific
+# AI Tools
 # ============================================
-# Prisma generated client (regenerated on install)
-backend/generated/
-**/generated/prisma/
+.claude/
+.cursor/
+.aider*
 
+# ============================================
+# Misc
+# ============================================
+*.pid
+*.seed
+.parcel-cache/
+storybook-static/

@@ -1,0 +1,22 @@
+{
+  "admin": {
+    "title": "Panneau d'administration",
+    "dashboard": "Tableau de bord",
+    "users": "Utilisateurs",
+    "affiliates": "Affiliés",
+    "locks": "Verrouillages de jetons",
+    "deposits": "Dépôts",
+    "withdrawals": "Retraits",
+    "purchases": "Achats",
+    "roles": "Rôles",
+    "settings": "Paramètres",
+    "backToApp": "Retour à l'application"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "adminRequired": "Accès administrateur requis"
+  }
+}

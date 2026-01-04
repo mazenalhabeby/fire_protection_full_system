@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { authApi } from "@/lib/api/auth";
 import { cn } from "@/lib/utils";
 import {
@@ -19,7 +18,6 @@ interface TwoFactorPromptProps {
 
 export function TwoFactorPrompt({ className }: TwoFactorPromptProps) {
   const router = useRouter();
-  const locale = useLocale();
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,7 +38,7 @@ export function TwoFactorPrompt({ className }: TwoFactorPromptProps) {
   };
 
   const handleEnableClick = () => {
-    router.push(`/${locale}/settings?tab=security`);
+    router.push('/settings?tab=security');
   };
 
   if (isLoading || !isVisible) {

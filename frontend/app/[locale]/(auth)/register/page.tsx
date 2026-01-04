@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
 import { SignaturePromptModal } from "@/components/wallet/SignaturePromptModal";
-import { disconnectWallet, forceDisconnectWallet, clearDisconnectedFlag, wagmiConfig } from "@/providers/Web3ModalProvider";
+import { forceDisconnectWallet, wagmiConfig } from "@/providers/Web3ModalProvider";
 import { getAccount, disconnect as wagmiCoreDisconnect } from "@wagmi/core";
 import type { Config } from "@wagmi/core";
 import { getLocation, type BrowserLocation } from "@/hooks/useGeolocation";
@@ -43,7 +43,14 @@ export default function RegisterPage() {
   const t = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { register, walletAuth } = useAuth();
+  const { register, walletAuth, isAuthenticated, isLoading: authLoading } = useAuth();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.replace("/dashboard");
+    }
+  }, [authLoading, isAuthenticated, router]);
   const { referralCode: storedReferralCode, hasReferral, expiryDays, clearReferral } = useReferral();
 
   // Use stored referral code (first-touch attribution) or fallback to URL param
@@ -101,20 +108,14 @@ export default function RegisterPage() {
   const hasDisconnectedOnMountRef = useRef(false);
 
   // Request browser geolocation on mount (for VPN detection)
-  // Note: Browser may not show prompt without user interaction - we also request on form submit
   useEffect(() => {
     const requestBrowserLocation = async () => {
       try {
-        console.log("[Register] Requesting browser location on mount...");
         const location = await getLocation({ timeout: 10000 });
         if (location) {
-          console.log("[Register] Got browser location:", location);
           setBrowserLocation(location);
-        } else {
-          console.log("[Register] No location returned (permission denied or unavailable)");
         }
-      } catch (err) {
-        console.warn("[Register] Location request error:", err);
+      } catch {
         // Continue without browser location - IP-based location will be used
       }
     };
@@ -265,7 +266,6 @@ export default function RegisterPage() {
       // Request location on submit (user-initiated action - browser more likely to show prompt)
       let currentLocation = browserLocation;
       if (!currentLocation) {
-        console.log("[Register] Wallet auth - No cached location, requesting...");
         currentLocation = await getLocation({ timeout: 5000 });
         if (currentLocation) {
           setBrowserLocation(currentLocation);
@@ -282,7 +282,6 @@ export default function RegisterPage() {
       // Get referral data with source tracking
       const referralData = getReferralDataForRegistration();
 
-      console.log("[Register] Wallet auth with location:", locationData, "referral:", referralData);
       const { isNewUser } = await walletAuth(address, async (message: string) => {
         const signature = await signWithFallback(message);
         return signature;
@@ -340,7 +339,6 @@ export default function RegisterPage() {
         } else if (errMsg.includes("failed to fetch") || errMsg.includes("network") || errMsg.includes("timeout")) {
           errorMessage = "Unable to connect to server. Please check your internet connection and try again.";
         } else {
-          console.error("Wallet auth error:", err);
           errorMessage = "Failed to authenticate. Please try again.";
         }
       }
@@ -425,7 +423,6 @@ export default function RegisterPage() {
       // Request location on submit (user-initiated action - browser more likely to show prompt)
       let currentLocation = browserLocation;
       if (!currentLocation) {
-        console.log("[Register] No cached location, requesting on submit...");
         currentLocation = await getLocation({ timeout: 5000 });
         if (currentLocation) {
           setBrowserLocation(currentLocation);
@@ -442,7 +439,6 @@ export default function RegisterPage() {
       // Get referral data with source tracking
       const referralData = getReferralDataForRegistration();
 
-      console.log("[Register] Submitting with location:", locationData, "referral:", referralData);
       await register({
         email: formData.email,
         password: formData.password,
@@ -471,6 +467,15 @@ export default function RegisterPage() {
       setIsLoading(false);
     }
   };
+
+  // Show loading while checking auth state
+  if (authLoading || isAuthenticated) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex items-center justify-center p-4 py-8 relative overflow-hidden">
@@ -763,7 +768,6 @@ export default function RegisterPage() {
                       <Input
                         type="text"
                         name="firstName"
-                        label={t("firstName")}
                         placeholder={t("firstNamePlaceholder")}
                         value={formData.firstName}
                         onChange={handleChange}
@@ -772,7 +776,6 @@ export default function RegisterPage() {
                       <Input
                         type="text"
                         name="lastName"
-                        label={t("lastName")}
                         placeholder={t("lastNamePlaceholder")}
                         value={formData.lastName}
                         onChange={handleChange}
@@ -792,7 +795,6 @@ export default function RegisterPage() {
                       <Input
                         type="email"
                         name="email"
-                        label={t("email")}
                         placeholder={t("emailPlaceholder")}
                         value={formData.email}
                         onChange={handleChange}
@@ -813,7 +815,6 @@ export default function RegisterPage() {
                       <Input
                         type="password"
                         name="password"
-                        label={t("password")}
                         placeholder={t("passwordPlaceholder")}
                         value={formData.password}
                         onChange={handleChange}
@@ -834,7 +835,6 @@ export default function RegisterPage() {
                       <Input
                         type="password"
                         name="confirmPassword"
-                        label={t("confirmPassword")}
                         placeholder={t("confirmPasswordPlaceholder")}
                         value={formData.confirmPassword}
                         onChange={handleChange}
@@ -855,7 +855,6 @@ export default function RegisterPage() {
                       <Input
                         type="text"
                         name="referralCode"
-                        label={t("referralCode")}
                         placeholder={t("referralCodePlaceholder")}
                         value={formData.referralCode}
                         onChange={handleChange}

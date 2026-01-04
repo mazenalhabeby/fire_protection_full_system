@@ -1,4 +1,5 @@
 import { Decimal } from '@prisma/client/runtime/library';
+import * as crypto from 'crypto';
 
 // Re-export pagination utilities
 export * from './pagination';
@@ -57,7 +58,8 @@ export function getPrismaPage(page: number = 1, limit: number = 10) {
 /**
  * Safely gets client IP from request
  */
-export function getClientIp(req: { headers: Record<string, any>; socket?: { remoteAddress?: string }; ip?: string }): string {
+export function getClientIp(req?: { headers: Record<string, any>; socket?: { remoteAddress?: string }; ip?: string } | null): string {
+  if (!req) return 'unknown';
   const forwardedFor = req.headers['x-forwarded-for'];
   if (forwardedFor) {
     const ips = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor.split(',')[0];
@@ -67,13 +69,23 @@ export function getClientIp(req: { headers: Record<string, any>; socket?: { remo
 }
 
 /**
- * Generates a random alphanumeric code
+ * Safely gets user agent from request
+ */
+export function getUserAgent(req?: { headers: Record<string, any> } | null): string | null {
+  if (!req) return null;
+  return (req.headers['user-agent'] as string) || null;
+}
+
+/**
+ * Generates a cryptographically secure random alphanumeric code
+ * Uses crypto.randomBytes() instead of Math.random() for security
  */
 export function generateCode(length: number = 8): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const bytes = crypto.randomBytes(length);
   let result = '';
   for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    result += chars.charAt(bytes[i] % chars.length);
   }
   return result;
 }

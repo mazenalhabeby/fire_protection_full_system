@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useId } from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -59,7 +59,7 @@ export const MiniChart = React.memo(function MiniChart({
     };
   }, [data, width, height]);
 
-  const gradientId = useMemo(() => `chartGradient-${Math.random().toString(36).substr(2, 9)}`, []);
+  const gradientId = useId();
 
   const TrendIcon = changePercent > 0 ? TrendingUp : changePercent < 0 ? TrendingDown : Minus;
   const isPositive = changePercent > 0;

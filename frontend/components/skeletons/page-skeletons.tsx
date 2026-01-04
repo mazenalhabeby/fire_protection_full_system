@@ -1,7 +1,28 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Skeleton, SkeletonText, SkeletonButton, SkeletonAvatar } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Helper components for skeleton variants
+function SkeletonAvatar({ size = "md", className }: { size?: "sm" | "md" | "lg" | "xl"; className?: string }) {
+  const sizes = {
+    sm: "h-8 w-8",
+    md: "h-10 w-10",
+    lg: "h-12 w-12",
+    xl: "h-16 w-16",
+  };
+  return <Skeleton className={cn("rounded-full", sizes[size], className)} />;
+}
+
+function SkeletonText({ lines = 3 }: { lines?: number }) {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: lines }).map((_, i) => (
+        <Skeleton key={i} className={cn("h-4", i === lines - 1 ? "w-3/4" : "w-full")} />
+      ))}
+    </div>
+  );
+}
 
 // ============================================
 // SKELETON STAT CARD - Reusable for all pages
@@ -28,7 +49,7 @@ function SkeletonStatCard({ color = "gray" }: { color?: "purple" | "emerald" | "
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-3 w-16" />
         </div>
-        <Skeleton variant="rounded" className="h-14 w-14" />
+        <Skeleton className="h-14 w-14 rounded-xl" />
       </div>
     </div>
   );
@@ -80,7 +101,7 @@ export function DashboardSkeleton() {
             <div className="grid grid-cols-2 gap-3">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
-                  <Skeleton variant="rounded" className="h-10 w-10" />
+                  <Skeleton className="h-10 w-10 rounded-xl" />
                   <div className="flex-1 space-y-1.5">
                     <Skeleton className="h-4 w-20" />
                     <Skeleton className="h-3 w-28" />
@@ -100,7 +121,7 @@ export function DashboardSkeleton() {
           <div className="divide-y divide-gray-100 dark:divide-gray-800">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="flex items-center gap-4 p-4">
-                <Skeleton variant="rounded" className="h-10 w-10" />
+                <Skeleton className="h-10 w-10 rounded-xl" />
                 <div className="flex-1 space-y-1.5">
                   <div className="flex justify-between">
                     <Skeleton className="h-4 w-28" />
@@ -142,7 +163,7 @@ export function SettingsSkeleton() {
             <div className="space-y-1">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="flex items-center gap-3 p-3 rounded-xl">
-                  <Skeleton variant="rounded" className="h-5 w-5" />
+                  <Skeleton className="h-5 w-5 rounded-lg" />
                   <Skeleton className="h-4 w-24" />
                 </div>
               ))}
@@ -211,7 +232,7 @@ export function LockingSkeleton() {
             {/* Card Header */}
             <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between">
               <div className="flex items-center gap-2">
-                <Skeleton variant="rounded" className="h-5 w-5" />
+                <Skeleton className="h-5 w-5 rounded-lg" />
                 <Skeleton className="h-5 w-24" />
               </div>
               <Skeleton className="h-5 w-28 rounded-full" />
@@ -224,7 +245,7 @@ export function LockingSkeleton() {
                 <div className="grid grid-cols-3 gap-4">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-center">
-                      <Skeleton variant="circular" className="h-20 w-20 mx-auto mb-3" />
+                      <Skeleton className="h-20 w-20 mx-auto mb-3 rounded-full" />
                       <Skeleton className="h-4 w-16 mx-auto mb-1" />
                       <Skeleton className="h-3 w-20 mx-auto mb-2" />
                       <Skeleton className="h-6 w-14 mx-auto rounded-full" />
@@ -270,7 +291,7 @@ export function LockingSkeleton() {
           <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
               <div className="flex items-center gap-2">
-                <Skeleton variant="rounded" className="h-5 w-5" />
+                <Skeleton className="h-5 w-5 rounded-lg" />
                 <Skeleton className="h-5 w-20" />
               </div>
               <Skeleton className="h-5 w-16 rounded-full" />
@@ -279,7 +300,7 @@ export function LockingSkeleton() {
               {[1, 2, 3].map((i) => (
                 <div key={i} className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50">
                   <div className="flex items-start gap-3">
-                    <Skeleton variant="circular" className="h-12 w-12" />
+                    <Skeleton className="h-12 w-12 rounded-full" />
                     <div className="flex-1 space-y-2">
                       <div className="flex justify-between">
                         <Skeleton className="h-4 w-16" />
@@ -340,7 +361,7 @@ export function BuyTokensSkeleton() {
 
               {/* Arrow */}
               <div className="flex justify-center">
-                <Skeleton variant="circular" className="h-10 w-10" />
+                <Skeleton className="h-10 w-10 rounded-full" />
               </div>
 
               {/* You Receive */}
@@ -399,7 +420,7 @@ export function BuyTokensSkeleton() {
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex items-start gap-3">
-                  <Skeleton variant="circular" className="h-5 w-5 shrink-0" />
+                  <Skeleton className="h-5 w-5 shrink-0 rounded-full" />
                   <Skeleton className="h-4 flex-1" />
                 </div>
               ))}
@@ -429,7 +450,7 @@ export function AffiliatesSkeleton() {
       <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 p-6 md:p-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            <Skeleton variant="circular" className="h-20 w-20 bg-gray-600" />
+            <Skeleton className="h-20 w-20 bg-gray-600 rounded-full" />
             <div className="space-y-2">
               <Skeleton className="h-4 w-24 bg-gray-600" />
               <Skeleton className="h-8 w-32 bg-gray-600" />
@@ -468,7 +489,7 @@ export function AffiliatesSkeleton() {
         {/* Referral Link Card */}
         <div className="lg:col-span-2 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6">
           <div className="flex items-center gap-4 mb-6">
-            <Skeleton variant="rounded" className="h-12 w-12" />
+            <Skeleton className="h-12 w-12 rounded-xl" />
             <div className="space-y-2">
               <Skeleton className="h-5 w-36" />
               <Skeleton className="h-4 w-48" />
@@ -487,7 +508,7 @@ export function AffiliatesSkeleton() {
         {/* Leaderboard */}
         <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden">
           <div className="p-5 text-center border-b border-gray-100 dark:border-gray-800">
-            <Skeleton variant="rounded" className="h-12 w-12 mx-auto mb-2" />
+            <Skeleton className="h-12 w-12 mx-auto mb-2 rounded-xl" />
             <Skeleton className="h-5 w-28 mx-auto" />
           </div>
           <div className="p-4 space-y-2">
@@ -573,7 +594,7 @@ export function AdminSkeleton() {
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
             <div className="flex items-center justify-between mb-4">
-              <Skeleton variant="rounded" className="h-10 w-10" />
+              <Skeleton className="h-10 w-10 rounded-xl" />
               <Skeleton className="h-4 w-12" />
             </div>
             <Skeleton className="h-8 w-20 mb-1" />
@@ -587,12 +608,12 @@ export function AdminSkeleton() {
         {[1, 2, 3].map((i) => (
           <div key={i} className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
             <div className="flex items-center gap-4">
-              <Skeleton variant="rounded" className="h-12 w-12" />
+              <Skeleton className="h-12 w-12 rounded-xl" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-5 w-32" />
                 <Skeleton className="h-4 w-40" />
               </div>
-              <Skeleton variant="rounded" className="h-8 w-8" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
             </div>
           </div>
         ))}
@@ -606,7 +627,7 @@ export function AdminSkeleton() {
         <div className="divide-y divide-gray-100 dark:divide-gray-800">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="flex items-center gap-4 p-4">
-              <Skeleton variant="circular" className="h-10 w-10" />
+              <Skeleton className="h-10 w-10 rounded-full" />
               <Skeleton className="h-4 flex-1" />
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-4 w-20" />

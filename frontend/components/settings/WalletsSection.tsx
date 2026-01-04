@@ -50,7 +50,6 @@ export function WalletsSection({ user }: WalletsSectionProps) {
   const {
     address,
     shortAddress,
-    isConnected,
     isConnecting,
     chainName,
     balance,
@@ -62,6 +61,9 @@ export function WalletsSection({ user }: WalletsSectionProps) {
     isModalOpen,
     closeModal,
   } = useWallet();
+
+  // Use address as source of truth for connection status
+  const isConnected = Boolean(address);
 
   const { isCorrectChain, switchToCorrectChain, requiredChainName } = useCorrectChain();
   const [copied, setCopied] = useState(false);
@@ -357,7 +359,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
             </div>
             {!isConnected && (
               <Button
-                variant="primary"
+                variant="default"
                 onClick={() => connect()}
                 disabled={isConnecting}
               >
@@ -390,7 +392,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                 Connect your Web3 wallet to interact with the blockchain and manage your HBCT tokens
               </p>
               <Button
-                variant="primary"
+                variant="default"
                 size="lg"
                 onClick={() => connect()}
                 disabled={isConnecting}
@@ -526,7 +528,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                         </p>
                       </div>
                       <Button
-                        variant="primary"
+                        variant="default"
                         size="sm"
                         onClick={switchToCorrectChain}
                         className="flex-shrink-0"
@@ -579,7 +581,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                 Link your wallets to your account for seamless switching and enhanced security
               </p>
               {isConnected && !isCurrentWalletLinked && (
-                <Button variant="primary" onClick={startLinkingWallet}>
+                <Button variant="default" onClick={startLinkingWallet}>
                   <Link2 className="h-4 w-4 mr-2" />
                   Link Current Wallet
                 </Button>
@@ -863,7 +865,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                       Cancel
                     </Button>
                     <Button
-                      variant="primary"
+                      variant="default"
                       onClick={requestNonce}
                       disabled={isLinking}
                       className="flex-1"
@@ -933,7 +935,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                       Cancel
                     </Button>
                     <Button
-                      variant="primary"
+                      variant="default"
                       onClick={signAndLink}
                       disabled={isLinking}
                       className="flex-1"

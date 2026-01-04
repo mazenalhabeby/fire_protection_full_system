@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Bebas_Neue } from "next/font/google";
+import { cookies } from "next/headers";
 import "@/styles/globals.css";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
@@ -7,12 +8,15 @@ import { notFound } from "next/navigation";
 import { locales } from "@/i18n/request";
 import type { Locale } from "@/i18n/request";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ReAuthProvider } from "@/hooks/useReAuth";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Web3ModalProvider } from "@/providers/Web3ModalProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ReferralProvider } from "@/providers/ReferralProvider";
+import { InitialHintsProvider } from "@/providers/InitialHintsProvider";
 import { Toaster } from "sonner";
 import { WalletConflictModal } from "@/components/wallet/WalletConflictModal";
+import { SESSION_HINT_COOKIE, THEME_COOKIE } from "@/lib/cookies";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -65,6 +69,12 @@ export default async function LocaleLayout({
   // Fetch messages for the locale
   const messages = await getMessages();
 
+  // Read cookies for initial hints (prevents flash on page load)
+  const cookieStore = await cookies();
+  const hasSessionHint = cookieStore.get(SESSION_HINT_COOKIE)?.value === 'true';
+  const themeCookie = cookieStore.get(THEME_COOKIE)?.value as 'light' | 'dark' | 'system' | undefined;
+  const initialTheme = themeCookie || 'system';
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <body
@@ -72,28 +82,33 @@ export default async function LocaleLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme={initialTheme}
           enableSystem
           disableTransitionOnChange
         >
           <QueryProvider>
             <NextIntlClientProvider messages={messages}>
               <ReferralProvider>
-                <AuthProvider>
-                  <Web3ModalProvider>
-                    {children}
-                    <WalletConflictModal />
-                    <Toaster
-                      position="bottom-right"
-                      richColors
-                      closeButton
-                      toastOptions={{
-                        duration: 4000,
-                        className: "premium-toast",
-                      }}
-                    />
-                  </Web3ModalProvider>
-                </AuthProvider>
+                <InitialHintsProvider hasSessionHint={hasSessionHint}>
+                  <AuthProvider>
+                    <Web3ModalProvider>
+                      <ReAuthProvider>
+                        {children}
+                        <WalletConflictModal />
+                        <Toaster
+                          position="bottom-right"
+                          theme="system"
+                          richColors
+                          closeButton
+                          toastOptions={{
+                            duration: 4000,
+                            className: "premium-toast",
+                          }}
+                        />
+                      </ReAuthProvider>
+                    </Web3ModalProvider>
+                  </AuthProvider>
+                </InitialHintsProvider>
               </ReferralProvider>
             </NextIntlClientProvider>
           </QueryProvider>

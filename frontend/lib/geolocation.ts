@@ -18,11 +18,8 @@ export interface BrowserLocation {
 export async function getBrowserLocation(): Promise<BrowserLocation | null> {
   // Check if geolocation is supported
   if (typeof window === 'undefined' || !navigator.geolocation) {
-    console.log('[Geolocation] Not supported by browser or SSR');
     return null;
   }
-
-  console.log('[Geolocation] Requesting browser location...');
 
   try {
     const position = await new Promise<GeolocationPosition>((resolve, reject) => {
@@ -34,11 +31,9 @@ export async function getBrowserLocation(): Promise<BrowserLocation | null> {
     });
 
     const { latitude, longitude, accuracy } = position.coords;
-    console.log(`[Geolocation] Got coordinates: ${latitude}, ${longitude} (accuracy: ${accuracy}m)`);
 
     // Try to reverse geocode to get city/country
     const locationDetails = await reverseGeocode(latitude, longitude);
-    console.log(`[Geolocation] Reverse geocoded to: ${locationDetails.city}, ${locationDetails.country}`);
 
     return {
       latitude,
@@ -46,17 +41,8 @@ export async function getBrowserLocation(): Promise<BrowserLocation | null> {
       accuracy,
       ...locationDetails,
     };
-  } catch (error: any) {
+  } catch {
     // User denied or other error
-    if (error.code === 1) {
-      console.log('[Geolocation] User denied permission');
-    } else if (error.code === 2) {
-      console.log('[Geolocation] Position unavailable');
-    } else if (error.code === 3) {
-      console.log('[Geolocation] Timeout');
-    } else {
-      console.log('[Geolocation] Error:', error);
-    }
     return null;
   }
 }
@@ -98,8 +84,7 @@ async function reverseGeocode(
     const country = address.country || null;
 
     return { city, country };
-  } catch (error) {
-    console.error('Reverse geocoding failed:', error);
+  } catch {
     return {};
   }
 }

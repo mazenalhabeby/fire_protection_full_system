@@ -2,6 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "./useAuth";
+import { createUserQueryKeys } from "./useAppData";
+import { createWalletQueryKeys } from "./useWalletData";
 import {
   purchaseApi,
   GetQuoteRequest,
@@ -87,15 +89,32 @@ export function useLinkedWalletsForPurchase() {
  */
 export function usePurchaseOffChain() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: (data: PurchaseOffChainRequest) => purchaseApi.purchaseOffChain(data),
     onSuccess: () => {
-      // Invalidate related queries
+      const userId = user?.id ?? null;
+      const userKeys = createUserQueryKeys(userId);
+      const walletKeys = createWalletQueryKeys(userId);
+
+      // Invalidate purchase-related queries
       queryClient.invalidateQueries({ queryKey: purchaseKeys.limits() });
       queryClient.invalidateQueries({ queryKey: purchaseKeys.history() });
-      queryClient.invalidateQueries({ queryKey: ["walletBalances"] });
-      queryClient.invalidateQueries({ queryKey: ["walletOverview"] });
+
+      // Force instant refetch of all balance-related queries (user-scoped)
+      queryClient.refetchQueries({ queryKey: userKeys.balance });
+      queryClient.refetchQueries({ queryKey: walletKeys.balances });
+      queryClient.refetchQueries({ queryKey: walletKeys.recentTransactions });
+      queryClient.refetchQueries({ queryKey: userKeys.transactions(1, 10) });
+
+      // Also refetch recent activity
+      queryClient.refetchQueries({
+        predicate: (query) =>
+          query.queryKey[0] === 'user' &&
+          query.queryKey[1] === userId &&
+          query.queryKey[2] === 'recentActivity'
+      });
     },
   });
 }
@@ -105,15 +124,32 @@ export function usePurchaseOffChain() {
  */
 export function usePurchaseOnChain() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: (data: PurchaseOnChainRequest) => purchaseApi.purchaseOnChain(data),
     onSuccess: () => {
-      // Invalidate related queries
+      const userId = user?.id ?? null;
+      const userKeys = createUserQueryKeys(userId);
+      const walletKeys = createWalletQueryKeys(userId);
+
+      // Invalidate purchase-related queries
       queryClient.invalidateQueries({ queryKey: purchaseKeys.limits() });
       queryClient.invalidateQueries({ queryKey: purchaseKeys.history() });
-      queryClient.invalidateQueries({ queryKey: ["walletBalances"] });
-      queryClient.invalidateQueries({ queryKey: ["walletOverview"] });
+
+      // Force instant refetch of all balance-related queries (user-scoped)
+      queryClient.refetchQueries({ queryKey: userKeys.balance });
+      queryClient.refetchQueries({ queryKey: walletKeys.balances });
+      queryClient.refetchQueries({ queryKey: walletKeys.recentTransactions });
+      queryClient.refetchQueries({ queryKey: userKeys.transactions(1, 10) });
+
+      // Also refetch recent activity
+      queryClient.refetchQueries({
+        predicate: (query) =>
+          query.queryKey[0] === 'user' &&
+          query.queryKey[1] === userId &&
+          query.queryKey[2] === 'recentActivity'
+      });
     },
   });
 }

@@ -41,6 +41,72 @@ export function formatWalletAddress(address: string): string {
 }
 
 /**
+ * Formats any address (wallet, tx hash) with ellipsis - alias for formatWalletAddress
+ */
+export const formatAddress = formatWalletAddress;
+
+/**
+ * Formats token amount with proper decimal places
+ */
+export function formatAmount(amount: string | number, options: {
+  minimumFractionDigits?: number;
+  maximumFractionDigits?: number;
+} = {}): string {
+  const { minimumFractionDigits = 2, maximumFractionDigits = 6 } = options;
+  const num = typeof amount === "string" ? parseFloat(amount) : amount;
+
+  if (isNaN(num)) return "0";
+  if (num === 0) return "0.00";
+  if (num < 0.0001) return "<0.0001";
+
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits,
+    maximumFractionDigits,
+  });
+}
+
+/**
+ * Formats token balance (handles edge cases)
+ */
+export function formatTokenBalance(balance: string | number): string {
+  return formatAmount(balance);
+}
+
+/**
+ * Formats a date to locale string
+ */
+export function formatDate(
+  dateString: string | Date,
+  options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }
+): string {
+  if (!dateString) return "";
+  const date = typeof dateString === "string" ? new Date(dateString) : dateString;
+  return date.toLocaleDateString("en-US", options);
+}
+
+/**
+ * Formats a date to locale date and time
+ */
+export function formatDateTime(
+  dateString: string | Date,
+  options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }
+): string {
+  if (!dateString) return "";
+  const date = typeof dateString === "string" ? new Date(dateString) : dateString;
+  return date.toLocaleString("en-US", options);
+}
+
+/**
  * Formats a date to a more readable relative time
  */
 export function getTimeAgoLong(dateString: string): string {
@@ -63,4 +129,13 @@ export function getTimeAgoLong(dateString: string): string {
   } else {
     return "Just now";
   }
+}
+
+/**
+ * Formats a percentage value
+ */
+export function formatPercent(value: string | number, decimals = 1): string {
+  const numValue = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(numValue)) return "0%";
+  return `${numValue.toFixed(decimals)}%`;
 }

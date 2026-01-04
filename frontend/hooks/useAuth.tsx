@@ -10,18 +10,24 @@ import {
   type ReactNode,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "@/i18n/navigation";
 import { authApi, type MeResponse, type Session, type SessionActivity, type LocationData, type TwoFactorChallengeResponse, type TwoFactorStatus, type SecurityAlert, type AuthResponse } from "@/lib/api/auth";
 import { toast } from "sonner";
-import { ApiError, setTokenExpiry, clearTokenExpiry, hasSessionMarker, clearSessionMarker, setSessionMarker } from "@/lib/api/client";
+import { ApiError, setSessionMarker, clearSessionMarker, hasSessionMarker } from "@/lib/api/client";
 import { getBrowserLocation } from "@/lib/geolocation";
-import { disconnectWallet, clearDisconnectedFlag } from "@/providers/Web3ModalProvider";
+import { disconnectWallet, clearDisconnectedFlag, forceDisconnectWallet } from "@/providers/Web3ModalProvider";
 import { tokensApi } from "@/lib/api/tokens";
 import { lockingApi } from "@/lib/api/locking";
 import { affiliatesApi } from "@/lib/api/affiliates";
 import { walletApi } from "@/lib/api/wallet";
-import { queryKeys } from "./useAppData";
-import { walletQueryKeys } from "./useWalletData";
+import { queryKeys, createUserQueryKeys, globalQueryKeys } from "./useAppData";
+import { walletQueryKeys, createWalletQueryKeys } from "./useWalletData";
+import { SessionExpiredModal } from "@/components/SessionExpiredModal";
 import type { User } from "@/types/api";
+import type { AvailableAuthMethods } from "@/lib/api/auth";
+
+// Session expired reason type
+export type SessionExpiredReason = "expired" | "revoked" | "security";
 
 // Referral source types for tracking
 type ReferralSource =
@@ -77,6 +83,16 @@ interface AuthContextType {
   isAuthenticated: boolean;
   currentSession: MeResponse['currentSession'] | null;
   pendingActions: MeResponse['pendingActions'] | null;
+  availableAuthMethods: AvailableAuthMethods | null;
+
+  // Session Expired State (silent - for Binance-style re-auth)
+  needsReAuth: boolean;
+  setNeedsReAuth: (value: boolean) => void;
+
+  // Legacy session expired (kept for backwards compat, but now triggers needsReAuth)
+  sessionExpired: boolean;
+  sessionExpiredReason: SessionExpiredReason | null;
+  clearSessionExpired: () => void;
 
   // 2FA State
   twoFactorChallenge: TwoFactorChallenge | null;
@@ -124,11 +140,27 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [currentSession, setCurrentSession] = useState<MeResponse['currentSession'] | null>(null);
   const [pendingActions, setPendingActions] = useState<MeResponse['pendingActions'] | null>(null);
+  const [availableAuthMethods, setAvailableAuthMethods] = useState<AvailableAuthMethods | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [twoFactorChallenge, setTwoFactorChallenge] = useState<TwoFactorChallenge | null>(null);
+
+  // Binance-style silent re-auth state
+  const [needsReAuth, setNeedsReAuth] = useState(false);
+
+  // Legacy session expired state (now triggers needsReAuth instead of modal)
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const [sessionExpiredReason, setSessionExpiredReason] = useState<SessionExpiredReason | null>(null);
+
+  // Clear session expired state (called when user dismisses modal or logs in)
+  const clearSessionExpired = useCallback(() => {
+    setSessionExpired(false);
+    setSessionExpiredReason(null);
+    setNeedsReAuth(false);
+  }, []);
 
   // Clear 2FA challenge state
   const clearTwoFactorChallenge = useCallback(() => {
@@ -137,44 +169,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Prefetch all user data after login - runs in parallel for speed
   // Uses staleTime to skip fetching if data is already fresh in cache
-  const prefetchUserData = useCallback(async () => {
+  // IMPORTANT: userId is required to create user-scoped cache entries
+  const prefetchUserData = useCallback(async (userId: string) => {
     const staleTime = 5 * 60 * 1000; // 5 minutes - matches QueryProvider default
+    const userKeys = createUserQueryKeys(userId);
+    const walletKeys = createWalletQueryKeys(userId);
 
     await Promise.all([
-      // Dashboard data
+      // Dashboard data (user-scoped)
       queryClient.prefetchQuery({
-        queryKey: queryKeys.balance,
-        queryFn: () => tokensApi.getBalance(),
+        queryKey: userKeys.balance,
+        queryFn: async () => {
+          const walletBalance = await walletApi.getBalance('HBCT');
+          return {
+            availableBalance: walletBalance.availableBalance,
+            lockedBalance: walletBalance.lockedBalance,
+            totalBalance: walletBalance.totalBalance,
+          };
+        },
         staleTime,
       }),
       queryClient.prefetchQuery({
-        queryKey: queryKeys.transactions(1, 10),
-        queryFn: () => tokensApi.getTransactions(1, 10),
+        queryKey: userKeys.transactions(1, 10),
+        queryFn: async () => {
+          const result = await walletApi.getTransactions({ currency: 'HBCT', page: 1, limit: 10 });
+          return {
+            transactions: result.transactions.map((tx) => ({
+              id: tx.id,
+              type: tx.type,
+              amount: tx.amount,
+              status: tx.status,
+              txHash: tx.txHash || tx.metadata?.txHash,
+              createdAt: tx.createdAt,
+              completedAt: tx.completedAt,
+            })),
+            pagination: { page: result.page, limit: result.limit, total: result.total, totalPages: result.totalPages },
+          };
+        },
         staleTime,
       }),
 
-      // Wallet balances (for navbar and wallet page)
+      // Wallet balances (for navbar and wallet page) - user-scoped
       queryClient.prefetchQuery({
-        queryKey: walletQueryKeys.balances,
+        queryKey: walletKeys.balances,
         queryFn: () => walletApi.getBalances(),
         staleTime: 30 * 1000, // 30 seconds - matches useWalletBalances
       }),
 
-      // Locking data
+      // Locking data - tiers are global, user locks are user-scoped
       queryClient.prefetchQuery({
-        queryKey: queryKeys.lockTiers,
+        queryKey: globalQueryKeys.lockTiers,
         queryFn: () => lockingApi.getTiers(),
         staleTime: 30 * 60 * 1000, // 30 minutes - tiers rarely change
       }),
       queryClient.prefetchQuery({
-        queryKey: queryKeys.userLocks,
+        queryKey: userKeys.userLocks,
         queryFn: () => lockingApi.getUserLocks(),
         staleTime,
       }),
 
-      // Affiliate data
+      // Affiliate data (user-scoped)
       queryClient.prefetchQuery({
-        queryKey: queryKeys.affiliate,
+        queryKey: userKeys.affiliate,
         queryFn: async () => {
           try {
             return await affiliatesApi.getMyAffiliate();
@@ -185,7 +241,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         staleTime,
       }),
       queryClient.prefetchQuery({
-        queryKey: queryKeys.affiliateStats,
+        queryKey: userKeys.affiliateStats,
         queryFn: async () => {
           try {
             return await affiliatesApi.getStats();
@@ -195,8 +251,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
         staleTime,
       }),
+      // Leaderboard is global
       queryClient.prefetchQuery({
-        queryKey: queryKeys.leaderboard,
+        queryKey: globalQueryKeys.leaderboard,
         queryFn: async () => {
           const response = await affiliatesApi.getLeaderboard({ limit: 10 });
           return response.leaderboard;
@@ -204,9 +261,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         staleTime,
       }),
 
-      // Token price
+      // Token price is global
       queryClient.prefetchQuery({
-        queryKey: queryKeys.tokenPrice,
+        queryKey: globalQueryKeys.tokenPrice,
         queryFn: async () => {
           const response = await tokensApi.getPrice();
           return parseFloat(response.price);
@@ -233,11 +290,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.user);
       setCurrentSession(response.currentSession);
       setPendingActions(response.pendingActions);
+      setAvailableAuthMethods(response.availableAuthMethods || null);
+      // Clear needsReAuth flag on successful refresh
+      setNeedsReAuth(false);
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         setUser(null);
         setCurrentSession(null);
         setPendingActions(null);
+        setAvailableAuthMethods(null);
       }
     }
   }, []);
@@ -245,25 +306,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Track the last known user ID to detect user changes
   const lastKnownUserIdRef = useRef<string | null>(null);
 
-  // Check auth on mount - only if session marker exists (optimization)
-  // This also handles OAuth logins (Google, Facebook) which redirect from backend
+  // Check auth on mount - always verify with backend
+  // This handles OAuth logins, cross-app sessions (admin/frontend), and session validation
   useEffect(() => {
     const initAuth = async () => {
-      // Skip API call if no session marker exists (guest user)
-      if (!hasSessionMarker()) {
-        setUser(null);
-        setCurrentSession(null);
-        setPendingActions(null);
-        setIsLoading(false);
-        // Clear any stale cache from previous sessions
-        clearCache();
-        lastKnownUserIdRef.current = null;
-        return;
-      }
-
-      // Session marker exists - verify with backend
+      // Always verify with backend - handles cross-app sessions (admin panel <-> frontend)
+      // The backend will validate cookies and return user if session exists
       try {
         const response = await authApi.getMe();
+
+        // Session is valid - ensure session marker is set (for cross-app compatibility)
+        setSessionMarker();
 
         // IMPORTANT: Clear cache if user changed (handles OAuth logins and account switches)
         // This ensures we don't show cached data from a different user
@@ -271,11 +324,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const newUserId = response.user?.id || null;
 
         if (previousUserId && previousUserId !== newUserId) {
-          console.log('[Auth] User changed, clearing cache');
           clearCache();
         } else if (!previousUserId && newUserId) {
           // Fresh login (including OAuth) - clear any stale cache
-          console.log('[Auth] Fresh login detected, clearing cache');
           clearCache();
         }
 
@@ -285,20 +336,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(response.user);
         setCurrentSession(response.currentSession);
         setPendingActions(response.pendingActions);
+        setAvailableAuthMethods(response.availableAuthMethods || null);
 
         // Only prefetch if user is authenticated
         if (response.user) {
-          // Set token expiry for proactive refresh
-          setTokenExpiry();
-          prefetchUserData();
+          setSessionMarker();
+          prefetchUserData(response.user.id);
         }
       } catch {
         // Not authenticated - clear marker and state
         setUser(null);
         setCurrentSession(null);
         setPendingActions(null);
-        clearTokenExpiry();
-        clearSessionMarker(); // Clear stale marker
+        setAvailableAuthMethods(null);
+        clearSessionMarker();
         // Clear cache when auth fails
         clearCache();
         lastKnownUserIdRef.current = null;
@@ -342,24 +393,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       duration: 10000, // 10 seconds
       action: {
         label: "Review Sessions",
-        onClick: () => window.location.href = "/settings?tab=security",
+        onClick: () => router.push("/settings?tab=security"),
       },
     });
-  }, []);
+  }, [router]);
 
-  // Listen for session-revoked and security-alert events
+  // Listen for session expiration events
   useEffect(() => {
-    const handleSessionRevoked = () => {
-      console.log('[Auth] Session revoked - logging out');
+    const handleSessionExpired = async (event?: Event) => {
+      // Determine reason from event detail or default to 'expired'
+      const customEvent = event as CustomEvent<{ reason?: SessionExpiredReason }>;
+      const reason = customEvent?.detail?.reason || 'expired';
+
+      // Check if there was actually a user logged in (not just a fresh page load)
+      const hadActiveSession = user !== null || hasSessionMarker();
+
+      // Clear user state
       setUser(null);
       setCurrentSession(null);
       setPendingActions(null);
-      // Redirect to login with locale
-      if (typeof window !== 'undefined') {
-        // Extract locale from current pathname (e.g., /en/dashboard -> en)
-        const pathParts = window.location.pathname.split('/');
-        const locale = pathParts[1] || 'en';
-        window.location.href = `/${locale}/login?reason=session_revoked`;
+      clearSessionMarker(false); // Not voluntary - session expired/revoked
+      clearCache();
+
+      // Force disconnect wallet to clear all cached connector state
+      // This ensures user gets wallet selection modal on next login
+      await forceDisconnectWallet();
+
+      // Only redirect with "expired=true" if there was an active session
+      // Don't show expired message for fresh visits with no session
+      if (typeof window !== 'undefined' && hadActiveSession) {
+        const currentPath = window.location.pathname;
+        // Don't redirect if already on login/register page
+        if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
+          router.push('/login?expired=true');
+        }
       }
     };
 
@@ -371,13 +438,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    window.addEventListener('session-revoked', handleSessionRevoked);
+    // Listen for both old and new event names for compatibility
+    window.addEventListener('session-expired', handleSessionExpired);
+    window.addEventListener('session-revoked', handleSessionExpired);
     window.addEventListener('security-alert', handleSecurityAlert as EventListener);
     return () => {
-      window.removeEventListener('session-revoked', handleSessionRevoked);
+      window.removeEventListener('session-expired', handleSessionExpired);
+      window.removeEventListener('session-revoked', handleSessionExpired);
       window.removeEventListener('security-alert', handleSecurityAlert as EventListener);
     };
-  }, [showSecurityAlert]);
+  }, [showSecurityAlert, clearCache]);
+
+  // Proactive session check when user returns to tab after being away
+  useEffect(() => {
+    let lastVisibilityChange = Date.now();
+
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        const timeAway = Date.now() - lastVisibilityChange;
+
+        // Only check if user was away for more than 1 minute and has session marker
+        if (timeAway > 60 * 1000 && hasSessionMarker() && user) {
+          try {
+            // Quick session check via /auth/me
+            const response = await authApi.getMe();
+            if (response.user) {
+              // Session is still valid - update user data
+              setUser(response.user);
+              setCurrentSession(response.currentSession);
+              setPendingActions(response.pendingActions);
+              setAvailableAuthMethods(response.availableAuthMethods);
+            }
+          } catch (error) {
+            if (error instanceof ApiError && error.status === 401) {
+              // Session expired while away - trigger re-auth
+              setUser(null);
+              setCurrentSession(null);
+              setPendingActions(null);
+              clearSessionMarker();
+              clearCache();
+              setNeedsReAuth(true);
+            }
+          }
+        }
+      } else {
+        lastVisibilityChange = Date.now();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user, clearCache]);
 
   // ============================================
   // EMAIL/PASSWORD AUTH
@@ -389,6 +502,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = useCallback(async (credentials: LoginRequest): Promise<LoginResult> => {
+    // Clear session expired state if showing
+    clearSessionExpired();
+
     // IMPORTANT: Clear all cached data from previous user before new login
     // This prevents showing stale data from a different account
     clearCache();
@@ -396,31 +512,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Try to get browser location for accurate geolocation (non-blocking)
     let location: LocationData | undefined;
     try {
-      console.log('[Auth] Getting browser location before login...');
       const browserLocation = await getBrowserLocation();
       if (browserLocation) {
-        // Explicitly pick only the allowed properties to avoid validation errors
         location = {
           ...(browserLocation.latitude !== undefined && { latitude: browserLocation.latitude }),
           ...(browserLocation.longitude !== undefined && { longitude: browserLocation.longitude }),
           ...(browserLocation.city && { city: browserLocation.city }),
           ...(browserLocation.country && { country: browserLocation.country }),
         };
-        console.log('[Auth] Browser location obtained:', location);
-      } else {
-        console.log('[Auth] No browser location available, will use IP-based');
       }
-    } catch (e) {
+    } catch {
       // Silently fail - IP-based location will be used as fallback
-      console.log('[Auth] Browser location error, using IP-based location:', e);
     }
 
-    console.log('[Auth] Sending login request with location:', location);
     const response = await authApi.login({ ...credentials, location });
 
     // Check if 2FA is required
     if (isTwoFactorChallenge(response)) {
-      console.log('[Auth] 2FA required, storing challenge token');
       setTwoFactorChallenge({
         token: response.twoFactorToken,
         authMethod: 'credentials',
@@ -429,12 +537,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     setUser(response.user);
-    // Set token expiry for proactive refresh
-    setTokenExpiry();
+    setSessionMarker();
     // Fetch full user data including session
     await refreshUser();
-    // Prefetch all app data in background (non-blocking)
-    prefetchUserData();
+    // Prefetch all app data in background (non-blocking) with user-scoped keys
+    prefetchUserData(response.user.id);
 
     // Show security alert if present
     if (response.securityAlert) {
@@ -442,9 +549,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     return { success: true };
-  }, [clearCache, refreshUser, prefetchUserData, showSecurityAlert]);
+  }, [clearCache, clearSessionExpired, refreshUser, prefetchUserData, showSecurityAlert]);
 
   const register = useCallback(async (data: RegisterRequest) => {
+    // Clear session expired state if showing
+    clearSessionExpired();
+
     // IMPORTANT: Clear all cached data before registration
     clearCache();
 
@@ -461,20 +571,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...(browserLocation.country && { country: browserLocation.country }),
         };
       }
-    } catch (e) {
+    } catch {
       // Silently fail - IP-based location will be used as fallback
-      console.log('Browser location unavailable, using IP-based location');
     }
 
     const response = await authApi.register({ ...data, location });
     setUser(response.user);
-    // Set token expiry for proactive refresh
-    setTokenExpiry();
+    setSessionMarker();
     // Fetch full user data including session
     await refreshUser();
-    // Prefetch all app data in background (non-blocking)
-    prefetchUserData();
-  }, [clearCache, refreshUser, prefetchUserData]);
+    // Prefetch all app data in background (non-blocking) with user-scoped keys
+    prefetchUserData(response.user.id);
+  }, [clearCache, clearSessionExpired, refreshUser, prefetchUserData]);
 
   const logout = useCallback(async () => {
     await authApi.logout();
@@ -482,8 +590,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCurrentSession(null);
     setPendingActions(null);
     setTwoFactorChallenge(null);
-    // Clear token expiry
-    clearTokenExpiry();
+    // Clear token expiry - mark as voluntary to prevent "expired" redirect
+    clearSessionMarker(true);
     // Clear all cached data
     clearCache();
     // Reset user tracking ref
@@ -532,13 +640,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Complete login - set user FIRST to prevent flash of login form
     setUser(response.user);
-    setTokenExpiry();
+    setSessionMarker();
 
     // Clear the challenge AFTER setting user
     setTwoFactorChallenge(null);
 
     await refreshUser();
-    prefetchUserData();
+    // Prefetch all app data in background with user-scoped keys
+    prefetchUserData(response.user.id);
 
     // Show security alert if present
     if (response.securityAlert) {
@@ -565,6 +674,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signMessage: (message: string) => Promise<string>,
     options?: WalletAuthOptions
   ): Promise<{ isNewUser: boolean; requiresTwoFactor?: boolean }> => {
+    // Clear session expired state if showing
+    clearSessionExpired();
+
     // IMPORTANT: Clear all cached data from previous user before new login
     clearCache();
 
@@ -585,7 +697,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Check if 2FA is required
       if (isTwoFactorChallenge(response)) {
-        console.log('[Auth] 2FA required for wallet login, storing challenge token');
         setTwoFactorChallenge({
           token: response.twoFactorToken,
           authMethod: 'wallet',
@@ -594,13 +705,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setUser(response.user);
-      // Set token expiry for proactive refresh
-      setTokenExpiry();
+      // Set token expiries for proactive refresh
+      setSessionMarker();
       await refreshUser();
       // Clear disconnected flag so wallet can auto-reconnect
       clearDisconnectedFlag();
-      // Prefetch all app data in background (non-blocking)
-      prefetchUserData();
+      // Prefetch all app data in background with user-scoped keys
+      prefetchUserData(response.user.id);
       return { isNewUser: false };
     } else {
       const response = await authApi.walletRegister({
@@ -615,21 +726,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         location: options?.location,
       });
       setUser(response.user);
-      // Set token expiry for proactive refresh
-      setTokenExpiry();
+      // Set token expiries for proactive refresh
+      setSessionMarker();
       await refreshUser();
       // Clear disconnected flag so wallet can auto-reconnect
       clearDisconnectedFlag();
-      // Prefetch all app data in background (non-blocking)
-      prefetchUserData();
+      // Prefetch all app data in background with user-scoped keys
+      prefetchUserData(response.user.id);
       return { isNewUser: true };
     }
-  }, [clearCache, refreshUser, prefetchUserData]);
+  }, [clearCache, clearSessionExpired, refreshUser, prefetchUserData]);
 
   const walletLogin = useCallback(async (
     walletAddress: string,
     signMessage: (message: string) => Promise<string>
   ): Promise<LoginResult> => {
+    // Clear session expired state if showing
+    clearSessionExpired();
+
     // IMPORTANT: Clear all cached data from previous user before new login
     clearCache();
 
@@ -652,7 +766,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Check if 2FA is required
     if (isTwoFactorChallenge(response)) {
-      console.log('[Auth] 2FA required for wallet login');
       setTwoFactorChallenge({
         token: response.twoFactorToken,
         authMethod: 'wallet',
@@ -661,13 +774,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     setUser(response.user);
-    // Set token expiry for proactive refresh
-    setTokenExpiry();
+    setSessionMarker();
     await refreshUser();
     // Clear disconnected flag so wallet can auto-reconnect
     clearDisconnectedFlag();
-    // Prefetch all app data in background (non-blocking)
-    prefetchUserData();
+    // Prefetch all app data in background with user-scoped keys
+    prefetchUserData(response.user.id);
 
     // Show security alert if present
     if (response.securityAlert) {
@@ -675,13 +787,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     return { success: true };
-  }, [clearCache, refreshUser, prefetchUserData, showSecurityAlert]);
+  }, [clearCache, clearSessionExpired, refreshUser, prefetchUserData, showSecurityAlert]);
 
   const walletRegister = useCallback(async (
     walletAddress: string,
     signMessage: (message: string) => Promise<string>,
     options?: WalletAuthOptions
   ) => {
+    // Clear session expired state if showing
+    clearSessionExpired();
+
     // IMPORTANT: Clear all cached data before registration
     clearCache();
 
@@ -709,14 +824,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     setUser(response.user);
-    // Set token expiry for proactive refresh
-    setTokenExpiry();
+    setSessionMarker();
     await refreshUser();
     // Clear disconnected flag so wallet can auto-reconnect
     clearDisconnectedFlag();
-    // Prefetch all app data in background (non-blocking)
-    prefetchUserData();
-  }, [clearCache, refreshUser, prefetchUserData]);
+    // Prefetch all app data in background with user-scoped keys
+    prefetchUserData(response.user.id);
+  }, [clearCache, clearSessionExpired, refreshUser, prefetchUserData]);
 
   const linkWallet = useCallback(async (
     walletAddress: string,
@@ -828,6 +942,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: !!user,
     currentSession,
     pendingActions,
+    availableAuthMethods,
+    // Binance-style silent re-auth
+    needsReAuth,
+    setNeedsReAuth,
+    // Session Expired State (legacy - now only used for security alerts)
+    sessionExpired,
+    sessionExpiredReason,
+    clearSessionExpired,
     // 2FA State
     twoFactorChallenge,
     clearTwoFactorChallenge,
@@ -863,7 +985,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateUser,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <SessionExpiredModal
+        isOpen={sessionExpired}
+        onClose={clearSessionExpired}
+        reason={sessionExpiredReason || "expired"}
+      />
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
@@ -877,12 +1008,13 @@ export function useAuth() {
 // Hook for requiring authentication
 export function useRequireAuth(redirectTo = "/login") {
   const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      window.location.href = redirectTo;
+      router.push(redirectTo);
     }
-  }, [isAuthenticated, isLoading, redirectTo]);
+  }, [isAuthenticated, isLoading, redirectTo, router]);
 
   return { isAuthenticated, isLoading };
 }
@@ -890,12 +1022,13 @@ export function useRequireAuth(redirectTo = "/login") {
 // Hook for admin-only access
 export function useRequireAdmin(redirectTo = "/dashboard") {
   const { user, isLoading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (!isLoading && (!user || user.role !== "ADMIN")) {
-      window.location.href = redirectTo;
+      router.push(redirectTo);
     }
-  }, [user, isLoading, redirectTo]);
+  }, [user, isLoading, redirectTo, router]);
 
   return { isAdmin: user?.role === "ADMIN", isLoading };
 }

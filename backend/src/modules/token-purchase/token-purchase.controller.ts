@@ -13,6 +13,7 @@ import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { PurchaseService } from './services/purchase.service';
 import { PurchaseLimitsService } from './services/purchase-limits.service';
 import { PriceService } from './services/price.service';
@@ -39,6 +40,7 @@ export class TokenPurchaseController {
   /**
    * Get current HBCT token price (live from PancakeSwap)
    */
+  @Public()
   @Get('price')
   @ApiOperation({ summary: 'Get current HBCT price' })
   async getPrice() {
@@ -58,6 +60,7 @@ export class TokenPurchaseController {
   /**
    * Get purchase quote
    */
+  @Public()
   @Post('quote')
   @ApiOperation({ summary: 'Get purchase quote' })
   async getQuote(@Body() dto: GetQuoteDto) {

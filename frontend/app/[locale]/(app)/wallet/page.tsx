@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "@/i18n/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useWalletOverview,
@@ -38,15 +37,13 @@ import type { WalletTransaction } from "@/types/api";
 
 export default function WalletPage() {
   const router = useRouter();
-  const locale = useLocale();
-  const { user } = useAuth();
+  useAuth();
 
   const [hideBalances, setHideBalances] = useState(false);
 
   // Fetch wallet data
   const {
     balances,
-    pendingTransfers,
     pendingCount,
     recentTransactions,
     limits,
@@ -127,7 +124,7 @@ export default function WalletPage() {
               <RefreshCw className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             </button>
             <button
-              onClick={() => router.push(`/${locale}/wallet/transactions`)}
+              onClick={() => router.push('/wallet/transactions')}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 hover:bg-gray-50 dark:hover:bg-gray-700/80 transition-all hover:scale-105 active:scale-95 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm"
             >
               <History className="h-4 w-4" />
@@ -254,31 +251,31 @@ export default function WalletPage() {
             <QuickActionButton
               icon={Send}
               label="Send"
-              onClick={() => router.push(`/${locale}/wallet/send`)}
+              onClick={() => router.push('/wallet/send')}
               disabled={availableBalance <= 0}
               variant="primary"
             />
             <QuickActionButton
               icon={QrCode}
               label="Receive"
-              onClick={() => router.push(`/${locale}/wallet/receive`)}
+              onClick={() => router.push('/wallet/receive')}
             />
             <QuickActionButton
               icon={Download}
               label="Deposit"
-              onClick={() => router.push(`/${locale}/wallet/deposit`)}
+              onClick={() => router.push('/wallet/deposit')}
               variant="success"
             />
             <QuickActionButton
               icon={Upload}
               label="Withdraw"
-              onClick={() => router.push(`/${locale}/wallet/withdraw`)}
+              onClick={() => router.push('/wallet/withdraw')}
               disabled={availableBalance <= 0}
             />
             <QuickActionButton
               icon={Coins}
               label="Buy"
-              onClick={() => router.push(`/${locale}/buy-tokens`)}
+              onClick={() => router.push('/buy-tokens')}
               variant="brand"
             />
           </div>
@@ -307,7 +304,7 @@ export default function WalletPage() {
                   </div>
                 </div>
                 <button
-                  onClick={() => router.push(`/${locale}/wallet/transfers`)}
+                  onClick={() => router.push('/wallet/transfers')}
                   className="flex items-center gap-1 px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-600 dark:text-amber-400 text-sm font-medium transition-colors"
                 >
                   View
@@ -376,7 +373,7 @@ export default function WalletPage() {
                 <h2 className="font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
               </div>
               <button
-                onClick={() => router.push(`/${locale}/wallet/transactions`)}
+                onClick={() => router.push('/wallet/transactions')}
                 className="text-sm text-brand-500 hover:text-brand-600 flex items-center gap-1 font-medium transition-colors"
               >
                 View All
@@ -495,6 +492,19 @@ function TransactionRow({
   transaction: WalletTransaction;
   hideBalances: boolean;
 }) {
+  // Memoize time calculation to avoid impure function in render
+  const timeAgoText = useMemo(() => {
+    const diff = Date.now() - new Date(transaction.createdAt).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return new Date(transaction.createdAt).toLocaleDateString();
+  }, [transaction.createdAt]);
+
   const isIncoming = [
     "DEPOSIT",
     "INTERNAL_TRANSFER_RECEIVE",
@@ -576,18 +586,6 @@ function TransactionRow({
     return styles[status] || styles.COMPLETED;
   };
 
-  const timeAgo = (dateStr: string) => {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-    if (mins < 1) return "Just now";
-    if (mins < 60) return `${mins}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return new Date(dateStr).toLocaleDateString();
-  };
-
   const Icon = getTypeIcon(transaction.type);
   const statusStyle = getStatusStyle(transaction.status);
 
@@ -617,7 +615,7 @@ function TransactionRow({
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <span>{timeAgo(transaction.createdAt)}</span>
+            <span>{timeAgoText}</span>
             {transaction.metadata?.note && (
               <>
                 <span className="text-gray-300 dark:text-gray-600">•</span>

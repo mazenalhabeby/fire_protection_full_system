@@ -233,8 +233,8 @@ export function useNotificationStream(options?: {
           }
         }
         // Ignore heartbeat events
-      } catch (e) {
-        console.error("Failed to parse SSE message:", e);
+      } catch {
+        // Silently ignore parse errors
       }
     };
 

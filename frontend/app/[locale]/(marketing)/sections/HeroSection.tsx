@@ -21,7 +21,10 @@ export function HeroSection({ className }: HeroSectionProps) {
     <section
       ref={sectionRef}
       className={cn(
-        "relative min-h-[calc(100vh+4rem)] w-full overflow-hidden bg-black -mt-16",
+        "relative w-full overflow-hidden bg-black",
+        // Mobile: 100vh, no negative margin
+        // Desktop: -mt-16 to go behind navbar + extra height
+        "min-h-screen md:-mt-16 md:min-h-[calc(100vh+4rem)]",
         className
       )}
     >
@@ -41,7 +44,7 @@ export function HeroSection({ className }: HeroSectionProps) {
       />
 
       {/* Content - highest z-index */}
-      <div className="relative z-30 flex min-h-[calc(100vh+4rem)] flex-col items-center px-4 sm:px-6 lg:px-8">
+      <div className="relative z-30 flex min-h-screen md:min-h-[calc(100vh+4rem)] flex-col items-center px-4 sm:px-6 lg:px-8">
         {/* Title & Subtitle - positioned in upper area */}
         <div className="max-w-7xl mx-auto text-center w-full mt-[20vh] sm:mt-[22vh]">
           {/* Main Title with silver/white gradient and shimmer effect */}
@@ -90,7 +93,7 @@ export function HeroSection({ className }: HeroSectionProps) {
         </div>
 
         {/* Action Buttons - Centered in the middle of the section */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in-up animation-delay-400">
+        <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in-up animation-delay-400 w-full">
           <GlassButton href="/buy" variant="primary">
             <span className="font-bebas-neue text-xl tracking-wider uppercase">
               <span className="text-brand-400">HBCT</span>

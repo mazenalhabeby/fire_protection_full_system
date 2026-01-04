@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { authApi, type LinkedWallet } from "@/lib/api/auth";
 import { api } from "@/lib/api/client";
@@ -13,15 +12,11 @@ import {
   Check,
   ExternalLink,
   AlertTriangle,
-  Info,
   Shield,
   Wallet,
   CheckCircle2,
-  Clock,
-  Zap,
   Link2,
   Loader2,
-  RefreshCw,
   Search,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -33,8 +28,7 @@ import { PremiumButton } from "@/components/ui/premium-button";
 
 export default function DepositPage() {
   const router = useRouter();
-  const locale = useLocale();
-  const { user } = useAuth();
+  useAuth();
   const [copied, setCopied] = useState(false);
   const [linkedWallets, setLinkedWallets] = useState<LinkedWallet[]>([]);
   const [isLoadingWallets, setIsLoadingWallets] = useState(true);
@@ -127,7 +121,7 @@ export default function DepositPage() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Back Button */}
         <button
-          onClick={() => router.push(`/${locale}/wallet`)}
+          onClick={() => router.push('/wallet')}
           className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -391,7 +385,7 @@ export default function DepositPage() {
                     </h4>
                   </div>
                   <button
-                    onClick={() => router.push(`/${locale}/settings?tab=wallets`)}
+                    onClick={() => router.push('/settings?tab=wallets')}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <Link2 className="h-4 w-4" />
@@ -447,7 +441,7 @@ export default function DepositPage() {
                       Link a wallet so deposits are automatically matched to your account
                     </p>
                     <PremiumButton
-                      onClick={() => router.push(`/${locale}/settings?tab=wallets`)}
+                      onClick={() => router.push('/settings?tab=wallets')}
                       icon={Link2}
                     >
                       Link Wallet

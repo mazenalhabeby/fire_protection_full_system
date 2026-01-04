@@ -43,6 +43,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req: Request, payload: JwtPayload) {
+    const tokenExp = payload.exp ? new Date(payload.exp * 1000).toISOString() : 'unknown';
+    const timeLeft = payload.exp ? Math.round((payload.exp * 1000 - Date.now()) / 1000) : 0;
+    this.logger.debug(`🔑 ACCESS TOKEN validated - User: ${payload.sub}, Session: ${payload.sessionId}, Expires: ${tokenExp} (${timeLeft}s left)`);
+
     // Verify token type
     if (payload.type !== 'access') {
       throw new UnauthorizedException('Invalid token type');
@@ -69,7 +73,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         firstName: true,
         lastName: true,
         walletAddress: true,
-        role: true,
+        legacyRole: true,
+        roleId: true,
         isActive: true,
         isEmailVerified: true,
         createdAt: true,
@@ -85,8 +90,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     // Attach session ID to user object for later use
+    // Map legacyRole to role for backward compatibility
     return {
       ...user,
+      role: user.legacyRole,
       sessionId: payload.sessionId,
     };
   }

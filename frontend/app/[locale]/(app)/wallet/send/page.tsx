@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useWalletBalances,
@@ -18,10 +18,8 @@ import {
   ArrowLeft,
   CheckCircle2,
   XCircle,
-  Send,
 } from "lucide-react";
 import { SendForm, TransferConfirmation } from "@/components/wallet-internal";
-import { PageHeader } from "@/components/ui/page-header";
 import { PremiumButton } from "@/components/ui/premium-button";
 import type { InitiateTransferResponse, WalletCurrency, TransferMethod } from "@/types/api";
 
@@ -29,11 +27,10 @@ type Step = "form" | "confirm" | "success" | "error";
 
 export default function SendPage() {
   const router = useRouter();
-  const locale = useLocale();
   const searchParams = useSearchParams();
-  const preselectedCurrency = searchParams.get("currency") as WalletCurrency | null;
+  searchParams.get("currency"); // Check for preselected currency (may be used in future)
 
-  const { user } = useAuth();
+  useAuth();
 
   // State
   const [step, setStep] = useState<Step>("form");
@@ -102,7 +99,7 @@ export default function SendPage() {
 
   const handleCancel = async () => {
     if (!pendingTransfer) {
-      router.push(`/${locale}/wallet`);
+      router.push('/wallet');
       return;
     }
 
@@ -111,7 +108,7 @@ export default function SendPage() {
     } catch {
       // Ignore cancel errors
     }
-    router.push(`/${locale}/wallet`);
+    router.push('/wallet');
   };
 
   const handleReset = () => {
@@ -133,7 +130,7 @@ export default function SendPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
-            onClick={() => router.push(`/${locale}/wallet`)}
+            onClick={() => router.push('/wallet')}
             className="p-2.5 rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700 shadow-sm"
           >
             <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
@@ -211,7 +208,7 @@ export default function SendPage() {
                 Send Another
               </button>
               <PremiumButton
-                onClick={() => router.push(`/${locale}/wallet`)}
+                onClick={() => router.push('/wallet')}
                 variant="brand"
                 className="flex-1"
               >
@@ -242,7 +239,7 @@ export default function SendPage() {
                 Try Again
               </PremiumButton>
               <button
-                onClick={() => router.push(`/${locale}/wallet`)}
+                onClick={() => router.push('/wallet')}
                 className={cn(
                   "flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all",
                   "bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700",

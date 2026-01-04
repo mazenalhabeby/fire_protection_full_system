@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TokenService } from './token.service';
 import { SessionService } from './session.service';
@@ -92,6 +92,11 @@ export class OAuthService {
     profile: OAuthProfile,
     req: Request,
   ): Promise<OAuthResult> {
+    // Check if user is banned
+    if (user.isBanned) {
+      throw new UnauthorizedException('Your account has been suspended. Please contact support for assistance.');
+    }
+
     // Update OAuth tokens if provided
     if (profile.accessToken || profile.refreshToken) {
       await this.prisma.oAuthAccount.update({
@@ -122,14 +127,20 @@ export class OAuthService {
     const tokens = await this.tokenService.generateTokenPair(
       user.id,
       user.email,
-      user.role,
+      user.legacyRole,
       '',
     );
+
+    // Determine auth method from provider
+    const authMethod = profile.provider.toLowerCase() as 'google' | 'facebook';
 
     const { session, securityAlert } = await this.sessionService.createSession(
       user.id,
       tokens.refreshToken,
       req,
+      undefined, // browserLocation
+      undefined, // deviceFingerprint
+      authMethod,
     );
 
     // Log security alert if detected
@@ -140,7 +151,7 @@ export class OAuthService {
     const finalTokens = await this.tokenService.generateTokenPair(
       user.id,
       user.email,
-      user.role,
+      user.legacyRole,
       session.id,
     );
 
@@ -150,7 +161,7 @@ export class OAuthService {
     });
 
     // Record login history
-    await this.recordLoginHistory(user.id, profile.provider.toLowerCase(), true, req);
+    await this.recordLoginHistory(user.id, authMethod, true, req);
 
     this.logger.log(`OAuth login: ${user.id} via ${profile.provider}`);
 
@@ -211,20 +222,26 @@ export class OAuthService {
     const tokens = await this.tokenService.generateTokenPair(
       user.id,
       user.email,
-      user.role,
+      user.legacyRole,
       '',
     );
+
+    // Determine auth method from provider
+    const authMethod = profile.provider.toLowerCase() as 'google' | 'facebook';
 
     const { session } = await this.sessionService.createSession(
       user.id,
       tokens.refreshToken,
       req,
+      undefined, // browserLocation
+      undefined, // deviceFingerprint
+      authMethod,
     );
 
     const finalTokens = await this.tokenService.generateTokenPair(
       user.id,
       user.email,
-      user.role,
+      user.legacyRole,
       session.id,
     );
 
@@ -233,7 +250,7 @@ export class OAuthService {
       data: { refreshToken: this.tokenService.hashToken(finalTokens.refreshToken) },
     });
 
-    await this.recordLoginHistory(user.id, profile.provider.toLowerCase(), true, req);
+    await this.recordLoginHistory(user.id, authMethod, true, req);
 
     this.logger.log(`OAuth registration: ${user.id} via ${profile.provider}`);
 
@@ -270,7 +287,7 @@ export class OAuthService {
       firstName: user.firstName,
       lastName: user.lastName,
       walletAddress: user.walletAddress,
-      role: user.role,
+      role: user.legacyRole,
       isEmailVerified: user.isEmailVerified,
       authProvider: user.authProvider,
       createdAt: user.createdAt,

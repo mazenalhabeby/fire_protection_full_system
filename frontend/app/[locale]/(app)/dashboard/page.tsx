@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
-import { useBalance, useTransactions, useAffiliate } from "@/hooks/useAppData";
+import { useBalance, useRecentActivity, useAffiliate } from "@/hooks/useAppData";
 import { capitalize, formatTokenBalance } from "@/lib/utils";
 import {
   Coins,
@@ -20,7 +20,7 @@ import { ScrollableList } from "@/components/ui/scrollable-list";
 import { TwoFactorPrompt } from "@/components/security/TwoFactorPrompt";
 import {
   StatCard,
-  TransactionItem,
+  ActivityItem,
   MiniChart,
   QuickActionsPanel,
 } from "@/components/dashboard";
@@ -52,7 +52,7 @@ export default function DashboardPage() {
 
   // Use cached data hooks - data is prefetched on login
   const { data: balance, isLoading: balanceLoading, isError: balanceError } = useBalance();
-  const { data: txData, isLoading: txLoading, isError: txError } = useTransactions(1, 5);
+  const { data: activities, isLoading: activitiesLoading, isError: activitiesError } = useRecentActivity(5);
   const { data: affiliate, isLoading: affiliateLoading, isError: affiliateError } = useAffiliate();
 
   // Minimum loading duration for premium feel
@@ -60,7 +60,7 @@ export default function DashboardPage() {
 
   // Data is loading if queries are loading (but not if they errored - show partial data)
   const isDataLoading = (balanceLoading && !balanceError) ||
-                         (txLoading && !txError) ||
+                         (activitiesLoading && !activitiesError) ||
                          (affiliateLoading && !affiliateError);
 
   // Stop minimum loading when data is ready or errored
@@ -70,8 +70,8 @@ export default function DashboardPage() {
     }
   }, [isDataLoading, stopLoading]);
 
-  // Get transactions from query result
-  const transactions = useMemo(() => txData?.transactions ?? [], [txData]);
+  // Get activities from query result
+  const recentActivities = useMemo(() => activities ?? [], [activities]);
 
   // Check if user has any activity
   const showNewUserState = useMemo(() => {
@@ -79,8 +79,8 @@ export default function DashboardPage() {
       balance &&
       (parseFloat(balance.availableBalance) > 0 ||
         parseFloat(balance.lockedBalance) > 0);
-    return !hasBalance && transactions.length === 0;
-  }, [balance, transactions.length]);
+    return !hasBalance && recentActivities.length === 0;
+  }, [balance, recentActivities.length]);
 
   // Display values using centralized fallback logic
   const displayBalance = useMemo(
@@ -98,34 +98,34 @@ export default function DashboardPage() {
   // Incoming transaction types (money coming in)
   const INCOMING_TYPES = ['BUY_WEBSITE', 'AIRDROP', 'REWARD_DISTRIBUTION', 'AFFILIATE_BONUS', 'UNLOCK', 'FEE_CASHBACK', 'MARKETPLACE_REFUND', 'TRANSFER_RECEIVE'];
 
-  // Chart data - reconstruct balance history from transactions
+  // Chart data - reconstruct balance history from activities
   const chartData = useMemo(() => {
     const currentBalance = parseFloat(balance?.totalBalance?.replace(/,/g, '') || '0') || 0;
 
     // No data state
-    if (showNewUserState || (currentBalance === 0 && transactions.length === 0)) {
+    if (showNewUserState || (currentBalance === 0 && recentActivities.length === 0)) {
       return { data: [0, 0, 0, 0, 0, 0, 0], changePercent: 0 };
     }
 
-    // No transactions - show flat line at current balance
-    if (transactions.length === 0) {
+    // No activities - show flat line at current balance
+    if (recentActivities.length === 0) {
       return {
         data: Array(7).fill(currentBalance),
         changePercent: 0,
       };
     }
 
-    // Sort transactions by date (oldest first for chronological order)
-    const sortedTx = [...transactions].sort(
+    // Sort activities by date (oldest first for chronological order)
+    const sortedActivities = [...recentActivities].sort(
       (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
 
-    // Calculate balance before all transactions (working backwards)
+    // Calculate balance before all activities (working backwards)
     let startingBalance = currentBalance;
-    sortedTx.forEach((tx) => {
-      const amount = parseFloat(tx.amount?.replace(/,/g, '') || '0') || 0;
-      const isIncoming = INCOMING_TYPES.includes(tx.type);
-      // Reverse the transaction to get previous balance
+    sortedActivities.forEach((activity) => {
+      const amount = parseFloat(activity.amount?.replace(/,/g, '') || '0') || 0;
+      const isIncoming = INCOMING_TYPES.includes(activity.action);
+      // Reverse the activity to get previous balance
       if (isIncoming) {
         startingBalance -= amount; // Was lower before incoming
       } else {
@@ -134,13 +134,13 @@ export default function DashboardPage() {
     });
     startingBalance = Math.max(0, startingBalance);
 
-    // Build balance history points (one per transaction + start + end)
+    // Build balance history points (one per activity + start + end)
     const balancePoints: number[] = [startingBalance];
     let runningBalance = startingBalance;
 
-    sortedTx.forEach((tx) => {
-      const amount = parseFloat(tx.amount?.replace(/,/g, '') || '0') || 0;
-      const isIncoming = INCOMING_TYPES.includes(tx.type);
+    sortedActivities.forEach((activity) => {
+      const amount = parseFloat(activity.amount?.replace(/,/g, '') || '0') || 0;
+      const isIncoming = INCOMING_TYPES.includes(activity.action);
       if (isIncoming) {
         runningBalance += amount;
       } else {
@@ -185,7 +185,7 @@ export default function DashboardPage() {
     changePercent = Math.round(changePercent * 10) / 10;
 
     return { data, changePercent };
-  }, [showNewUserState, balance?.totalBalance, transactions]);
+  }, [showNewUserState, balance?.totalBalance, recentActivities]);
 
   // Stats configuration - dynamic based on data
   const statsConfig = useMemo(
@@ -270,7 +270,7 @@ export default function DashboardPage() {
 
   // Show skeleton while data is loading OR minimum time not met
   // But don't block forever if there are errors
-  const showSkeleton = isMinLoading || (isDataLoading && !balanceError && !txError && !affiliateError);
+  const showSkeleton = isMinLoading || (isDataLoading && !balanceError && !activitiesError && !affiliateError);
 
   if (showSkeleton) {
     return (
@@ -390,7 +390,7 @@ export default function DashboardPage() {
                 <Clock className="h-4 w-4 text-brand-500" />
                 {t("recentActivity")}
               </h3>
-              {transactions.length > 0 && (
+              {recentActivities.length > 0 && (
                 <a
                   href={`/${locale}/wallet/transactions`}
                   className="text-xs font-medium text-brand-500 hover:text-brand-600 transition-colors"
@@ -400,7 +400,7 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {transactions.length === 0 ? (
+            {recentActivities.length === 0 ? (
               <div className="p-8">
                 <EmptyState
                   icon={Clock}
@@ -412,11 +412,11 @@ export default function DashboardPage() {
             ) : (
               <ScrollableList
                 maxHeight="430px"
-                showScrollIndicator={transactions.length > 5}
+                showScrollIndicator={recentActivities.length > 5}
               >
                 <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
-                  {transactions.map((tx) => (
-                    <TransactionItem key={tx.id} transaction={tx} />
+                  {recentActivities.map((activity) => (
+                    <ActivityItem key={activity.id} activity={activity} />
                   ))}
                 </div>
               </ScrollableList>

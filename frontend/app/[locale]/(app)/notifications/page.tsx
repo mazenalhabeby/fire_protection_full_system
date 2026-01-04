@@ -15,7 +15,6 @@ import {
   ChevronRight,
   Loader2,
   Megaphone,
-  Filter,
   RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,7 +26,7 @@ import {
   useDeleteNotification,
   useInvalidateNotifications,
 } from "@/hooks/useNotifications";
-import type { Notification, NotificationType } from "@/types/notifications";
+import type { NotificationType } from "@/types/notifications";
 
 // Icon mapping for notification types
 const notificationIcons: Record<NotificationType, React.ReactNode> = {

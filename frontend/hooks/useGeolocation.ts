@@ -170,26 +170,17 @@ export async function getLocation(
   const opts = { ...defaultOptions, ...options };
 
   if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
-    console.warn("[Geolocation] Not supported by browser");
     return null;
   }
 
   // Check if we're in a secure context (HTTPS or localhost)
   if (typeof window !== "undefined" && !window.isSecureContext) {
-    console.warn("[Geolocation] Requires secure context (HTTPS)");
     return null;
   }
-
-  console.log("[Geolocation] Requesting location...");
 
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        console.log("[Geolocation] Success:", {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-        });
         resolve({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -197,20 +188,7 @@ export async function getLocation(
           timestamp: position.timestamp,
         });
       },
-      (error) => {
-        let errorType = "Unknown";
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorType = "Permission denied";
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorType = "Position unavailable";
-            break;
-          case error.TIMEOUT:
-            errorType = "Timeout";
-            break;
-        }
-        console.warn(`[Geolocation] Error: ${errorType} - ${error.message}`);
+      () => {
         resolve(null);
       },
       {

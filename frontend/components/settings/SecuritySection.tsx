@@ -260,7 +260,7 @@ Generated: ${new Date().toISOString()}
 
             <div className="pt-2">
               <Button
-                variant="primary"
+                variant="default"
                 onClick={handleSetPassword}
                 disabled={
                   isUpdating ||
@@ -309,7 +309,7 @@ Generated: ${new Date().toISOString()}
 
             <div className="pt-2">
               <Button
-                variant="primary"
+                variant="default"
                 onClick={handlePasswordChange}
                 disabled={
                   isUpdating ||
@@ -445,7 +445,7 @@ Generated: ${new Date().toISOString()}
                     className="flex-1 text-center font-mono"
                   />
                   <Button
-                    variant="primary"
+                    variant="default"
                     onClick={handleRegenerateCodes}
                     disabled={regenerateLoading || regenerateCode.length !== 6}
                   >
@@ -483,7 +483,7 @@ Generated: ${new Date().toISOString()}
                 </p>
               </div>
             </div>
-            <Button variant="primary" onClick={() => setShowSetupModal(true)}>
+            <Button variant="default" onClick={() => setShowSetupModal(true)}>
               Enable 2FA
             </Button>
           </div>

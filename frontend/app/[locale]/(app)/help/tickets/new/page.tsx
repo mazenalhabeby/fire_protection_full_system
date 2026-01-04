@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { Link, useRouter } from "@/i18n/navigation";
 import {
   Ticket,
   ArrowLeft,
@@ -9,7 +9,6 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { supportApi } from "@/lib/api";
 import type {
@@ -21,9 +20,7 @@ import { TICKET_CATEGORY_LABELS, TICKET_PRIORITY_LABELS } from "@/types/support"
 import { toast } from "sonner";
 
 export default function NewTicketPage() {
-  const params = useParams();
   const router = useRouter();
-  const locale = params.locale as string;
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,9 +33,9 @@ export default function NewTicketPage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push(`/${locale}/login`);
+      router.push('/login');
     }
-  }, [isAuthenticated, authLoading, locale, router]);
+  }, [isAuthenticated, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +55,7 @@ export default function NewTicketPage() {
     try {
       const ticket = await supportApi.createTicket(formData);
       toast.success("Ticket created successfully!");
-      router.push(`/${locale}/help/tickets/${ticket.id}`);
+      router.push(`/help/tickets/${ticket.id}`);
     } catch (error) {
       console.error("Failed to create ticket:", error);
       toast.error("Failed to create ticket. Please try again.");

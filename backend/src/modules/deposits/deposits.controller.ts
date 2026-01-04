@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard, AdminGuard } from '../auth/guards';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../common/decorators';
 import { DepositsService } from './deposits.service';
 import { DepositsListenerService } from './deposits.listener';
 import { OnchainDepositStatus } from '@prisma/client';
@@ -69,7 +71,8 @@ export class DepositsController {
   // ============================================
 
   @Get('admin')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('deposits.view')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Get all deposits with filters' })
   @ApiQuery({ name: 'userId', required: false })
@@ -101,7 +104,8 @@ export class DepositsController {
   }
 
   @Get('admin/unmapped')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('deposits.view')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Get unmapped deposits' })
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -118,7 +122,8 @@ export class DepositsController {
   }
 
   @Post('admin/:id/map')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('deposits.credit_manual')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Map deposit to user' })
   @ApiResponse({ status: 200, description: 'Deposit mapped successfully' })
@@ -131,7 +136,8 @@ export class DepositsController {
   }
 
   @Get('admin/stats')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('deposits.view')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Get deposit statistics' })
   @ApiResponse({ status: 200, description: 'Returns deposit statistics' })
@@ -140,7 +146,8 @@ export class DepositsController {
   }
 
   @Get('admin/listener/status')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('deposits.view')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Get deposit listener status' })
   @ApiResponse({ status: 200, description: 'Returns listener status' })
@@ -149,7 +156,8 @@ export class DepositsController {
   }
 
   @Post('admin/listener/start')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('deposits.edit')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Start deposit listener' })
   @ApiResponse({ status: 200, description: 'Listener started' })
@@ -159,7 +167,8 @@ export class DepositsController {
   }
 
   @Post('admin/listener/stop')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('deposits.edit')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Stop deposit listener' })
   @ApiResponse({ status: 200, description: 'Listener stopped' })
@@ -169,7 +178,8 @@ export class DepositsController {
   }
 
   @Post('admin/process')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('deposits.edit')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Manually trigger deposit processing' })
   @ApiResponse({ status: 200, description: 'Processing triggered' })

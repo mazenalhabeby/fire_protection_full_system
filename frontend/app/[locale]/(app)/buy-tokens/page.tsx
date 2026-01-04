@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRequireAuth } from "@/hooks/useAuth";
 import {
@@ -13,7 +13,6 @@ import {
 } from "@/hooks/usePurchase";
 import { cn } from "@/lib/utils";
 import {
-  Coins,
   ArrowDown,
   TrendingUp,
   Wallet,
@@ -32,8 +31,9 @@ import { BuyTokensSkeleton } from "@/components/skeletons/page-skeletons";
 import { usePageLoading } from "@/hooks/useMinimumLoading";
 import { PageHeader } from "@/components/ui/page-header";
 import { PremiumButton } from "@/components/ui/premium-button";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useWallet } from "@/hooks/useWallet";
+import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
 import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, usePublicClient, useSendTransaction, useWalletClient } from "wagmi";
 import { parseEther, parseUnits } from "viem";
 import { TransactionResultModal, TransactionResultData } from "@/components/ui/transaction-result-modal";
@@ -71,7 +71,7 @@ export default function BuyTokensPage() {
   const locale = useLocale();
   const router = useRouter();
   const { isLoading: authLoading, isAuthenticated } = useRequireAuth(`/${locale}/login`);
-  const { isConnected: isWalletConnected } = useWallet();
+  const { openModal: openWalletModal, isModalOpen: walletModalOpen, closeModal: closeWalletModal } = useWallet();
 
   // State
   const [paymentAmount, setPaymentAmount] = useState<string>("");
@@ -80,6 +80,7 @@ export default function BuyTokensPage() {
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [showWalletDropdown, setShowWalletDropdown] = useState(false);
+  const walletInitializedRef = useRef(false);
 
   // Data hooks
   const { data: priceData, isLoading: priceLoading } = usePurchasePrice();
@@ -88,6 +89,9 @@ export default function BuyTokensPage() {
 
   // Get connected wallet address, chain, and connector for on-chain balance queries
   const { address: connectedAddress, chainId, connector } = useAccount();
+
+  // Use address as source of truth for connection status
+  const isWalletConnected = Boolean(connectedAddress);
   const { switchChainAsync } = useSwitchChain();
 
   // Get public client for reading blockchain data (doesn't require wallet)
@@ -170,14 +174,19 @@ export default function BuyTokensPage() {
     }
   }, [isDataLoading, stopLoading]);
 
-  // Auto-select primary wallet for on-chain
+  // Auto-select primary wallet for on-chain (only once when data first loads)
   useEffect(() => {
-    if (walletsData?.wallets && !selectedWalletId) {
+    if (walletsData?.wallets && !walletInitializedRef.current) {
       const primary = walletsData.wallets.find((w) => w.isPrimary);
-      if (primary) setSelectedWalletId(primary.id);
-      else if (walletsData.wallets.length > 0) setSelectedWalletId(walletsData.wallets[0].id);
+      if (primary) {
+        setSelectedWalletId(primary.id);
+        walletInitializedRef.current = true;
+      } else if (walletsData.wallets.length > 0) {
+        setSelectedWalletId(walletsData.wallets[0].id);
+        walletInitializedRef.current = true;
+      }
     }
-  }, [walletsData, selectedWalletId]);
+  }, [walletsData]);
 
   // Token price
   const tokenPrice = priceData?.hbctPriceUsd ? parseFloat(priceData.hbctPriceUsd) : 0.03;
@@ -322,20 +331,6 @@ export default function BuyTokensPage() {
     try {
       let txHash: `0x${string}`;
 
-      // Step 1: Send Web3 transaction based on currency
-      console.log("=== Transaction Debug ===");
-      console.log("Sending transaction from:", connectedAddress);
-      console.log("Connected via:", connector?.name, "(id:", connector?.id, ", type:", connector?.type, ")");
-      console.log("Current Chain ID:", chainId);
-      console.log("Target chain (BSC Testnet):", bscTestnet.id);
-      console.log("Is WalletConnect:", isWalletConnect);
-      console.log("Is Safe Wallet:", isSafeWallet);
-      console.log("Wallet client ready:", !!walletClient);
-      console.log("Wallet client chain:", walletClient?.chain?.id);
-      console.log("Deposit wallet:", DEPOSIT_WALLET_ADDRESS);
-      console.log("Amount:", paymentAmount, paymentCurrency);
-      console.log("=========================");
-
       if (isWalletConnect) {
         toast.info("Check your wallet app for the transaction request...");
       } else {
@@ -387,9 +382,8 @@ export default function BuyTokensPage() {
             confirmations: 3,
             timeout: 60_000, // 1 minute
           });
-        } catch (waitError) {
-          console.log("Confirmation wait completed or timed out:", waitError);
-          // Continue anyway - transaction was sent
+        } catch {
+          // Timeout is expected - continue anyway since transaction was sent
         }
       } else {
         // Fallback: just wait 15 seconds
@@ -447,15 +441,6 @@ export default function BuyTokensPage() {
     } catch (error: unknown) {
       setPendingTxHash(undefined);
       setTxState('idle');
-      console.error("Transaction error:", error);
-      console.error("Error details:", {
-        name: error instanceof Error ? error.name : 'Unknown',
-        message: error instanceof Error ? error.message : String(error),
-        isWalletConnect,
-        connector: connector?.id,
-        connectorName: connector?.name,
-        chainId,
-      });
 
       // Prepare error data for modal
       let errorTitle = "Transaction Failed";
@@ -598,10 +583,17 @@ export default function BuyTokensPage() {
               <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
                 <AlertCircle className="h-6 w-6 text-amber-500" />
               </div>
-              <div>
+              <div className="flex-1">
                 <h3 className="font-semibold text-gray-900 dark:text-white">Wallet Not Connected</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Please connect your Web3 wallet to buy HBCT tokens</p>
               </div>
+              <button
+                onClick={openWalletModal}
+                className="px-4 py-2 rounded-lg bg-brand-500 text-white font-medium hover:bg-brand-600 transition-colors flex items-center gap-2"
+              >
+                <Wallet className="h-4 w-4" />
+                Connect Wallet
+              </button>
             </div>
           </div>
         )}
@@ -786,6 +778,15 @@ export default function BuyTokensPage() {
                       </button>
                     ))}
                   </div>
+                  {/* Current price display for selected currency */}
+                  {paymentCurrency === "BNB" && priceData?.bnbPriceUsd && (
+                    <div className="flex items-center justify-between mt-3 px-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Current BNB Price</span>
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                        ${parseFloat(priceData.bnbPriceUsd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Swap Arrow */}
@@ -885,7 +886,7 @@ export default function BuyTokensPage() {
                               <button
                                 onClick={() => {
                                   setShowWalletDropdown(false);
-                                  router.push(`/${locale}/settings?tab=wallets`);
+                                  router.push('/settings?tab=wallets');
                                 }}
                                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-brand-500"
                               >
@@ -906,7 +907,7 @@ export default function BuyTokensPage() {
                           <p className="text-xs text-amber-500/80">Link a wallet in settings to use on-chain delivery</p>
                         </div>
                         <button
-                          onClick={() => router.push(`/${locale}/settings?tab=wallets`)}
+                          onClick={() => router.push('/settings?tab=wallets')}
                           className="text-xs font-medium text-brand-500 hover:text-brand-600"
                         >
                           Link Wallet →
@@ -1139,10 +1140,13 @@ export default function BuyTokensPage() {
         onOpenChange={setShowResultModal}
         data={resultData}
         onRetry={handlePurchase}
-        onViewBalance={() => router.push(`/${locale}/wallet`)}
-        onViewHistory={() => router.push(`/${locale}/wallet/transactions`)}
+        onViewBalance={() => router.push('/wallet')}
+        onViewHistory={() => router.push('/wallet/transactions')}
         explorerBaseUrl="https://testnet.bscscan.com"
       />
+
+      {/* Wallet Connect Modal */}
+      <WalletConnectModal isOpen={walletModalOpen} onClose={closeWalletModal} />
     </div>
   );
 }

@@ -6,8 +6,6 @@ import { useAuth, useRequireAuth } from "@/hooks/useAuth";
 import { useAffiliate, useAffiliateStats, useLeaderboard, useReferrals, useCommissions, useRegisterAffiliate, useClaimCommission } from "@/hooks/useAppData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import {
   Users,
@@ -17,15 +15,12 @@ import {
   ArrowRight,
   Sparkles,
   CheckCircle,
-  Star,
   Zap,
   Copy,
   Check,
   Link as LinkIcon,
   Share2,
-  QrCode,
   DollarSign,
-  Percent,
   ChevronRight,
   ChevronLeft,
   ChevronDown,
@@ -35,14 +30,9 @@ import {
   Crown,
   Medal,
   Search,
-  Filter,
-  ExternalLink,
   UserCheck,
   XCircle,
   Coins,
-  ShoppingCart,
-  Repeat,
-  Award,
 } from "lucide-react";
 import { AffiliatesSkeleton } from "@/components/skeletons/page-skeletons";
 import { usePageLoading } from "@/hooks/useMinimumLoading";
@@ -51,14 +41,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { getTierStyle, affiliateTiers } from "@/lib/config/tiers";
 import { getTimeAgo } from "@/lib/utils/format";
-import type {
-  Affiliate,
-  AffiliateTier,
-  AffiliateStats,
-  Commission,
-  ReferralDetails,
-  LeaderboardEntry,
-} from "@/types/api";
+import type { AffiliateStats } from "@/types/api";
 
 // Status display configuration
 const statusConfig: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
@@ -67,18 +50,10 @@ const statusConfig: Record<string, { color: string; icon: React.ReactNode; label
   INACTIVE: { color: "secondary", icon: <XCircle className="h-3 w-3" />, label: "Inactive" },
 };
 
-const commissionTypeConfig: Record<string, { icon: React.ReactNode; label: string }> = {
-  SIGNUP_BONUS: { icon: <Gift className="h-4 w-4" />, label: "Signup Bonus" },
-  PURCHASE: { icon: <ShoppingCart className="h-4 w-4" />, label: "Purchase Commission" },
-  RECURRING: { icon: <Repeat className="h-4 w-4" />, label: "Recurring Commission" },
-  BONUS: { icon: <Award className="h-4 w-4" />, label: "Bonus" },
-  TIER_BONUS: { icon: <Star className="h-4 w-4" />, label: "Tier Upgrade Bonus" },
-};
-
 export default function AffiliatesPage() {
   const t = useTranslations("affiliates");
   const locale = useLocale();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { isLoading: authLoading } = useRequireAuth(`/${locale}/login`);
 
   // Use cached data hooks - data is prefetched on login
@@ -151,22 +126,23 @@ export default function AffiliatesPage() {
     try {
       await registerMutation.mutateAsync();
       toast.success("Successfully joined affiliate program!");
-    } catch (err) {
+    } catch {
       toast.error("Failed to register as affiliate");
     }
   };
 
-  const handleClaim = async () => {
+  // Claim functionality (reserved for future use)
+  const _handleClaim = async () => {
     try {
       await claimMutation.mutateAsync();
       toast.success(`Claimed ${stats?.pendingEarnings || "0"} HBCT!`);
-    } catch (err) {
+    } catch {
       toast.error("Failed to claim commission");
     }
   };
 
-  // Mutation loading states
-  const isClaimLoading = claimMutation.isPending;
+  // Mutation loading states (reserved for future use)
+  const _isClaimLoading = claimMutation.isPending;
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -243,11 +219,6 @@ export default function AffiliatesPage() {
   const referralLink = typeof window !== "undefined"
     ? `${window.location.origin}/${locale}/register?ref=${displayAffiliate?.referralCode || ""}`
     : "";
-
-  // Pagination is handled by the backend - reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [statusFilter]);
 
   // Recent commissions for display (already sorted by date from API)
   const recentCommissions = displayCommissions;
@@ -547,7 +518,7 @@ export default function AffiliatesPage() {
                 <div className="relative inline-block group mb-8">
                   <div className="absolute -inset-1 bg-gradient-to-r from-brand-500 to-purple-500 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
                   <Button
-                    variant="primary"
+                    variant="default"
                     size="lg"
                     onClick={handleRegister}
                     className="relative px-10 py-6 text-lg font-semibold rounded-xl shadow-2xl"
@@ -620,6 +591,72 @@ export default function AffiliatesPage() {
           title={t("title")}
           subtitle={t("subtitle")}
         />
+
+        {/* Deactivation Notice */}
+        {displayAffiliate && !displayAffiliate.isActive && (
+          <div className="relative overflow-hidden rounded-2xl mb-6 bg-gradient-to-r from-red-500/10 via-red-500/5 to-orange-500/10 dark:from-red-900/30 dark:via-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800/50">
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-[0.03]" style={{
+              backgroundImage: `linear-gradient(45deg, rgba(239,68,68,0.1) 25%, transparent 25%, transparent 75%, rgba(239,68,68,0.1) 75%), linear-gradient(45deg, rgba(239,68,68,0.1) 25%, transparent 25%, transparent 75%, rgba(239,68,68,0.1) 75%)`,
+              backgroundSize: '20px 20px',
+              backgroundPosition: '0 0, 10px 10px',
+            }} />
+
+            <div className="relative p-6">
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
+                {/* Icon */}
+                <div className="shrink-0">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg shadow-red-500/25">
+                    <XCircle className="h-7 w-7 text-white" />
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-red-700 dark:text-red-400 mb-1">
+                    Affiliate Account Temporarily Suspended
+                  </h3>
+                  <p className="text-sm text-red-600/80 dark:text-red-300/80 mb-3">
+                    Your affiliate privileges have been temporarily suspended. During this time:
+                  </p>
+                  <ul className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                    <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                      Referral code is inactive
+                    </li>
+                    <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                      No new commissions earned
+                    </li>
+                    <li className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                      Hidden from leaderboard
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Action */}
+                <div className="shrink-0">
+                  <a
+                    href={`/${locale}/help/contact`}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium text-sm transition-all shadow-lg shadow-red-500/25 hover:shadow-red-500/40"
+                  >
+                    Contact Support
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Info footer */}
+              <div className="mt-4 pt-4 border-t border-red-200/50 dark:border-red-800/30">
+                <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                  <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                  Your existing referrals and earned commissions are preserved and will be available once your account is reactivated.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Current Tier Header - Dynamic Background Based on Tier */}
         <div className={cn(
@@ -757,7 +794,7 @@ export default function AffiliatesPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-white">Max Tier Achieved!</p>
-                    <p className="text-sm text-white/70">You've reached the highest level</p>
+                    <p className="text-sm text-white/70">You&apos;ve reached the highest level</p>
                   </div>
                 </div>
               )}
@@ -1023,7 +1060,7 @@ export default function AffiliatesPage() {
                       <Trophy className="h-6 w-6 text-white" />
                     </div>
                     <h2 className="font-bold text-gray-900 dark:text-white">Top Affiliates</h2>
-                    <p className="text-xs text-gray-500">This month's leaders</p>
+                    <p className="text-xs text-gray-500">This month&apos;s leaders</p>
                   </div>
 
                   {/* Top 3 Podium */}
@@ -1200,7 +1237,7 @@ export default function AffiliatesPage() {
                   return (
                     <button
                       key={status}
-                      onClick={() => setStatusFilter(status)}
+                      onClick={() => { setStatusFilter(status); setCurrentPage(1); }}
                       className={cn(
                         "px-4 py-2 rounded-xl text-sm font-medium transition-all capitalize flex items-center gap-2",
                         statusFilter === status

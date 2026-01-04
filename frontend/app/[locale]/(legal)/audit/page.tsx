@@ -23,7 +23,7 @@ import {
   Download,
   Loader2,
 } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 type TabType = "smart-contract" | "platform";
 
@@ -47,7 +47,6 @@ export default function AuditReportPage() {
         throw new Error("generateAuditPdf function not found in module");
       }
     } catch (error) {
-      console.error("Failed to generate PDF:", error);
       alert("Failed to generate PDF: " + (error instanceof Error ? error.message : String(error)));
     } finally {
       setIsGenerating(false);

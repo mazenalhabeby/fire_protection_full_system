@@ -1,6 +1,7 @@
 // Common Module Barrel Export
 
 export * from './decorators';
+export * from './dto';
 export * from './guards';
 export * from './filters';
 export * from './interceptors';

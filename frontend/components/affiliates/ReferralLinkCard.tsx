@@ -122,7 +122,7 @@ export function ReferralLinkCard({
               </p>
             </div>
             <Button
-              variant="primary"
+              variant="default"
               size="icon"
               className="h-auto aspect-square shrink-0"
               onClick={() => handleCopy("link")}

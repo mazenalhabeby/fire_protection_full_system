@@ -1,0 +1,22 @@
+{
+  "admin": {
+    "title": "Admin Panel",
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "affiliates": "Affiliates",
+    "locks": "Token Locks",
+    "deposits": "Deposits",
+    "withdrawals": "Withdrawals",
+    "purchases": "Purchases",
+    "roles": "Roles",
+    "settings": "Settings",
+    "backToApp": "Back to App"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "adminRequired": "Admin access required"
+  }
+}

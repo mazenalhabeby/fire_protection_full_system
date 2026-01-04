@@ -325,8 +325,52 @@ export function Navbar({
             </div>
           )}
 
-          {/* Mobile: Language Switcher */}
-          <div className="md:hidden z-10">
+          {/* Mobile: Auth Buttons + Language Switcher */}
+          <div className="md:hidden flex items-center gap-2 z-10">
+            {/* Login Button - Mobile */}
+            <Link
+              href="/login"
+              className={cn(
+                "flex items-center gap-1 px-3 py-1.5 rounded-lg",
+                "text-xs font-semibold",
+                "transition-all duration-200",
+                isOnDarkSection
+                  ? [
+                      "bg-white text-gray-900",
+                      "shadow-sm shadow-white/20",
+                    ]
+                  : [
+                      "text-white",
+                      "gradient-primary shadow-brand",
+                    ]
+              )}
+            >
+              Login
+            </Link>
+
+            {/* Register Button - Mobile */}
+            <Link
+              href="/register"
+              className={cn(
+                "flex items-center px-3 py-1.5 rounded-lg",
+                "text-xs font-medium",
+                "transition-all duration-200",
+                isOnDarkSection
+                  ? [
+                      "text-white/90 hover:text-white",
+                      "bg-white/10 hover:bg-white/20",
+                      "border border-white/20",
+                    ]
+                  : [
+                      "text-gray-700 hover:text-gray-900",
+                      "bg-gray-100 hover:bg-gray-200",
+                      "border border-gray-200",
+                    ]
+              )}
+            >
+              Register
+            </Link>
+
             <LanguageSwitcher isTransparent={isOnDarkSection} />
           </div>
         </nav>

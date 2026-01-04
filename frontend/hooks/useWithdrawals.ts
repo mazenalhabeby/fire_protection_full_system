@@ -3,6 +3,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { withdrawalsApi } from "@/lib/api/withdrawals";
 import { useAuth } from "./useAuth";
+import { createUserQueryKeys } from "./useAppData";
+import { createWalletQueryKeys } from "./useWalletData";
 import type {
   WithdrawalRequest,
   WithdrawalResponse,
@@ -56,14 +58,23 @@ export function useMyWithdrawals(params?: { page?: number; limit?: number }) {
  */
 export function useRequestWithdrawal() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (data: RequestWithdrawalParams): Promise<WithdrawalResponse> => {
       return withdrawalsApi.requestWithdrawal(data);
     },
     onSuccess: () => {
+      const userId = user?.id ?? null;
+      const userKeys = createUserQueryKeys(userId);
+      const walletKeys = createWalletQueryKeys(userId);
+
       queryClient.invalidateQueries({ queryKey: ["myWithdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["walletBalances"] });
+
+      // Force instant refetch of all balance-related queries (user-scoped)
+      queryClient.refetchQueries({ queryKey: userKeys.balance });
+      queryClient.refetchQueries({ queryKey: walletKeys.balances });
+      queryClient.refetchQueries({ queryKey: walletKeys.recentTransactions });
     },
   });
 }
@@ -73,6 +84,7 @@ export function useRequestWithdrawal() {
  */
 export function useConfirmWithdrawal() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -85,8 +97,16 @@ export function useConfirmWithdrawal() {
       return withdrawalsApi.confirmWithdrawal(withdrawalId, confirmationCode);
     },
     onSuccess: () => {
+      const userId = user?.id ?? null;
+      const userKeys = createUserQueryKeys(userId);
+      const walletKeys = createWalletQueryKeys(userId);
+
       queryClient.invalidateQueries({ queryKey: ["myWithdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["walletBalances"] });
+
+      // Force instant refetch of all balance-related queries (user-scoped)
+      queryClient.refetchQueries({ queryKey: userKeys.balance });
+      queryClient.refetchQueries({ queryKey: walletKeys.balances });
+      queryClient.refetchQueries({ queryKey: walletKeys.recentTransactions });
     },
   });
 }
@@ -96,14 +116,23 @@ export function useConfirmWithdrawal() {
  */
 export function useCancelWithdrawal() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (withdrawalId: string) => {
       return withdrawalsApi.cancelWithdrawal(withdrawalId);
     },
     onSuccess: () => {
+      const userId = user?.id ?? null;
+      const userKeys = createUserQueryKeys(userId);
+      const walletKeys = createWalletQueryKeys(userId);
+
       queryClient.invalidateQueries({ queryKey: ["myWithdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["walletBalances"] });
+
+      // Force instant refetch of all balance-related queries (user-scoped)
+      queryClient.refetchQueries({ queryKey: userKeys.balance });
+      queryClient.refetchQueries({ queryKey: walletKeys.balances });
+      queryClient.refetchQueries({ queryKey: walletKeys.recentTransactions });
     },
   });
 }

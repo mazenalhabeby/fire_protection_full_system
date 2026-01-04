@@ -106,7 +106,6 @@ export function storeReferralCode(
 
   // Validate code format
   if (!isValidReferralCodeFormat(code)) {
-    console.warn('[Referral] Invalid referral code format:', code);
     return { stored: false };
   }
 
@@ -116,7 +115,6 @@ export function storeReferralCode(
   const existingReferral = getStoredReferral();
   if (existingReferral) {
     // Keep existing code - first-touch wins
-    console.log('[Referral] Existing referral code preserved (first-touch):', existingReferral.code);
     return { stored: false, existingCode: existingReferral.code };
   }
 
@@ -130,10 +128,8 @@ export function storeReferralCode(
 
   try {
     localStorage.setItem(REFERRAL_STORAGE_KEY, JSON.stringify(referral));
-    console.log('[Referral] New referral code stored:', normalizedCode, 'source:', source);
     return { stored: true };
-  } catch (error) {
-    console.error('[Referral] Failed to store referral code:', error);
+  } catch {
     return { stored: false };
   }
 }
@@ -146,9 +142,8 @@ export function clearStoredReferral(): void {
 
   try {
     localStorage.removeItem(REFERRAL_STORAGE_KEY);
-    console.log('[Referral] Referral code cleared');
-  } catch (error) {
-    console.error('[Referral] Failed to clear referral code:', error);
+  } catch {
+    // Ignore storage errors
   }
 }
 
@@ -259,8 +254,7 @@ export function captureReferralFromUrl(): {
     }
 
     return { captured: false, isNew: false };
-  } catch (error) {
-    console.error('[Referral] Error capturing referral from URL:', error);
+  } catch {
     return { captured: false, isNew: false };
   }
 }

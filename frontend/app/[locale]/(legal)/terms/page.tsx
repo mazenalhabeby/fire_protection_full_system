@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useRegisterSection } from "@/hooks/useNavbarTheme";
 import { FileText, Shield, AlertTriangle, Scale, Mail } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 export default function TermsOfServicePage() {
   const heroRef = useRegisterSection("terms-hero", "dark");

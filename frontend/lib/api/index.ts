@@ -1,7 +1,15 @@
 // API Services Barrel Export
 
-export { api, ApiError, API_BASE_URL } from './client';
+export { api, ApiError, API_BASE_URL, clearSessionMarker, hasSessionMarker } from './client';
 export { authApi } from './auth';
+export type {
+  DeletionEligibilityResponse,
+  DeleteAccountResponse,
+  MeResponse,
+  Session,
+  SessionActivity,
+  TwoFactorStatus,
+} from './auth';
 export { tokensApi } from './tokens';
 export { lockingApi } from './locking';
 export { airdropsApi } from './airdrops';

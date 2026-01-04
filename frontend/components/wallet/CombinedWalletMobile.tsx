@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { Wallet, Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import { useWallet, useCorrectChain } from "@/hooks/useWallet";
 import { WalletConnectModal } from "./WalletConnectModal";
@@ -18,7 +17,6 @@ export function CombinedWalletMobile({
   className,
 }: CombinedWalletMobileProps) {
   const router = useRouter();
-  const locale = useLocale();
   const {
     isConnected,
     isConnecting,
@@ -49,7 +47,7 @@ export function CombinedWalletMobile({
       <>
         <div
           className={cn(
-            "flex items-center justify-center gap-2 w-[140px] h-10 rounded-xl",
+            "flex items-center justify-center gap-2 w-[160px] sm:w-[180px] h-10 rounded-xl",
             "bg-gradient-to-r from-brand-500/80 to-brand-600/80",
             "text-white font-medium text-sm",
             className
@@ -67,7 +65,7 @@ export function CombinedWalletMobile({
     <>
       <div
         className={cn(
-          "flex items-center w-[140px] h-10 rounded-xl overflow-hidden",
+          "flex items-center w-[160px] sm:w-[180px] h-10 rounded-xl overflow-hidden",
           "border border-gray-200/50 dark:border-gray-700/50",
           "transition-all duration-300",
           view === "onchain" && !isConnected
@@ -81,7 +79,7 @@ export function CombinedWalletMobile({
           onClick={() => {
             if (view === "offchain") {
               // Navigate to wallet page when in off-chain view
-              router.push(`/${locale}/wallet`);
+              router.push('/wallet');
             } else if (view === "onchain" && !isConnected) {
               connect();
             }

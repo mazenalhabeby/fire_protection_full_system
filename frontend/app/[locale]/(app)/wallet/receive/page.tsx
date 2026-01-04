@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useWalletBalances } from "@/hooks/useWalletData";
 import { usePageLoading } from "@/hooks/useMinimumLoading";
@@ -10,7 +9,6 @@ import {
   ArrowLeft,
   Copy,
   Check,
-  User,
   Mail,
   AtSign,
   Share2,
@@ -18,19 +16,17 @@ import {
   ArrowDownLeft,
   CheckCircle2,
 } from "lucide-react";
-import { CurrencyIcon } from "@/components/wallet-internal";
 import { formatName } from "@/lib/utils";
 
 export default function ReceivePage() {
   const router = useRouter();
-  const locale = useLocale();
   const { user } = useAuth();
 
   // State
   const [copied, setCopied] = useState<string | null>(null);
 
   // Fetch data
-  const { data: balancesData, isLoading: balancesLoading } = useWalletBalances();
+  const { isLoading: balancesLoading } = useWalletBalances();
 
   // Loading
   const { isLoading: isMinLoading, stopLoading } = usePageLoading();
@@ -45,7 +41,6 @@ export default function ReceivePage() {
   const userDetails = {
     email: user?.email || "",
     username: user?.username || "",
-    userId: user?.id || "",
     displayName: user?.firstName || user?.lastName
       ? formatName(user?.firstName, user?.lastName)
       : user?.username
@@ -97,7 +92,7 @@ export default function ReceivePage() {
       <div className="container mx-auto px-4 py-8 max-w-lg">
         {/* Header */}
         <button
-          onClick={() => router.push(`/${locale}/wallet`)}
+          onClick={() => router.push('/wallet')}
           className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -189,7 +184,7 @@ export default function ReceivePage() {
                     </p>
                   ) : (
                     <button
-                      onClick={() => router.push(`/${locale}/settings?tab=profile`)}
+                      onClick={() => router.push('/settings?tab=profile')}
                       className="text-sm text-brand-500 hover:text-brand-600 font-medium"
                     >
                       Set username →
@@ -249,37 +244,6 @@ export default function ReceivePage() {
                 </button>
               </div>
             )}
-
-            {/* User ID */}
-            <div className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                  <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">User ID</p>
-                  <p className="font-medium text-gray-900 dark:text-white font-mono text-sm">
-                    {userDetails.userId.slice(0, 12)}...
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => handleCopy(userDetails.userId, "userId")}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors"
-              >
-                {copied === "userId" ? (
-                  <>
-                    <Check className="h-4 w-4 text-emerald-500" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4" />
-                    Copy
-                  </>
-                )}
-              </button>
-            </div>
           </div>
         </div>
 

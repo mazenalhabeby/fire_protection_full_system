@@ -19,6 +19,9 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { JwtAuthGuard, AdminGuard } from '../auth/guards';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { SmartThrottleGuard, SmartThrottle } from '../../common/guards/smart-throttle.guard';
+import { RequirePermissions } from '../../common/decorators';
 import { WithdrawalsService } from './withdrawals.service';
 import { WithdrawalsProcessorService } from './withdrawals.processor';
 import { WithdrawalRequestStatus } from '@prisma/client';
@@ -41,13 +44,15 @@ export class WithdrawalsController {
   // ============================================
 
   @Post('request')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, SmartThrottleGuard)
+  @SmartThrottle('withdrawal_create')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Request a withdrawal to a linked wallet' })
   @ApiBody({ type: RequestWithdrawalDto })
   @ApiResponse({ status: 201, description: 'Withdrawal request created' })
   @ApiResponse({ status: 400, description: 'Invalid request' })
   @ApiResponse({ status: 403, description: 'Wallet not linked or not verified' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded - check X-RateLimit headers' })
   async requestWithdrawal(
     @Request() req: any,
     @Body() dto: RequestWithdrawalDto,
@@ -62,12 +67,14 @@ export class WithdrawalsController {
   }
 
   @Post(':id/confirm')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, SmartThrottleGuard)
+  @SmartThrottle('withdrawal_confirm')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Confirm withdrawal with email code' })
   @ApiBody({ type: ConfirmWithdrawalDto })
   @ApiResponse({ status: 200, description: 'Withdrawal confirmed' })
   @ApiResponse({ status: 400, description: 'Invalid code or expired' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded - check X-RateLimit headers' })
   async confirmWithdrawal(
     @Request() req: any,
     @Param('id') id: string,
@@ -114,7 +121,8 @@ export class WithdrawalsController {
   // ============================================
 
   @Get('admin')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('withdrawals.view')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Get all withdrawals with filters' })
   @ApiQuery({ name: 'userId', required: false })
@@ -146,7 +154,8 @@ export class WithdrawalsController {
   }
 
   @Patch('admin/:id/approve')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('withdrawals.approve')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Approve a withdrawal' })
   @ApiResponse({ status: 200, description: 'Withdrawal approved' })
@@ -156,7 +165,8 @@ export class WithdrawalsController {
   }
 
   @Patch('admin/:id/reject')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('withdrawals.reject')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Reject a withdrawal' })
   @ApiBody({ type: RejectWithdrawalDto })
@@ -171,7 +181,8 @@ export class WithdrawalsController {
   }
 
   @Get('admin/stats')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('withdrawals.view')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Get withdrawal statistics' })
   @ApiResponse({ status: 200, description: 'Returns withdrawal statistics' })
@@ -180,7 +191,8 @@ export class WithdrawalsController {
   }
 
   @Get('admin/hot-wallet')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('withdrawals.view')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Get hot wallet status' })
   @ApiResponse({ status: 200, description: 'Returns hot wallet info' })
@@ -189,7 +201,8 @@ export class WithdrawalsController {
   }
 
   @Get('admin/processor/status')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('withdrawals.view')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Get withdrawal processor status' })
   @ApiResponse({ status: 200, description: 'Returns processor status' })
@@ -198,7 +211,8 @@ export class WithdrawalsController {
   }
 
   @Post('admin/processor/start')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('withdrawals.process')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Start withdrawal processor' })
   @ApiResponse({ status: 200, description: 'Processor started' })
@@ -208,7 +222,8 @@ export class WithdrawalsController {
   }
 
   @Post('admin/processor/stop')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
+  @RequirePermissions('withdrawals.process')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Stop withdrawal processor' })
   @ApiResponse({ status: 200, description: 'Processor stopped' })

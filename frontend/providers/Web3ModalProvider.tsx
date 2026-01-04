@@ -2,12 +2,11 @@
 
 import React, { ReactNode, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WagmiProvider, createConfig, http } from "wagmi";
+import { WagmiProvider } from "wagmi";
 import { bsc, bscTestnet, mainnet, sepolia } from "wagmi/chains";
-import { disconnect as wagmiDisconnect, getAccount, watchAccount, type Config } from "@wagmi/core";
+import { disconnect as wagmiDisconnect, getAccount, type Config } from "@wagmi/core";
 import { createAppKit } from "@reown/appkit/react";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
-import { walletConnect, injected, coinbaseWallet } from "wagmi/connectors";
 
 // Project ID from WalletConnect Cloud (https://cloud.walletconnect.com)
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
@@ -15,13 +14,20 @@ const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 // LocalStorage key to track if user explicitly logged out
 const WALLET_DISCONNECTED_KEY = "wallet_explicitly_disconnected";
 
-// Metadata for WalletConnect
-const metadata = {
-  name: "HBCT Fire Protection",
-  description: "HBCT Fire Protection Token Platform",
-  url: typeof window !== "undefined" ? window.location.origin : "https://hbct.io",
-  icons: ["https://hbct.io/logo.png"],
+// Metadata for WalletConnect - URL must match WalletConnect Cloud project settings
+const getMetadata = () => {
+  // Use current origin for development, production URL for production
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://hbct.io";
+
+  return {
+    name: "HBCT Fire Protection",
+    description: "HBCT Fire Protection Token Platform",
+    url: origin,
+    icons: ["https://hbct.io/logo.png"],
+  };
 };
+
+const metadata = getMetadata();
 
 // Define chains for AppKit - BSC first as default
 const chains = [bsc, bscTestnet, mainnet, sepolia];
@@ -107,7 +113,8 @@ export async function disconnectWallet(): Promise<void> {
 
 /**
  * Force disconnect - clears all wagmi/wallet state from localStorage, sessionStorage, and IndexedDB
- * Use this when user cancels signature to ensure complete reset
+ * Use this when user cancels signature or session expires to ensure complete reset
+ * This ensures user gets wallet selection modal on next connection attempt
  */
 export async function forceDisconnectWallet(): Promise<void> {
   try {
@@ -120,10 +127,19 @@ export async function forceDisconnectWallet(): Promise<void> {
   // Clear all wallet-related storage
   if (typeof window !== "undefined") {
     // Specifically clear wagmi store first (this is the main one)
+    // Clear ALL wagmi keys to ensure fresh state
     localStorage.removeItem("wagmi.store");
     localStorage.removeItem("wagmi.connected");
     localStorage.removeItem("wagmi.wallet");
     localStorage.removeItem("wagmi.recentConnectorId");
+    localStorage.removeItem("wagmi.injected.shimDisconnect");
+    localStorage.removeItem("wagmi.metaMask.shimDisconnect");
+    localStorage.removeItem("wagmi.coinbaseWallet.shimDisconnect");
+
+    // Clear AppKit/Reown state
+    localStorage.removeItem("@appkit/active_caip_network_id");
+    localStorage.removeItem("@appkit/connected_connector");
+    localStorage.removeItem("@appkit/recent_wallets");
 
     // Clear Coinbase Wallet SDK specific keys directly
     localStorage.removeItem("-walletlink:https://www.walletlink.org:version");
@@ -148,6 +164,7 @@ export async function forceDisconnectWallet(): Promise<void> {
         key.startsWith("wc2") ||
         key.startsWith("W3M") ||
         key.startsWith("@w3m") ||
+        key.startsWith("@appkit") ||
         key.startsWith("-walletlink") ||
         key.startsWith("walletlink") ||
         key.startsWith("coinbaseWallet") ||
@@ -157,6 +174,7 @@ export async function forceDisconnectWallet(): Promise<void> {
         key.includes("walletconnect") ||
         key.includes("WALLETCONNECT") ||
         key.includes("reown") ||
+        key.includes("appkit") ||
         key.includes("CoinbaseWallet") ||
         key.includes("coinbase_wallet") ||
         key.includes("coinbase") ||
@@ -176,12 +194,14 @@ export async function forceDisconnectWallet(): Promise<void> {
         key.startsWith("wc") ||
         key.startsWith("W3M") ||
         key.startsWith("@w3m") ||
+        key.startsWith("@appkit") ||
         key.startsWith("-walletlink") ||
         key.startsWith("walletlink") ||
         key.startsWith("coinbase") ||
         key.startsWith("Coinbase") ||
         key.includes("walletconnect") ||
         key.includes("reown") ||
+        key.includes("appkit") ||
         key.includes("CoinbaseWallet") ||
         key.includes("coinbase")
       )) {
@@ -191,7 +211,7 @@ export async function forceDisconnectWallet(): Promise<void> {
     sessionStorageKeysToRemove.forEach(key => sessionStorage.removeItem(key));
 
     // Clear IndexedDB databases used by wallet SDKs
-    // Coinbase Wallet SDK and WalletConnect use IndexedDB
+    // Coinbase Wallet SDK, WalletConnect, and AppKit use IndexedDB
     try {
       const databases = await window.indexedDB.databases();
       for (const db of databases) {
@@ -202,6 +222,7 @@ export async function forceDisconnectWallet(): Promise<void> {
           db.name.includes("WALLET_CONNECT") ||
           db.name.includes("wc@") ||
           db.name.includes("reown") ||
+          db.name.includes("appkit") ||
           db.name.toLowerCase().includes("wallet")
         )) {
           window.indexedDB.deleteDatabase(db.name);

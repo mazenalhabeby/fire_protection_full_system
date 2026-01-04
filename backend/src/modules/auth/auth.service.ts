@@ -27,9 +27,11 @@ import {
   PASSWORD_RESET_EXPIRY_MINUTES,
   EMAIL_VERIFICATION_EXPIRY_HOURS,
   WALLET_NONCE_EXPIRY_MINUTES,
+  ACCESS_TOKEN_MAX_AGE,
 } from '../../config/cookie.config';
+import { getClientIp } from '../../common/utils';
 
-const BCRYPT_ROUNDS = 12;
+const BCRYPT_ROUNDS = 13;
 
 // Re-export SecurityAlert from session.service
 export type { SecurityAlert } from './session.service';
@@ -38,6 +40,7 @@ import type { SecurityAlert } from './session.service';
 export interface AuthResult {
   accessToken: string;
   refreshToken: string;
+  tokenExpiresAt: number; // Unix timestamp in ms when access token expires
   user: {
     id: string;
     email: string | null;
@@ -46,12 +49,20 @@ export interface AuthResult {
     lastName: string | null;
     walletAddress: string | null;
     role: string;
+    roleId: string | null; // RBAC role ID
     isEmailVerified: boolean;
     authProvider: string;
     createdAt: Date;
   };
   sessionId: string;
   securityAlert?: SecurityAlert;
+}
+
+export interface AvailableAuthMethods {
+  password: boolean;
+  google: boolean;
+  facebook: boolean;
+  wallet: string | null;  // wallet address if linked, null otherwise
 }
 
 export interface MeResponse {
@@ -63,11 +74,13 @@ export interface MeResponse {
     lastName: string | null;
     walletAddress: string | null;
     role: string;
+    roleId: string | null; // RBAC role ID
     isEmailVerified: boolean;
     authProvider: string;
     createdAt: Date;
   };
   currentSession: SessionData | null;
+  availableAuthMethods: AvailableAuthMethods;
   pendingActions: {
     emailVerification: boolean;
   };
@@ -244,18 +257,18 @@ export class AuthService {
     const { accessToken, refreshToken } = await this.tokenService.generateTokenPair(
       user.id,
       user.email,
-      user.role,
+      user.legacyRole,
       '', // Session ID will be added after creation
     );
 
     // Create session with browser location if provided
-    const { session } = await this.sessionService.createSession(user.id, refreshToken, req, location);
+    const { session } = await this.sessionService.createSession(user.id, refreshToken, req, location, undefined, 'password');
 
     // Regenerate tokens with session ID
     const tokens = await this.tokenService.generateTokenPair(
       user.id,
       user.email,
-      user.role,
+      user.legacyRole,
       session.id,
     );
 
@@ -264,8 +277,11 @@ export class AuthService {
 
     this.logger.log(`User registered: ${user.id} (${user.email})`);
 
+    const tokenExpiresAt = Date.now() + ACCESS_TOKEN_MAX_AGE;
+
     return {
       ...tokens,
+      tokenExpiresAt,
       user: this.formatUserResponse(user),
       sessionId: session.id,
     };
@@ -297,6 +313,12 @@ export class AuthService {
       await bcrypt.hash(password, BCRYPT_ROUNDS);
       await this.recordLoginHistory(null, 'credentials', false, 'user_not_found', req);
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Check if user is banned
+    if (user.isBanned) {
+      await this.recordLoginHistory(user.id, 'credentials', false, 'user_banned', req);
+      throw new UnauthorizedException('Your account has been suspended. Please contact support for assistance.');
     }
 
     // Check if account is locked
@@ -379,7 +401,7 @@ export class AuthService {
     user: {
       id: string;
       email: string | null;
-      role: string;
+      legacyRole: string;
       firstName: string | null;
       lastName: string | null;
       username: string | null;
@@ -397,7 +419,7 @@ export class AuthService {
       where: { id: user.id },
       data: {
         lastLoginAt: new Date(),
-        lastLoginIp: this.getClientIp(req),
+        lastLoginIp: getClientIp(req),
       },
     });
 
@@ -405,7 +427,7 @@ export class AuthService {
     const tokens = await this.tokenService.generateTokenPair(
       user.id,
       user.email,
-      user.role,
+      user.legacyRole,
       '', // Temporary
     );
 
@@ -415,6 +437,8 @@ export class AuthService {
       tokens.refreshToken,
       req,
       location,
+      undefined, // deviceFingerprint
+      'password', // authMethod
     );
 
     // Log security alert if detected (impossible travel, new location)
@@ -426,7 +450,7 @@ export class AuthService {
     const finalTokens = await this.tokenService.generateTokenPair(
       user.id,
       user.email,
-      user.role,
+      user.legacyRole,
       session.id,
     );
 
@@ -442,7 +466,7 @@ export class AuthService {
 
     // Send new login security alert and in-app notification
     const userAgent = req.headers['user-agent'] || 'Unknown device';
-    const ipAddress = this.getClientIp(req);
+    const ipAddress = getClientIp(req);
     const locationStr =
       location?.city && location?.country
         ? `${location.city}, ${location.country}`
@@ -456,8 +480,12 @@ export class AuthService {
       ipAddress,
     );
 
+    // Calculate token expiry time
+    const tokenExpiresAt = Date.now() + ACCESS_TOKEN_MAX_AGE;
+
     return {
       ...finalTokens,
+      tokenExpiresAt,
       user: this.formatUserResponse(user),
       sessionId: session.id,
       securityAlert: securityAlert || undefined,
@@ -498,7 +526,7 @@ export class AuthService {
     await this.twoFactorService.verifyToken(
       user.id,
       code,
-      this.getClientIp(req),
+      getClientIp(req),
       req.headers['user-agent'],
     );
 
@@ -519,7 +547,7 @@ export class AuthService {
     sessionId: string,
     oldRefreshToken: string,
     req: Request,
-  ): Promise<TokenPair & { tokenExpiresAt: number; securityAlert?: any }> {
+  ): Promise<{ accessToken: string; tokenExpiresAt: number; securityAlert?: any }> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -528,35 +556,23 @@ export class AuthService {
       throw new UnauthorizedException('User not found or inactive');
     }
 
-    // Generate new tokens
-    const newTokens = await this.tokenService.generateTokenPair(
-      user.id,
-      user.email,
-      user.role,
+    // Generate ONLY a new access token (refresh token stays the same)
+    const accessToken = await this.tokenService.generateAccessToken({
+      sub: user.id,
+      email: user.email || '',
+      role: user.legacyRole,
       sessionId,
-    );
+    });
 
-    // Get IP, user agent, and device fingerprint for security tracking
-    const ipAddress = this.getClientIp(req);
-    const userAgent = req.headers['user-agent'];
-    const deviceFingerprint = req.headers['x-device-fingerprint'] as string | undefined;
+    // Calculate access token expiry
+    const tokenExpiresAt = Date.now() + ACCESS_TOKEN_MAX_AGE;
 
-    // Rotate refresh token with device fingerprint validation and security checks
-    const { tokenExpiresAt, securityAlert } = await this.sessionService.rotateRefreshToken(
-      oldRefreshToken,
-      sessionId,
-      newTokens.refreshToken,
-      ipAddress,
-      userAgent,
-      deviceFingerprint,
-    );
-
-    this.logger.debug(`Tokens refreshed for user ${userId}`);
+    // Update session last activity
+    await this.sessionService.updateLastActivity(sessionId);
 
     return {
-      ...newTokens,
-      tokenExpiresAt: tokenExpiresAt.getTime(),
-      securityAlert,
+      accessToken,
+      tokenExpiresAt,
     };
   }
 
@@ -579,6 +595,249 @@ export class AuthService {
     const result = await this.sessionService.revokeAllUserSessions(userId, exceptSessionId);
     this.logger.log(`Revoked all sessions for user ${userId} (except: ${exceptSessionId})`);
     return result.count;
+  }
+
+  // ============================================
+  // SELF DELETE ACCOUNT
+  // ============================================
+
+  /**
+   * Check if user is eligible to delete their account
+   * Returns blockers if any exist
+   */
+  async checkDeletionEligibility(userId: string): Promise<{
+    canDelete: boolean;
+    blockers: Array<{
+      type: 'balance' | 'locks' | 'withdrawals';
+      message: string;
+      count?: number;
+      amount?: string;
+    }>;
+    gracePeriodDays: number;
+    retentionDays: number;
+  }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        tokenBalance: true,
+        walletBalances: true,
+        locks: {
+          where: { status: 'ACTIVE' },
+        },
+        withdrawalRequests: {
+          where: { status: { in: ['PENDING_CONFIRMATION', 'PENDING_APPROVAL', 'APPROVED', 'PROCESSING'] } },
+        },
+        withdrawals: {
+          where: { status: { in: ['PENDING_CONFIRMATION', 'PENDING_APPROVAL', 'APPROVED', 'PROCESSING'] } },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const blockers: Array<{
+      type: 'balance' | 'locks' | 'withdrawals';
+      message: string;
+      count?: number;
+      amount?: string;
+    }> = [];
+
+    // Check for non-zero balance
+    const tokenAvailable = user.tokenBalance ? parseFloat(user.tokenBalance.availableBalance.toString()) : 0;
+    const tokenLocked = user.tokenBalance ? parseFloat(user.tokenBalance.lockedBalance.toString()) : 0;
+    const totalTokenBalance = tokenAvailable + tokenLocked;
+
+    const walletBalance = user.walletBalances.reduce((sum, wb) => {
+      return sum + parseFloat(wb.availableBalance.toString()) +
+        parseFloat(wb.lockedBalance.toString()) +
+        parseFloat(wb.pendingBalance.toString());
+    }, 0);
+
+    if (totalTokenBalance > 0) {
+      blockers.push({
+        type: 'balance',
+        message: 'You have tokens in your account. Please withdraw all tokens first.',
+        amount: totalTokenBalance.toFixed(2),
+      });
+    }
+
+    if (walletBalance > 0) {
+      blockers.push({
+        type: 'balance',
+        message: 'You have funds in your wallet. Please withdraw all funds first.',
+        amount: walletBalance.toFixed(6),
+      });
+    }
+
+    // Check for active locks
+    if (user.locks.length > 0) {
+      blockers.push({
+        type: 'locks',
+        message: `You have ${user.locks.length} active lock(s). Wait for them to complete.`,
+        count: user.locks.length,
+      });
+    }
+
+    // Check for pending withdrawals
+    const pendingWithdrawalsCount = user.withdrawalRequests.length + user.withdrawals.length;
+    if (pendingWithdrawalsCount > 0) {
+      blockers.push({
+        type: 'withdrawals',
+        message: `You have ${pendingWithdrawalsCount} pending withdrawal(s). Wait for them to complete.`,
+        count: pendingWithdrawalsCount,
+      });
+    }
+
+    return {
+      canDelete: blockers.length === 0,
+      blockers,
+      gracePeriodDays: 30,
+      retentionDays: 365,
+    };
+  }
+
+  async deleteMyAccount(
+    userId: string,
+    options: {
+      ipAddress?: string;
+      userAgent?: string;
+    } = {}
+  ): Promise<{
+    message: string;
+    gracePeriodEndsAt: Date;
+    retentionExpiresAt: Date;
+  }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        tokenBalance: true,
+        walletBalances: true,
+        locks: {
+          where: { status: 'ACTIVE' },
+        },
+        withdrawalRequests: {
+          where: { status: { in: ['PENDING_CONFIRMATION', 'PENDING_APPROVAL', 'APPROVED', 'PROCESSING'] } },
+        },
+        withdrawals: {
+          where: { status: { in: ['PENDING_CONFIRMATION', 'PENDING_APPROVAL', 'APPROVED', 'PROCESSING'] } },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.isDeleted) {
+      throw new BadRequestException('Account is already deleted');
+    }
+
+    // Check for non-zero balance
+    const hasTokenBalance = user.tokenBalance && (
+      parseFloat(user.tokenBalance.availableBalance.toString()) > 0 ||
+      parseFloat(user.tokenBalance.lockedBalance.toString()) > 0
+    );
+
+    const hasWalletBalance = user.walletBalances.some(wb =>
+      parseFloat(wb.availableBalance.toString()) > 0 ||
+      parseFloat(wb.lockedBalance.toString()) > 0 ||
+      parseFloat(wb.pendingBalance.toString()) > 0
+    );
+
+    if (hasTokenBalance || hasWalletBalance) {
+      throw new BadRequestException(
+        'Cannot delete account with non-zero balance. Please withdraw all funds first.'
+      );
+    }
+
+    // Check for active locks
+    if (user.locks.length > 0) {
+      throw new BadRequestException(
+        `Cannot delete account with ${user.locks.length} active lock(s). Please wait for locks to complete.`
+      );
+    }
+
+    // Check for pending withdrawals
+    const pendingWithdrawalsCount = user.withdrawalRequests.length + user.withdrawals.length;
+    if (pendingWithdrawalsCount > 0) {
+      throw new BadRequestException(
+        `Cannot delete account with ${pendingWithdrawalsCount} pending withdrawal(s). Please wait for withdrawals to complete.`
+      );
+    }
+
+    const now = new Date();
+    const gracePeriodEndsAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    const retentionExpiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1 year
+
+    // Calculate total balances for audit log
+    const availableBalance = user.tokenBalance?.availableBalance ?? 0;
+    const lockedBalance = user.tokenBalance?.lockedBalance ?? 0;
+
+    // Use transaction to ensure atomicity
+    await this.prisma.$transaction(async (tx) => {
+      // Create deletion audit log
+      await tx.accountDeletionLog.create({
+        data: {
+          userId: user.id,
+          originalEmail: user.email || 'no-email',
+          originalUsername: user.username,
+          originalWalletAddress: user.walletAddress,
+          reason: 'user_requested',
+          requestedBy: 'user',
+          availableBalance,
+          lockedBalance,
+          pendingWithdrawals: 0,
+          activeLocks: 0,
+          gracePeriodEndsAt,
+          retentionExpiresAt,
+          ipAddress: options.ipAddress,
+          userAgent: options.userAgent,
+        },
+      });
+
+      // Soft delete - mark as deleted but preserve original email
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          originalEmail: user.email,
+          email: `deleted_${userId}@deleted.local`,
+          username: null,
+          isDeleted: true,
+          deletedAt: now,
+          deletionReason: 'user_requested',
+          deletionRequestedBy: 'user',
+          retentionExpiresAt,
+          canRecover: true,
+          isBanned: true,
+          banReason: 'Account deleted by user',
+        },
+      });
+
+      // Revoke all sessions
+      await tx.session.updateMany({
+        where: { userId },
+        data: { isValid: false, revokedAt: now, revokedReason: 'account_deleted' },
+      });
+    });
+
+    // Send deletion confirmation email
+    if (user.email) {
+      try {
+        await this.emailService.sendAccountDeletedEmail(user.email, gracePeriodEndsAt);
+      } catch (error) {
+        this.logger.error(`Failed to send deletion email to ${user.email}`, error);
+      }
+    }
+
+    this.logger.log(`User self-deleted account: ${userId}`);
+
+    return {
+      message: 'Account deleted successfully. You have 30 days to recover your account.',
+      gracePeriodEndsAt,
+      retentionExpiresAt,
+    };
   }
 
   // ============================================
@@ -607,9 +866,19 @@ export class AuthService {
       currentSession.isCurrent = true;
     }
 
+    // Determine available auth methods for re-authentication
+    const authProvider = user.authProvider?.toUpperCase() || 'CREDENTIALS';
+    const availableAuthMethods: AvailableAuthMethods = {
+      password: !!user.passwordHash,
+      google: authProvider === 'GOOGLE',
+      facebook: authProvider === 'FACEBOOK',
+      wallet: user.walletAddress || null,
+    };
+
     return {
       user: this.formatUserResponse(user),
       currentSession,
+      availableAuthMethods,
       pendingActions: {
         emailVerification: !!user.email && !user.isEmailVerified,
       },
@@ -832,7 +1101,7 @@ export class AuthService {
         userId: user.id,
         token: this.tokenService.hashToken(token),
         expiresAt,
-        ipAddress: this.getClientIp(req),
+        ipAddress: getClientIp(req),
       },
     });
 
@@ -1068,6 +1337,12 @@ export class AuthService {
       throw new UnauthorizedException('Account is deactivated');
     }
 
+    // Check if user is banned
+    if (user.isBanned) {
+      await this.recordLoginHistory(user.id, 'wallet', false, 'user_banned', req);
+      throw new UnauthorizedException('Your account has been suspended. Please contact support for assistance.');
+    }
+
     // Verify signature (supports EOA and smart contract wallets like Coinbase)
     if (!(await this.verifyWalletSignature(message, signature, normalizedAddress))) {
       await this.recordLoginHistory(user.id, 'wallet', false, 'invalid_signature', req);
@@ -1142,7 +1417,7 @@ export class AuthService {
     user: {
       id: string;
       email: string | null;
-      role: string;
+      legacyRole: string;
       firstName: string | null;
       lastName: string | null;
       username: string | null;
@@ -1166,7 +1441,7 @@ export class AuthService {
       where: { id: user.id },
       data: {
         lastLoginAt: new Date(),
-        lastLoginIp: this.getClientIp(req),
+        lastLoginIp: getClientIp(req),
       },
     });
 
@@ -1174,7 +1449,7 @@ export class AuthService {
     const tokens = await this.tokenService.generateTokenPair(
       user.id,
       user.email,
-      user.role,
+      user.legacyRole,
       '',
     );
 
@@ -1184,6 +1459,8 @@ export class AuthService {
       tokens.refreshToken,
       req,
       browserLocation,
+      undefined, // deviceFingerprint
+      'wallet', // authMethod
     );
 
     // Log security alert if detected
@@ -1195,7 +1472,7 @@ export class AuthService {
     const finalTokens = await this.tokenService.generateTokenPair(
       user.id,
       user.email,
-      user.role,
+      user.legacyRole,
       session.id,
     );
 
@@ -1210,7 +1487,7 @@ export class AuthService {
 
     // In-app notification + email (handled by notification preferences)
     const userAgent = req.headers['user-agent'] || 'Unknown device';
-    const ipAddress = this.getClientIp(req);
+    const ipAddress = getClientIp(req);
 
     await this.notificationsService.notifyNewLogin(
       user.id,
@@ -1219,8 +1496,11 @@ export class AuthService {
       ipAddress,
     );
 
+    const tokenExpiresAt = Date.now() + ACCESS_TOKEN_MAX_AGE;
+
     return {
       ...finalTokens,
+      tokenExpiresAt,
       user: this.formatUserResponse(user),
       sessionId: session.id,
     };
@@ -1339,18 +1619,18 @@ export class AuthService {
     const tokens = await this.tokenService.generateTokenPair(
       user.id,
       user.email,
-      user.role,
+      user.legacyRole,
       '',
     );
 
     // Create session with browser location for VPN detection
-    const { session } = await this.sessionService.createSession(user.id, tokens.refreshToken, req, location);
+    const { session } = await this.sessionService.createSession(user.id, tokens.refreshToken, req, location, undefined, 'wallet');
 
     // Regenerate with session ID
     const finalTokens = await this.tokenService.generateTokenPair(
       user.id,
       user.email,
-      user.role,
+      user.legacyRole,
       session.id,
     );
 
@@ -1363,8 +1643,11 @@ export class AuthService {
 
     this.logger.log(`Wallet registration: ${user.id}`);
 
+    const tokenExpiresAt = Date.now() + ACCESS_TOKEN_MAX_AGE;
+
     return {
       ...finalTokens,
+      tokenExpiresAt,
       user: this.formatUserResponse(user),
       sessionId: session.id,
     };
@@ -1427,7 +1710,8 @@ export class AuthService {
       lastName: user.lastName,
       phoneNumber: user.phoneNumber,
       walletAddress: user.walletAddress,
-      role: user.role,
+      role: user.legacyRole,
+      roleId: user.roleId, // RBAC role ID
       isEmailVerified: user.isEmailVerified,
       authProvider: user.authProvider?.toUpperCase() || 'CREDENTIALS',
       hasPassword: !!user.passwordHash, // True if user has a password set
@@ -1483,17 +1767,6 @@ export class AuthService {
     } catch (error) {
       this.logger.warn(`Failed to record login history: ${error}`);
     }
-  }
-
-  private getClientIp(req: Request): string {
-    const forwardedFor = req.headers['x-forwarded-for'];
-    if (forwardedFor) {
-      const ips = Array.isArray(forwardedFor)
-        ? forwardedFor[0]
-        : forwardedFor.split(',')[0];
-      return ips.trim();
-    }
-    return req.socket?.remoteAddress || req.ip || 'unknown';
   }
 
   /**
@@ -1879,5 +2152,234 @@ export class AuthService {
     }
 
     return this.formatUserResponse(user);
+  }
+
+  // ============================================
+  // ADMIN STEP-UP AUTHENTICATION
+  // ============================================
+
+  private readonly ADMIN_VERIFICATION_DURATION_MINUTES = 30;
+
+  /**
+   * Verify admin step-up authentication using 2FA code
+   * Required when admin wants to access admin panel from frontend
+   */
+  async verifyAdminAccess(
+    userId: string,
+    sessionId: string,
+    code: string,
+    ipAddress: string,
+  ): Promise<{ success: boolean; expiresAt: Date; redirectUrl: string }> {
+    // Get user and verify they are admin
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, legacyRole: true },
+    });
+
+    if (!user || user.legacyRole !== 'ADMIN') {
+      throw new UnauthorizedException('Admin access required');
+    }
+
+    // Check if 2FA is enabled (required for admin access)
+    const has2FA = await this.twoFactorService.isEnabled(userId);
+    if (!has2FA) {
+      throw new BadRequestException(
+        'Two-factor authentication must be enabled for admin access',
+      );
+    }
+
+    // Verify the 2FA code
+    const isValid = await this.twoFactorService.verifyToken(
+      userId,
+      code,
+      ipAddress,
+      undefined,
+    );
+
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid verification code');
+    }
+
+    // Calculate expiry time
+    const expiresAt = new Date();
+    expiresAt.setMinutes(
+      expiresAt.getMinutes() + this.ADMIN_VERIFICATION_DURATION_MINUTES,
+    );
+
+    // Update session with admin verification
+    await this.prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        adminVerifiedAt: new Date(),
+        adminVerifiedIp: ipAddress,
+        adminVerifiedUntil: expiresAt,
+      },
+    });
+
+    // Log the admin verification
+    await this.sessionService.logSessionActivity(
+      sessionId,
+      userId,
+      'admin_access_verified',
+      { ipAddress },
+    );
+
+    this.logger.log(`Admin access verified for user ${userId}`);
+
+    const adminUrl = this.configService.get<string>('ADMIN_URL', 'http://localhost:3002');
+
+    return {
+      success: true,
+      expiresAt,
+      redirectUrl: adminUrl,
+    };
+  }
+
+  /**
+   * Check if admin verification is still valid for a session
+   */
+  async checkAdminVerification(
+    sessionId: string,
+    ipAddress: string,
+  ): Promise<{ isVerified: boolean; expiresAt: Date | null }> {
+    const session = await this.prisma.session.findUnique({
+      where: { id: sessionId },
+      select: {
+        adminVerifiedAt: true,
+        adminVerifiedIp: true,
+        adminVerifiedUntil: true,
+      },
+    });
+
+    if (!session || !session.adminVerifiedUntil) {
+      return { isVerified: false, expiresAt: null };
+    }
+
+    // Check if verification has expired
+    if (new Date() > session.adminVerifiedUntil) {
+      return { isVerified: false, expiresAt: null };
+    }
+
+    // Check if IP matches (additional security)
+    if (session.adminVerifiedIp !== ipAddress) {
+      this.logger.warn(
+        `Admin verification IP mismatch: expected ${session.adminVerifiedIp}, got ${ipAddress}`,
+      );
+      return { isVerified: false, expiresAt: null };
+    }
+
+    return {
+      isVerified: true,
+      expiresAt: session.adminVerifiedUntil,
+    };
+  }
+
+  /**
+   * Get admin access status for a user
+   */
+  async getAdminStatus(
+    userId: string,
+    sessionId: string,
+    ipAddress: string,
+  ): Promise<{
+    isAdmin: boolean;
+    isVerified: boolean;
+    has2FAEnabled: boolean;
+    expiresAt: Date | null;
+  }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { legacyRole: true },
+    });
+
+    const isAdmin = user?.legacyRole === 'ADMIN';
+    const has2FAEnabled = await this.twoFactorService.isEnabled(userId);
+
+    if (!isAdmin) {
+      return {
+        isAdmin: false,
+        isVerified: false,
+        has2FAEnabled,
+        expiresAt: null,
+      };
+    }
+
+    const { isVerified, expiresAt } = await this.checkAdminVerification(
+      sessionId,
+      ipAddress,
+    );
+
+    return {
+      isAdmin: true,
+      isVerified,
+      has2FAEnabled,
+      expiresAt,
+    };
+  }
+
+  /**
+   * Revoke admin verification for a session
+   */
+  async revokeAdminVerification(sessionId: string): Promise<void> {
+    await this.prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        adminVerifiedAt: null,
+        adminVerifiedIp: null,
+        adminVerifiedUntil: null,
+      },
+    });
+  }
+
+  /**
+   * Get user's role and permissions (for RBAC)
+   * This endpoint allows users to fetch their own permissions without requiring roles.view
+   */
+  async getUserPermissions(userId: string): Promise<{
+    role: {
+      id: string;
+      name: string;
+      slug: string;
+      description: string | null;
+      color: string | null;
+    } | null;
+    permissions: { id: string; code: string; name: string; description: string | null; module: string; action: string }[];
+  }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        adminRole: {
+          include: {
+            permissions: {
+              include: {
+                permission: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user || !user.adminRole) {
+      return { role: null, permissions: [] };
+    }
+
+    return {
+      role: {
+        id: user.adminRole.id,
+        name: user.adminRole.name,
+        slug: user.adminRole.slug,
+        description: user.adminRole.description,
+        color: user.adminRole.color,
+      },
+      permissions: user.adminRole.permissions.map(rp => ({
+        id: rp.permission.id,
+        code: rp.permission.code,
+        name: rp.permission.name,
+        description: rp.permission.description,
+        module: rp.permission.module,
+        action: rp.permission.action,
+      })),
+    };
   }
 }

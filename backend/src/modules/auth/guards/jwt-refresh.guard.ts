@@ -1,5 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class JwtRefreshGuard extends AuthGuard('jwt-refresh') {}
+export class JwtRefreshGuard extends AuthGuard('jwt-refresh') {
+  canActivate(context: ExecutionContext) {
+    return super.canActivate(context);
+  }
+
+  handleRequest(err: any, user: any, info: any) {
+    if (err || !user) {
+      throw err || new UnauthorizedException(info?.message || 'Invalid refresh token');
+    }
+    return user;
+  }
+}

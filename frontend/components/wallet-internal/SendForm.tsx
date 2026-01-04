@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import {
   User,
   Mail,
-  Hash,
   Search,
   CheckCircle2,
   AlertCircle,
@@ -35,7 +34,6 @@ interface SendFormProps {
 const transferMethods: { id: TransferMethod; label: string; icon: typeof User; placeholder: string }[] = [
   { id: "EMAIL", label: "Email", icon: Mail, placeholder: "recipient@example.com" },
   { id: "USERNAME", label: "Username", icon: User, placeholder: "@username" },
-  { id: "USER_ID", label: "User ID", icon: Hash, placeholder: "User ID" },
 ];
 
 export function SendForm({ balances, limits, onSubmit, isSubmitting }: SendFormProps) {
@@ -118,7 +116,7 @@ export function SendForm({ balances, limits, onSubmit, isSubmitting }: SendFormP
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
           Send To
         </label>
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-2 gap-2 mb-4">
           {transferMethods.map((m) => (
             <button
               key={m.id}

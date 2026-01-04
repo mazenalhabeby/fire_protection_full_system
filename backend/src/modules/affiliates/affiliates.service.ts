@@ -7,8 +7,10 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Request } from 'express';
+import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CommissionQueryDto } from './dto';
+import { getClientIp, getUserAgent } from '../../common/utils';
 
 // Audit log action types
 type AuditAction =
@@ -23,26 +25,6 @@ export class AffiliatesService {
   private readonly logger = new Logger(AffiliatesService.name);
 
   constructor(private prisma: PrismaService) {}
-
-  /**
-   * Extract client IP from request
-   */
-  private getClientIp(req?: Request): string | null {
-    if (!req) return null;
-    const forwarded = req.headers['x-forwarded-for'];
-    if (forwarded) {
-      return Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0].trim();
-    }
-    return req.ip || req.socket?.remoteAddress || null;
-  }
-
-  /**
-   * Extract user agent from request
-   */
-  private getUserAgent(req?: Request): string | null {
-    if (!req) return null;
-    return req.headers['user-agent'] || null;
-  }
 
   /**
    * Log affiliate action for audit trail
@@ -61,8 +43,8 @@ export class AffiliatesService {
           action,
           amount: amount ? new Prisma.Decimal(amount) : null,
           metadata: metadata ? (metadata as Prisma.InputJsonValue) : Prisma.JsonNull,
-          ipAddress: this.getClientIp(req),
-          userAgent: this.getUserAgent(req),
+          ipAddress: getClientIp(req),
+          userAgent: getUserAgent(req),
         },
       });
     } catch (error) {
@@ -73,9 +55,10 @@ export class AffiliatesService {
 
   private generateReferralCode(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const bytes = crypto.randomBytes(8);
     let code = '';
     for (let i = 0; i < 8; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+      code += chars.charAt(bytes[i] % chars.length);
     }
     return code;
   }
@@ -115,7 +98,7 @@ export class AffiliatesService {
       data: {
         userId,
         referralCode,
-        commissionRate: new Prisma.Decimal(0.05), // 5% default
+        commissionRate: new Prisma.Decimal(0.03), // 3% default (Starter tier)
       },
     });
 

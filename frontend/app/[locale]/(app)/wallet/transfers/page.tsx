@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import {
   usePendingTransfers,
   useConfirmTransfer,
@@ -33,7 +32,6 @@ const TOTP_CODE_LENGTH = 6; // 6-digit code for 2FA
 
 export default function PendingTransfersPage() {
   const router = useRouter();
-  const locale = useLocale();
   const { user } = useAuth();
 
   // Check if user has 2FA enabled
@@ -175,7 +173,7 @@ export default function PendingTransfersPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
-            onClick={() => router.push(`/${locale}/wallet`)}
+            onClick={() => router.push('/wallet')}
             className="p-2.5 rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700 shadow-sm"
           >
             <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />

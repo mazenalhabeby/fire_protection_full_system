@@ -86,6 +86,14 @@
   --animation-normal: 200ms;
   --animation-slow: 300ms;
   --animation-shimmer: 700ms;
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
 
 /* =============================================================================
@@ -371,6 +379,25 @@
 
 .animate-shimmer {
   animation: shimmer 8s ease-in-out infinite;
+}
+
+/* Slow shimmer for progress lines */
+@keyframes shimmer-slow {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-shimmer-slow {
+  animation: shimmer-slow 3s ease-in-out infinite;
+}
+
+/* Basic float animation class */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
 /* Basic float animation */
@@ -1155,4 +1182,25 @@
     rgba(255, 255, 255, 0) 100%
   );
   background-size: 200% 100%;
+}
+
+/* =============================================================================
+   BACKGROUND SIZE & POSITION UTILITIES
+   For animated gradient buttons and effects
+   ============================================================================= */
+
+.bg-size-200 {
+  background-size: 200% 100%;
+}
+
+.bg-pos-0 {
+  background-position: 0% 0%;
+}
+
+.bg-pos-100 {
+  background-position: 100% 0%;
+}
+
+.hover\:bg-pos-100:hover {
+  background-position: 100% 0%;
 }

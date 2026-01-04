@@ -4,11 +4,11 @@ import { CookieOptions } from 'express';
 export const ACCESS_TOKEN_COOKIE = 'access_token';
 export const REFRESH_TOKEN_COOKIE = 'refresh_token';
 
-// Token expiration times
+// Token expiration times (PRODUCTION)
 export const ACCESS_TOKEN_EXPIRY = '15m'; // 15 minutes
 export const REFRESH_TOKEN_EXPIRY = '7d'; // 7 days
 
-// Cookie max ages in milliseconds
+// Cookie max ages in milliseconds (PRODUCTION)
 export const ACCESS_TOKEN_MAX_AGE = 15 * 60 * 1000; // 15 minutes
 export const REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -34,15 +34,31 @@ export const WALLET_NONCE_EXPIRY_MINUTES = 10;
 
 /**
  * Get cookie configuration based on environment
+ *
+ * Development: SameSite=None with Secure=true for cross-origin requests.
+ * Chrome treats localhost as a secure context, so this works without HTTPS.
+ *
+ * Production: Uses SameSite='strict' for maximum security with Secure=true.
  */
-export const getCookieConfig = (isProduction: boolean): CookieOptions => ({
-  httpOnly: true,
-  secure: isProduction,
-  sameSite: isProduction ? 'strict' : 'lax',
-  path: '/',
-  // In production, set domain for cross-subdomain cookies if needed
-  // domain: isProduction ? '.yourdomain.com' : undefined,
-});
+export const getCookieConfig = (isProduction: boolean): CookieOptions => {
+  if (isProduction) {
+    return {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/',
+    };
+  }
+
+  // Development: Cross-origin settings for localhost
+  // Chrome treats localhost as secure context, allowing Secure cookies over HTTP
+  return {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    path: '/',
+  };
+};
 
 /**
  * Get access token cookie options

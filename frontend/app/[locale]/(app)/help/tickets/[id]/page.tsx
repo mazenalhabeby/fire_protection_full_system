@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
+import { Link, useRouter } from "@/i18n/navigation";
 import {
   ArrowLeft,
   Send,
@@ -11,7 +11,8 @@ import {
   Bot,
   Clock,
 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { supportApi } from "@/lib/api";
 import { TicketStatusBadge, TicketPriorityBadge } from "@/components/help";
@@ -23,7 +24,7 @@ import { cn, formatName } from "@/lib/utils";
 export default function TicketDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const locale = params.locale as string;
+  const locale = useLocale();
   const ticketId = params.id as string;
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
 
@@ -35,7 +36,7 @@ export default function TicketDetailPage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push(`/${locale}/login`);
+      router.push('/login');
       return;
     }
 
@@ -56,7 +57,7 @@ export default function TicketDetailPage() {
     } catch (error) {
       console.error("Failed to load ticket:", error);
       toast.error("Failed to load ticket");
-      router.push(`/${locale}/help/tickets`);
+      router.push('/help/tickets');
     } finally {
       setIsLoading(false);
     }

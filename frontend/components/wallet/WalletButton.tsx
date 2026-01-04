@@ -22,6 +22,7 @@ interface WalletButtonProps {
 
 export function WalletButton({ variant = "default", className }: WalletButtonProps) {
   const {
+    address,
     shortAddress,
     isConnected,
     isConnecting,
@@ -34,6 +35,9 @@ export function WalletButton({ variant = "default", className }: WalletButtonPro
     isModalOpen,
     closeModal,
   } = useWallet();
+
+  // If we have an address, we're definitely connected - use this as the source of truth
+  const actuallyConnected = Boolean(address) || isConnected;
 
   const { isCorrectChain, switchToCorrectChain } = useCorrectChain();
 
@@ -50,8 +54,9 @@ export function WalletButton({ variant = "default", className }: WalletButtonPro
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Loading state
-  if (isConnecting) {
+  // Loading state - only show if NOT connected yet
+  // Address is the source of truth - if we have one, we're connected
+  if (!actuallyConnected && isConnecting) {
     return (
       <>
         <button
@@ -73,7 +78,7 @@ export function WalletButton({ variant = "default", className }: WalletButtonPro
   }
 
   // Not connected - show connect button
-  if (!isConnected) {
+  if (!actuallyConnected) {
     return (
       <>
         <button

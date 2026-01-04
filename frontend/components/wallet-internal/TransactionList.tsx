@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import {
   ArrowUpRight,
@@ -155,7 +154,6 @@ export function TransactionList({
   showPendingActions = true,
 }: TransactionListProps) {
   const router = useRouter();
-  const locale = useLocale();
 
   // Check if a transaction is a pending transfer that can be confirmed
   const isPendingTransfer = (tx: WalletTransaction) => {
@@ -248,7 +246,7 @@ export function TransactionList({
               {/* Note from sender */}
               {!compact && tx.metadata?.note && (
                 <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 italic truncate" title={tx.metadata.note}>
-                  "{tx.metadata.note}"
+                  &quot;{tx.metadata.note}&quot;
                 </p>
               )}
               {/* Transaction Hash Link */}
@@ -270,7 +268,7 @@ export function TransactionList({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    router.push(`/${locale}/wallet/transfers`);
+                    router.push('/wallet/transfers');
                   }}
                   className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium transition-colors shadow-sm"
                 >

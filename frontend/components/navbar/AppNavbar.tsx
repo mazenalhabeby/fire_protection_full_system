@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { Link } from "@/i18n/navigation";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
-import { Menu, X, User, LogOut, ChevronDown, ChevronLeft, UserPlus, ArrowRight, Sun, Moon, Monitor, Globe, Check, Settings, HelpCircle, Users, Wallet, Link2, Bell } from "lucide-react";
+import { Menu, X, User, LogOut, ChevronDown, ChevronLeft, UserPlus, ArrowRight, Sun, Moon, Monitor, Globe, Check, Settings, HelpCircle, Users, Wallet, Link2, Bell, Shield } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { cn, capitalize, formatName, formatTokenBalance } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -15,6 +15,7 @@ import { type Locale } from "@/i18n/request";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { WalletButton, CombinedWalletMobile } from "@/components/wallet";
 import { useWalletBalances } from "@/hooks/useWalletData";
+import { useInitialHints } from "@/providers/InitialHintsProvider";
 
 const languages = [
   { code: "en" as Locale, name: "English", flag: "🇺🇸", short: "EN" },
@@ -39,12 +40,53 @@ const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", protected: true },
   { href: "/buy-tokens", label: "Buy Tokens", protected: true },
   { href: "/locking", label: "Locking", protected: true },
-  { href: "/admin", label: "Admin", protected: true, adminOnly: true },
   { href: "/marketplace", label: "Marketplace", protected: true, comingSoon: true },
 ];
 
+// Navbar skeleton shown during auth loading
+function NavbarSkeleton() {
+  return (
+    <div className="flex items-center gap-2">
+      {/* Skeleton for wallet/action bar - matches Premium Action Bar */}
+      <div className="hidden md:flex items-center gap-1 p-1 rounded-2xl bg-gray-100/80 dark:bg-gray-800/80 border border-gray-200/50 dark:border-gray-700/50">
+        <div className="h-10 w-32 rounded-xl bg-gray-200/60 dark:bg-gray-700/60 animate-pulse" />
+        <div className="w-px h-6 bg-gray-300 dark:bg-gray-600" />
+        <div className="h-10 w-24 rounded-xl bg-gray-200/60 dark:bg-gray-700/60 animate-pulse" />
+      </div>
+
+      {/* Skeleton for notification */}
+      <div className="hidden md:block ml-2">
+        <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 animate-pulse" />
+      </div>
+
+      {/* Separator */}
+      <div className="hidden md:block w-px h-8 bg-gray-200 dark:bg-gray-700 mx-3" />
+
+      {/* Skeleton for user menu - matches User Menu button */}
+      <div className="hidden md:flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-2xl bg-gray-100/80 dark:bg-gray-800/80 border border-gray-200/50 dark:border-gray-700/50">
+        <div className="w-8 h-8 rounded-xl bg-gray-300 dark:bg-gray-600 animate-pulse" />
+        <div className="flex flex-col gap-1">
+          <div className="h-3 w-14 rounded bg-gray-300 dark:bg-gray-600 animate-pulse" />
+          <div className="h-2 w-10 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        </div>
+      </div>
+
+      {/* Mobile skeleton */}
+      <div className="md:hidden flex items-center gap-2">
+        <div className="h-9 w-20 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 animate-pulse" />
+        <div className="h-9 w-9 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
 export function AppNavbar({ className }: AppNavbarProps) {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { hasSessionHint } = useInitialHints();
+
+  // Show skeleton while loading OR if we have session hint but auth not verified yet
+  // This prevents flash of unauthenticated UI when user is actually logged in
+  const showSkeleton = isLoading || (hasSessionHint && !isAuthenticated);
   const { theme, setTheme } = useTheme();
   const locale = useLocale() as Locale;
   const router = useRouter();
@@ -216,7 +258,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
           {/* Right: Theme + Language + Auth */}
           <div className="flex items-center gap-2">
             {/* Theme Toggle & Language - Only show when NOT authenticated (they're in user dropdown when logged in) */}
-            {!isAuthenticated && (
+            {!showSkeleton && !isAuthenticated && (
               <>
                 <div className="hidden md:block">
                   <ThemeToggleCompact />
@@ -227,7 +269,10 @@ export function AppNavbar({ className }: AppNavbarProps) {
               </>
             )}
 
-            {isAuthenticated ? (
+            {/* Show skeleton while loading auth state or verifying session hint */}
+            {showSkeleton ? (
+              <NavbarSkeleton />
+            ) : isAuthenticated ? (
               <>
                 {/* Mobile Combined Wallet Toggle */}
                 <div className="flex md:hidden">
@@ -252,11 +297,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                         isActiveLink("/wallet") && "bg-white dark:bg-gray-700"
                       )}
                     >
-                      <div className="relative">
-                        <Wallet className="h-4 w-4" />
-                        {/* Active indicator */}
-                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full border border-white dark:border-gray-800" />
-                      </div>
+                      <Wallet className="h-4 w-4" />
                       <div className="flex flex-col items-start leading-none">
                         <span className="text-[10px] text-gray-400 dark:text-gray-500">My Wallet</span>
                         <span className="font-semibold">{displayBalance} <span className="text-[10px] font-normal text-gray-500 dark:text-gray-400">HBCT</span></span>
@@ -381,6 +422,23 @@ export function AppNavbar({ className }: AppNavbarProps) {
                               <p className="text-[11px] text-gray-500 dark:text-gray-400">Earn commissions on referrals</p>
                             </div>
                           </Link>
+
+                          {/* Admin Button - For admins or users with RBAC roles */}
+                          {(user?.role === "ADMIN" || user?.roleId) && (
+                            <a
+                              href={process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3002"}
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors group"
+                            >
+                              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-md shadow-red-500/20 group-hover:shadow-lg group-hover:shadow-red-500/30 transition-all">
+                                <Shield className="h-5 w-5 text-white" />
+                              </div>
+                              <div className="flex-1">
+                                <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">Admin Panel</span>
+                                <p className="text-[11px] text-gray-500 dark:text-gray-400">Manage system settings</p>
+                              </div>
+                            </a>
+                          )}
                         </div>
 
                         {/* Divider */}
@@ -638,26 +696,28 @@ export function AppNavbar({ className }: AppNavbarProps) {
             )}
 
             {/* Mobile Notification Bell - Before Burger Menu */}
-            {isAuthenticated && (
+            {!showSkeleton && isAuthenticated && (
               <div className="md:hidden">
                 <NotificationDropdown />
               </div>
             )}
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={openMobileMenu}
-              className={cn(
-                "md:hidden p-2 rounded-lg ml-1",
-                "text-gray-600 hover:text-gray-900",
-                "dark:text-gray-300 dark:hover:text-white",
-                "hover:bg-gray-100 dark:hover:bg-gray-800",
-                "transition-colors duration-200"
-              )}
-              aria-label="Open menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
+            {/* Mobile Menu Button - Hide during loading */}
+            {!showSkeleton && (
+              <button
+                onClick={openMobileMenu}
+                className={cn(
+                  "md:hidden p-2 rounded-lg ml-1",
+                  "text-gray-600 hover:text-gray-900",
+                  "dark:text-gray-300 dark:hover:text-white",
+                  "hover:bg-gray-100 dark:hover:bg-gray-800",
+                  "transition-colors duration-200"
+                )}
+                aria-label="Open menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            )}
           </div>
         </nav>
 
@@ -865,6 +925,28 @@ export function AppNavbar({ className }: AppNavbarProps) {
                       )}
                     </Link>
                   </li>
+
+                  {/* Admin - For admins or users with RBAC roles */}
+                  {(user?.role === "ADMIN" || user?.roleId) && (
+                    <li>
+                      <a
+                        href={process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3002"}
+                        onClick={closeMobileMenu}
+                        className={cn(
+                          "relative flex items-center gap-3 w-full text-base py-3 px-4 rounded-xl",
+                          "transition-all duration-200",
+                          "text-white/80 hover:text-white",
+                          "hover:bg-white/10",
+                          "border border-transparent"
+                        )}
+                      >
+                        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center">
+                          <Shield className="h-3.5 w-3.5 text-white" />
+                        </div>
+                        Admin Panel
+                      </a>
+                    </li>
+                  )}
 
                   {/* Settings */}
                   <li>

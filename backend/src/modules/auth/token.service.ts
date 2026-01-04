@@ -16,6 +16,9 @@ export interface JwtPayload {
   role: string;
   sessionId: string;
   type?: 'access' | 'refresh';
+  // Standard JWT claims (added automatically by JWT library)
+  iat?: number; // Issued at (Unix timestamp in seconds)
+  exp?: number; // Expiration time (Unix timestamp in seconds)
 }
 
 export interface TokenPair {
