@@ -24,6 +24,7 @@ import { AdminGuard } from '../auth/guards/admin.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RequirePermissions } from '../../common/decorators';
 import { AdminService } from './admin.service';
+import { BuybackService } from '../blockchain/buyback.service';
 import {
   DashboardDto,
   UserQueryDto,
@@ -50,7 +51,10 @@ import {
 @UseGuards(JwtAuthGuard, AdminGuard, PermissionsGuard)
 @ApiBearerAuth()
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly buybackService: BuybackService,
+  ) {}
 
   @Get('dashboard')
   @RequirePermissions('dashboard.view')
@@ -299,5 +303,119 @@ export class AdminController {
   @ApiOperation({ summary: 'Get purchase statistics' })
   async getPurchaseStats() {
     return this.adminService.getPurchaseStats();
+  }
+
+  // ============ BUYBACK POOL MANAGEMENT ============
+
+  @Get('buyback/stats')
+  @RequirePermissions('settings.view')
+  @ApiOperation({ summary: 'Get buyback pool statistics' })
+  async getBuybackStats() {
+    return this.buybackService.getStats();
+  }
+
+  @Get('buyback/config')
+  @RequirePermissions('settings.view')
+  @ApiOperation({ summary: 'Get buyback configuration' })
+  async getBuybackConfig() {
+    return this.buybackService.getConfig();
+  }
+
+  @Get('buyback/wallet')
+  @RequirePermissions('settings.view')
+  @ApiOperation({ summary: 'Get buyback wallet status and balances' })
+  async getBuybackWallet() {
+    return this.buybackService.getWalletStatus();
+  }
+
+  @Get('buyback/pending-total')
+  @RequirePermissions('settings.view')
+  @ApiOperation({ summary: 'Get total pending amount in BNB equivalent' })
+  async getPendingTotal() {
+    return this.buybackService.getTotalPendingInBnb();
+  }
+
+  @Get('buyback/check-ready')
+  @RequirePermissions('settings.view')
+  @ApiOperation({ summary: 'Check if buyback wallet is ready to execute' })
+  async checkBuybackReady() {
+    return this.buybackService.checkWalletReady();
+  }
+
+  @Post('buyback/execute')
+  @RequirePermissions('settings.edit')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Execute pending buybacks (requires funded buyback wallet)' })
+  async executePendingBuybacks() {
+    // First check if wallet is ready
+    const check = await this.buybackService.checkWalletReady();
+    if (!check.ready) {
+      return {
+        success: false,
+        message: check.message,
+        shortfall: check.shortfall,
+      };
+    }
+
+    // Execute and return results
+    const result = await this.buybackService.processPendingBuybacks();
+    return {
+      ...result,
+      message: result.success
+        ? `Execution ${result.executionId}: Swapped ${result.totalBnbSwapped.toFixed(6)} BNB for ${result.totalHbctBought.toFixed(2)} HBCT (${result.totalProcessed} allocations)`
+        : result.error || 'Execution failed',
+    };
+  }
+
+  @Post('buyback/execute/:id')
+  @RequirePermissions('settings.edit')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Execute a specific buyback allocation' })
+  async executeBuyback(@Param('id') id: string) {
+    return this.buybackService.executeBuyback(id);
+  }
+
+  @Get('buyback/verify-swap')
+  @RequirePermissions('settings.view')
+  @ApiOperation({ summary: 'Verify swap configuration and liquidity pool' })
+  async verifySwapConfig() {
+    const pancakeSwap = (this.buybackService as any).pancakeSwap;
+    return pancakeSwap.verifySwapConfig();
+  }
+
+  @Post('buyback/test-allocations')
+  @RequirePermissions('settings.edit')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Create test buyback allocations for testing' })
+  async createTestAllocations() {
+    return this.adminService.createTestBuybackAllocations();
+  }
+
+  @Get('buyback/allocations')
+  @RequirePermissions('settings.view')
+  @ApiOperation({ summary: 'Get all buyback allocations' })
+  async getBuybackAllocations(
+    @Query('status') status?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.adminService.getBuybackAllocations({
+      status,
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 50,
+    });
+  }
+
+  @Get('buyback/executions')
+  @RequirePermissions('settings.view')
+  @ApiOperation({ summary: 'Get all buyback executions with their allocations' })
+  async getBuybackExecutions(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.buybackService.getExecutions({
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 20,
+    });
   }
 }

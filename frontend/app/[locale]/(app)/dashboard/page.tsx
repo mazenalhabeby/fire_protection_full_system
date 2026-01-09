@@ -27,12 +27,12 @@ import {
 import type { StatCardProps } from "@/components/dashboard";
 import type { QuickAction } from "@/components/dashboard";
 
-// Helper function to get time-based greeting
-const getGreeting = (): string => {
+// Helper function to get time-based greeting key
+const getGreetingKey = (): "morning" | "afternoon" | "evening" => {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good Morning";
-  if (hour < 18) return "Good Afternoon";
-  return "Good Evening";
+  if (hour < 12) return "morning";
+  if (hour < 18) return "afternoon";
+  return "evening";
 };
 
 // Helper to get display balance with fallback and formatting
@@ -229,7 +229,7 @@ export default function DashboardPage() {
         href: "/buy-tokens",
         icon: Coins,
         label: t("buyTokens") || "Buy Tokens",
-        description: "Purchase HBCT tokens",
+        description: t("purchaseDescription") || "Purchase HBCT tokens",
         gradient: "from-brand-500 to-brand-600",
         shadowColor: "shadow-brand-500/25",
       },
@@ -237,7 +237,7 @@ export default function DashboardPage() {
         href: "/affiliates",
         icon: Users,
         label: t("inviteFriends") || "Invite Friends",
-        description: "Earn referral rewards",
+        description: t("referralDescription") || "Earn referral rewards",
         gradient: "from-blue-500 to-blue-600",
         shadowColor: "shadow-blue-500/25",
       },
@@ -245,7 +245,7 @@ export default function DashboardPage() {
         href: "/locking",
         icon: Lock,
         label: t("lockTokens") || "Lock Tokens",
-        description: "Earn rewards by locking",
+        description: t("lockingDescription") || "Earn rewards by locking",
         gradient: "from-purple-500 to-purple-600",
         shadowColor: "shadow-purple-500/25",
       },
@@ -253,7 +253,7 @@ export default function DashboardPage() {
         href: "/marketplace",
         icon: ShoppingBag,
         label: t("browseProducts") || "Browse Products",
-        description: "Shop with HBCT",
+        description: t("marketplaceDescription") || "Shop with HBCT",
         gradient: "from-gray-400 to-gray-500",
         shadowColor: "shadow-gray-500/25",
         comingSoon: true,
@@ -336,17 +336,17 @@ export default function DashboardPage() {
             {/* Left Side - Text (50%) */}
             <div className="md:w-1/2">
               <p className="text-brand-400 text-sm font-medium mb-2">
-                {getGreeting()}
+                {t(`greeting.${getGreetingKey()}`)}
               </p>
               <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
                 {showNewUserState
-                  ? `Welcome, ${displayName}!`
-                  : `Welcome back, ${displayName}!`}
+                  ? t("welcomeNew", { name: displayName })
+                  : t("welcomeBack", { name: displayName })}
               </h1>
               <p className="text-gray-400 text-sm md:text-base">
                 {showNewUserState
-                  ? "Start your HBCT journey today. Buy tokens to get started!"
-                  : "Here's what's happening with your HBCT portfolio today."}
+                  ? t("newUserMessage")
+                  : t("returningUserMessage")}
               </p>
             </div>
 

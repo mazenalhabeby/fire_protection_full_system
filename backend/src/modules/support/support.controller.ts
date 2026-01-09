@@ -10,7 +10,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { SupportService } from './support.service';
-import { CreateTicketDto, CreateMessageDto, ContactFormDto } from './dto';
+import { CreateTicketDto, CreateMessageDto, ContactFormDto, CreateGuestTicketDto, GuestTicketAccessDto, GuestReplyDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards';
 import { Public } from '../../common/decorators/public.decorator';
 import { TicketStatus } from '@prisma/client';
@@ -50,6 +50,34 @@ export class SupportController {
   @Post('contact')
   async submitContactForm(@Body() dto: ContactFormDto) {
     return this.supportService.submitContactForm(dto);
+  }
+
+  // ============================================
+  // Guest Ticket Endpoints (Public)
+  // ============================================
+
+  @Public()
+  @Post('guest/tickets')
+  async createGuestTicket(@Body() dto: CreateGuestTicketDto) {
+    return this.supportService.createGuestTicket(dto);
+  }
+
+  @Public()
+  @Get('guest/tickets/:token')
+  async getGuestTicket(@Param('token') token: string) {
+    return this.supportService.getGuestTicketByToken(token);
+  }
+
+  @Public()
+  @Post('guest/tickets/access')
+  async requestTicketAccess(@Body() dto: GuestTicketAccessDto) {
+    return this.supportService.getGuestTicketAccess(dto);
+  }
+
+  @Public()
+  @Post('guest/tickets/reply')
+  async replyToGuestTicket(@Body() dto: GuestReplyDto) {
+    return this.supportService.replyToGuestTicket(dto);
   }
 
   // ============================================

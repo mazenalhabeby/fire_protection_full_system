@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { authApi, type LinkedWallet } from "@/lib/api/auth";
-import { api } from "@/lib/api/client";
 import { toast } from "sonner";
+import { useInvalidateWalletCache } from "@/hooks/useWalletData";
+import { useInvalidateDeposits } from "@/hooks/useDeposits";
 import {
   ArrowLeft,
   Copy,
@@ -25,22 +27,31 @@ import { PageHeader } from "@/components/ui/page-header";
 import { DepositHistory } from "@/components/wallet-internal/DepositHistory";
 import { CurrencyIcon } from "@/components/wallet-internal/CurrencyIcon";
 import { PremiumButton } from "@/components/ui/premium-button";
+import { DepositCheckModal } from "@/components/wallet-internal/DepositCheckModal";
 
 export default function DepositPage() {
   const router = useRouter();
+  const t = useTranslations("wallet.deposit");
   useAuth();
+  const invalidateWalletCache = useInvalidateWalletCache();
+  const invalidateDeposits = useInvalidateDeposits();
   const [copied, setCopied] = useState(false);
   const [linkedWallets, setLinkedWallets] = useState<LinkedWallet[]>([]);
   const [isLoadingWallets, setIsLoadingWallets] = useState(true);
   const [activeTab, setActiveTab] = useState<"deposit" | "history">("deposit");
-  const [isCheckingDeposits, setIsCheckingDeposits] = useState(false);
-  const [lastCheckResult, setLastCheckResult] = useState<string | null>(null);
+  const [isCheckModalOpen, setIsCheckModalOpen] = useState(false);
+
+  // Callback when deposits are found - refresh both balance and deposit history
+  const handleDepositsFound = () => {
+    invalidateWalletCache();
+    invalidateDeposits();
+  };
 
   // Deposit configuration
   const depositAddress =
     process.env.NEXT_PUBLIC_DEPOSIT_WALLET_ADDRESS ||
     "0x0000000000000000000000000000000000000000";
-  const minConfirmations = 12;
+  const minConfirmations = 3; // Using 3 confirmations (~9 seconds on BSC)
   const isConfigured = depositAddress !== "0x0000000000000000000000000000000000000000";
 
   // Load linked wallets
@@ -65,39 +76,13 @@ export default function DepositPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Check for new deposits from linked wallet
-  const handleCheckDeposits = async () => {
+  // Open the check deposits modal
+  const handleCheckDeposits = () => {
     if (linkedWallets.length === 0) {
-      toast.error("Please link a wallet first to check for deposits");
+      toast.error(t("checkDeposits.noWalletError"));
       return;
     }
-
-    setIsCheckingDeposits(true);
-    setLastCheckResult(null);
-
-    try {
-      const result = await api.post<{
-        checked: boolean;
-        newDeposits: number;
-        message: string;
-      }>("/deposits/check");
-
-      setLastCheckResult(result.message);
-
-      if (result.newDeposits > 0) {
-        toast.success(`Found ${result.newDeposits} new deposit(s)!`);
-      } else if (result.checked) {
-        toast.info("No new deposits found");
-      } else {
-        toast.warning(result.message);
-      }
-    } catch (error: any) {
-      const message = error.message || "Failed to check deposits";
-      toast.error(message);
-      setLastCheckResult(message);
-    } finally {
-      setIsCheckingDeposits(false);
-    }
+    setIsCheckModalOpen(true);
   };
 
   const formatAddress = (address: string) => {
@@ -125,13 +110,13 @@ export default function DepositPage() {
           className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm font-medium">Back to Wallet</span>
+          <span className="text-sm font-medium">{t("backToWallet")}</span>
         </button>
 
         {/* Header */}
         <PageHeader
-          title="Deposit HBCT"
-          subtitle="Send HBCT tokens from your external wallet"
+          title={t("title")}
+          subtitle={t("subtitle")}
         />
 
         {/* Tabs */}
@@ -144,7 +129,7 @@ export default function DepositPage() {
                 : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
-            Deposit
+            {t("tabs.deposit")}
           </button>
           <button
             onClick={() => setActiveTab("history")}
@@ -154,7 +139,7 @@ export default function DepositPage() {
                 : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
-            History
+            {t("tabs.history")}
           </button>
         </div>
 
@@ -167,10 +152,10 @@ export default function DepositPage() {
                   <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-red-800 dark:text-red-300">
-                      Deposits Not Available
+                      {t("notConfigured.title")}
                     </p>
                     <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                      The deposit system is not configured yet. Please contact support.
+                      {t("notConfigured.description")}
                     </p>
                   </div>
                 </div>
@@ -185,17 +170,17 @@ export default function DepositPage() {
                       <CurrencyIcon size="lg" />
                       <div>
                         <h3 className="font-semibold text-gray-900 dark:text-white">
-                          HBCT Deposit
+                          {t("qrSection.title")}
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          BNB Smart Chain (BSC)
+                          {t("qrSection.network")}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20">
                       <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                       <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                        Active
+                        {t("qrSection.status")}
                       </span>
                     </div>
                   </div>
@@ -237,7 +222,7 @@ export default function DepositPage() {
 
                   {/* Scan instruction */}
                   <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">
-                    Scan QR code or copy address below
+                    {t("qrSection.scanInstruction")}
                   </p>
 
                   {/* Address Box */}
@@ -245,9 +230,9 @@ export default function DepositPage() {
                     <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                          Deposit Address
+                          {t("qrSection.addressLabel")}
                         </p>
-                        <span className="text-xs text-gray-400 dark:text-gray-500">BSC Network</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">{t("qrSection.bscNetwork")}</span>
                       </div>
                       <div className="flex items-center gap-3">
                         <code className="flex-1 text-sm font-mono text-gray-900 dark:text-white break-all select-all">
@@ -261,12 +246,12 @@ export default function DepositPage() {
                           {copied ? (
                             <>
                               <Check className="h-4 w-4" />
-                              <span className="hidden sm:inline">Copied!</span>
+                              <span className="hidden sm:inline">{t("qrSection.copied")}</span>
                             </>
                           ) : (
                             <>
                               <Copy className="h-4 w-4" />
-                              <span className="hidden sm:inline">Copy</span>
+                              <span className="hidden sm:inline">{t("qrSection.copy")}</span>
                             </>
                           )}
                         </button>
@@ -283,7 +268,7 @@ export default function DepositPage() {
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 text-sm text-brand-500 hover:text-brand-600 transition-colors"
                       >
-                        View on BSCScan
+                        {t("qrSection.viewOnBscscan")}
                         <ExternalLink className="h-4 w-4" />
                       </a>
                     </div>
@@ -294,7 +279,7 @@ export default function DepositPage() {
               {/* Steps Card */}
               <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6">
                 <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
-                  How to Deposit
+                  {t("howTo.title")}
                 </h4>
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
@@ -302,9 +287,9 @@ export default function DepositPage() {
                       <span className="text-sm font-bold text-brand-600 dark:text-brand-400">1</span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Copy the deposit address</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{t("howTo.step1.title")}</p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Click the copy button above or scan the QR code
+                        {t("howTo.step1.description")}
                       </p>
                     </div>
                   </div>
@@ -313,9 +298,9 @@ export default function DepositPage() {
                       <span className="text-sm font-bold text-brand-600 dark:text-brand-400">2</span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Send HBCT from your wallet</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{t("howTo.step2.title")}</p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Use MetaMask, Trust Wallet, or any BSC-compatible wallet
+                        {t("howTo.step2.description")}
                       </p>
                     </div>
                   </div>
@@ -324,9 +309,9 @@ export default function DepositPage() {
                       <span className="text-sm font-bold text-brand-600 dark:text-brand-400">3</span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Wait for confirmation</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{t("howTo.step3.title")}</p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {minConfirmations} block confirmations (~1-2 minutes)
+                        {t("howTo.step3.description", { confirmations: minConfirmations })}
                       </p>
                     </div>
                   </div>
@@ -335,9 +320,9 @@ export default function DepositPage() {
                       <span className="text-sm font-bold text-brand-600 dark:text-brand-400">4</span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Click "Check for Deposits"</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{t("howTo.step4.title")}</p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Use the button below to check for your deposit
+                        {t("howTo.step4.description")}
                       </p>
                     </div>
                   </div>
@@ -347,29 +332,15 @@ export default function DepositPage() {
                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={handleCheckDeposits}
-                    disabled={isCheckingDeposits || linkedWallets.length === 0}
+                    disabled={linkedWallets.length === 0}
                     className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-semibold text-base transition-all shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40"
                   >
-                    {isCheckingDeposits ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        Checking Blockchain...
-                      </>
-                    ) : (
-                      <>
-                        <Search className="h-5 w-5" />
-                        Check for Deposits
-                      </>
-                    )}
+                    <Search className="h-5 w-5" />
+                    {t("checkDeposits.button")}
                   </button>
-                  {lastCheckResult && (
-                    <p className="mt-3 text-center text-sm text-gray-600 dark:text-gray-400">
-                      {lastCheckResult}
-                    </p>
-                  )}
                   {linkedWallets.length === 0 && (
                     <p className="mt-3 text-center text-sm text-amber-600 dark:text-amber-400">
-                      Link a wallet first to check for deposits
+                      {t("checkDeposits.linkWalletFirst")}
                     </p>
                   )}
                 </div>
@@ -381,7 +352,7 @@ export default function DepositPage() {
                   <div className="flex items-center gap-2">
                     <Shield className="h-5 w-5 text-brand-500" />
                     <h4 className="font-semibold text-gray-900 dark:text-white">
-                      Your Linked Wallets
+                      {t("linkedWallets.title")}
                     </h4>
                   </div>
                   <button
@@ -389,7 +360,7 @@ export default function DepositPage() {
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <Link2 className="h-4 w-4" />
-                    <span className="hidden sm:inline">Manage</span>
+                    <span className="hidden sm:inline">{t("linkedWallets.manage")}</span>
                   </button>
                 </div>
 
@@ -400,7 +371,7 @@ export default function DepositPage() {
                 ) : linkedWallets.length > 0 ? (
                   <div className="space-y-3">
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                      Deposits from these wallets will be automatically credited to your account:
+                      {t("linkedWallets.creditInfo")}
                     </p>
                     {linkedWallets.map((wallet) => (
                       <div
@@ -417,7 +388,7 @@ export default function DepositPage() {
                             </span>
                             {wallet.isPrimary && (
                               <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400">
-                                PRIMARY
+                                {t("linkedWallets.primary")}
                               </span>
                             )}
                           </div>
@@ -435,16 +406,16 @@ export default function DepositPage() {
                       <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                     </div>
                     <p className="font-medium text-gray-900 dark:text-white mb-1">
-                      No Wallets Linked
+                      {t("linkedWallets.noWallets.title")}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 max-w-sm mx-auto">
-                      Link a wallet so deposits are automatically matched to your account
+                      {t("linkedWallets.noWallets.description")}
                     </p>
                     <PremiumButton
                       onClick={() => router.push('/settings?tab=wallets')}
                       icon={Link2}
                     >
-                      Link Wallet
+                      {t("linkedWallets.linkWallet")}
                     </PremiumButton>
                   </div>
                 )}
@@ -455,12 +426,12 @@ export default function DepositPage() {
                 <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-                    Important
+                    {t("warning.title")}
                   </p>
                   <ul className="mt-2 text-sm text-amber-700 dark:text-amber-400/80 space-y-1">
-                    <li>• Only send <strong>HBCT tokens</strong> to this address</li>
-                    <li>• Only use <strong>BNB Smart Chain (BSC)</strong> network</li>
-                    <li>• Sending other tokens may result in <strong>permanent loss</strong></li>
+                    <li>• {t("warning.onlyHbct")}</li>
+                    <li>• {t("warning.onlyBsc")}</li>
+                    <li>• {t("warning.permanentLoss")}</li>
                   </ul>
                 </div>
               </div>
@@ -473,6 +444,15 @@ export default function DepositPage() {
           )}
         </div>
       </div>
+
+      {/* Deposit Check Modal */}
+      <DepositCheckModal
+        isOpen={isCheckModalOpen}
+        onClose={() => setIsCheckModalOpen(false)}
+        linkedWallets={linkedWallets}
+        depositAddress={depositAddress}
+        onDepositsFound={handleDepositsFound}
+      />
     </div>
   );
 }

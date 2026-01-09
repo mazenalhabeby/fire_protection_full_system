@@ -13,6 +13,7 @@ const footerLinks = [
   },
   { name: "Tokenomics", href: "/#token-distribution" },
   { name: "Roadmap", href: "/#timeline" },
+  { name: "Support", href: "/help/contact" },
   { name: "Terms", href: "/terms" },
   { name: "Privacy", href: "/privacy" },
   { name: "Audit", href: "/audit" },

@@ -5,10 +5,6 @@ import {
   useAdminWithdrawals,
   useWithdrawalStats,
   useHotWalletStatus,
-  useWithdrawalProcessorStatus,
-  useStartWithdrawalProcessor,
-  useStopWithdrawalProcessor,
-  useTriggerWithdrawalProcessing,
   useApproveWithdrawal,
   useRejectWithdrawal,
   useProcessWithdrawal,
@@ -19,11 +15,8 @@ import { cn } from "@/components/ui";
 import {
   ArrowUpRight,
   RefreshCw,
-  Play,
-  Pause,
   AlertCircle,
   CheckCircle2,
-  Clock,
   XCircle,
   Wallet,
   ExternalLink,
@@ -31,9 +24,11 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  Loader2,
   ShieldAlert,
 } from "lucide-react";
+import { toast } from "sonner";
+import { ApiError } from "@/lib/api/client";
+import { formatTokenBalance } from "@/components/ui/lib/utils";
 import type { WithdrawalRequest, WithdrawalRequestStatus } from "@/types";
 
 const statusConfig: Record<WithdrawalRequestStatus, {
@@ -71,12 +66,8 @@ export default function AdminWithdrawalsPage() {
   });
   const { data: stats, refetch: refetchStats } = useWithdrawalStats();
   const { data: hotWallet, refetch: refetchHotWallet } = useHotWalletStatus();
-  const { data: processorStatus, refetch: refetchProcessor } = useWithdrawalProcessorStatus();
 
   // Mutations
-  const startProcessor = useStartWithdrawalProcessor();
-  const stopProcessor = useStopWithdrawalProcessor();
-  const triggerProcessing = useTriggerWithdrawalProcessing();
   const approveWithdrawal = useApproveWithdrawal();
   const rejectWithdrawal = useRejectWithdrawal();
   const processWithdrawal = useProcessWithdrawal();
@@ -89,33 +80,52 @@ export default function AdminWithdrawalsPage() {
 
   const handleApprove = async (id: string) => {
     if (!confirm("Are you sure you want to approve this withdrawal?")) return;
-    await approveWithdrawal.mutateAsync(id);
-    refetchWithdrawals();
-    refetchStats();
+    try {
+      await approveWithdrawal.mutateAsync(id);
+      toast.success("Withdrawal approved successfully");
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 403) {
+        toast.error("You don't have permission to approve withdrawals");
+      } else {
+        toast.error(error instanceof Error ? error.message : "Failed to approve withdrawal");
+      }
+    }
   };
 
   const handleReject = async (id: string) => {
     if (!rejectReason.trim()) return;
-    await rejectWithdrawal.mutateAsync({ withdrawalId: id, reason: rejectReason });
-    setRejectingId(null);
-    setRejectReason("");
-    refetchWithdrawals();
-    refetchStats();
+    try {
+      await rejectWithdrawal.mutateAsync({ withdrawalId: id, reason: rejectReason });
+      setRejectingId(null);
+      setRejectReason("");
+      toast.success("Withdrawal rejected");
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 403) {
+        toast.error("You don't have permission to reject withdrawals");
+      } else {
+        toast.error(error instanceof Error ? error.message : "Failed to reject withdrawal");
+      }
+    }
   };
 
   const handleProcess = async (id: string) => {
     if (!confirm("Manually process this withdrawal now?")) return;
-    await processWithdrawal.mutateAsync(id);
-    refetchWithdrawals();
-    refetchStats();
-    refetchHotWallet();
+    try {
+      await processWithdrawal.mutateAsync(id);
+      toast.success("Withdrawal processing started");
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 403) {
+        toast.error("You don't have permission to process withdrawals");
+      } else {
+        toast.error(error instanceof Error ? error.message : "Failed to process withdrawal");
+      }
+    }
   };
 
   const handleRefresh = () => {
     refetchWithdrawals();
     refetchStats();
     refetchHotWallet();
-    refetchProcessor();
   };
 
   if (withdrawalsLoading) {
@@ -146,15 +156,15 @@ export default function AdminWithdrawalsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Total Withdrawals"
           value={stats?.totalWithdrawals || 0}
           icon={<ArrowUpRight className="h-5 w-5" />}
         />
         <StatCard
-          label="Total Amount"
-          value={`${parseFloat(stats?.totalAmount || "0").toLocaleString()} HBCT`}
+          label="Total Amount (HBCT)"
+          value={formatTokenBalance(stats?.totalAmount)}
           icon={<ArrowUpRight className="h-5 w-5" />}
         />
         <StatCard
@@ -164,13 +174,8 @@ export default function AdminWithdrawalsPage() {
           variant={stats?.pendingApprovalCount ? "warning" : "default"}
         />
         <StatCard
-          label="Processing"
-          value={stats?.processingCount || 0}
-          icon={<Clock className="h-5 w-5" />}
-        />
-        <StatCard
-          label="Total Fees"
-          value={`${parseFloat(stats?.totalFees || "0").toLocaleString()} HBCT`}
+          label="Total Fees (HBCT)"
+          value={formatTokenBalance(stats?.totalFees)}
           icon={<CheckCircle2 className="h-5 w-5" />}
           variant="success"
         />
@@ -211,56 +216,6 @@ export default function AdminWithdrawalsPage() {
             <span className="text-sm font-medium">Low balance warning! Refill hot wallet.</span>
           </div>
         )}
-      </div>
-
-      {/* Processor Controls */}
-      <div className="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className={cn(
-                "w-3 h-3 rounded-full",
-                processorStatus?.isRunning ? "bg-emerald-500 animate-pulse" : "bg-gray-400"
-              )} />
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
-                Withdrawal Processor: {processorStatus?.isRunning ? "Running" : "Stopped"}
-              </span>
-            </div>
-            {processorStatus?.isRunning && (
-              <span className="text-sm text-gray-500">
-                Queue: {processorStatus.queueSize} | Poll: {(processorStatus.pollingInterval / 1000).toFixed(0)}s
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => triggerProcessing.mutate()}
-              disabled={triggerProcessing.isPending}
-              className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
-            >
-              {triggerProcessing.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Process Now"}
-            </button>
-            {processorStatus?.isRunning ? (
-              <button
-                onClick={() => stopProcessor.mutate()}
-                disabled={stopProcessor.isPending}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/30 transition-colors disabled:opacity-50"
-              >
-                <Pause className="h-4 w-4" />
-                Stop
-              </button>
-            ) : (
-              <button
-                onClick={() => startProcessor.mutate()}
-                disabled={startProcessor.isPending}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 transition-colors disabled:opacity-50"
-              >
-                <Play className="h-4 w-4" />
-                Start
-              </button>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Filters */}

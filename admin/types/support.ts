@@ -12,7 +12,7 @@ export type TicketCategory =
   | 'MARKETPLACE'
   | 'AFFILIATE'
   | 'OTHER';
-export type SenderType = 'USER' | 'ADMIN' | 'SYSTEM';
+export type SenderType = 'USER' | 'ADMIN' | 'SYSTEM' | 'GUEST';
 
 // FAQ Types
 export interface FAQCategory {
@@ -45,6 +45,11 @@ export interface SupportTicket {
   updatedAt: string;
   resolvedAt?: string;
   closedAt?: string;
+  // Guest ticket fields
+  guestEmail?: string;
+  guestName?: string;
+  accessToken?: string;
+  // Relations
   user?: {
     id: string;
     email: string;

@@ -231,6 +231,7 @@ export const adminApi = {
   getAffiliateStats: (): Promise<{
     totalAffiliates: number;
     activeAffiliates: number;
+    totalReferrals: number;
     totalCommissions: string;
     pendingCommissions: string;
     paidCommissions: string;
@@ -414,7 +415,221 @@ export const adminApi = {
   getUserPermissions: (userId: string): Promise<string[]> => {
     return api.get<string[]>(`/admin/roles/users/${userId}/permissions`);
   },
+
+  // ============ BUYBACK POOL ============
+
+  getBuybackStats: (): Promise<BuybackStats> => {
+    return api.get<BuybackStats>('/admin/buyback/stats');
+  },
+
+  getBuybackConfig: (): Promise<BuybackConfig> => {
+    return api.get<BuybackConfig>('/admin/buyback/config');
+  },
+
+  getBuybackWallet: (): Promise<BuybackWallet> => {
+    return api.get<BuybackWallet>('/admin/buyback/wallet');
+  },
+
+  getPendingTotal: (): Promise<BuybackPendingTotal> => {
+    return api.get<BuybackPendingTotal>('/admin/buyback/pending-total');
+  },
+
+  checkBuybackReady: (): Promise<BuybackReadyCheck> => {
+    return api.get<BuybackReadyCheck>('/admin/buyback/check-ready');
+  },
+
+  executeBuybacks: (): Promise<BuybackExecuteResult> => {
+    return api.post('/admin/buyback/execute');
+  },
+
+  executeBuyback: (id: string): Promise<{
+    success: boolean;
+    buybackId: string;
+    amountBoughtHbct?: string;
+    txHash?: string;
+    error?: string;
+  }> => {
+    return api.post(`/admin/buyback/execute/${id}`);
+  },
+
+  verifySwapConfig: (): Promise<BuybackSwapConfig> => {
+    return api.get<BuybackSwapConfig>('/admin/buyback/verify-swap');
+  },
+
+  createTestBuybackAllocations: (): Promise<{
+    success: boolean;
+    message: string;
+    allocations: { id: string; currency: string; amount: string; usdValue: string }[];
+  }> => {
+    return api.post('/admin/buyback/test-allocations');
+  },
+
+  getBuybackAllocations: (params?: {
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<BuybackAllocationsResponse> => {
+    return api.get<BuybackAllocationsResponse>('/admin/buyback/allocations', params);
+  },
+
+  getBuybackExecutions: (params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<BuybackExecutionsResponse> => {
+    return api.get<BuybackExecutionsResponse>('/admin/buyback/executions', params);
+  },
 };
+
+// Buyback types
+export interface BuybackStats {
+  totalAllocatedUsd: number;
+  totalExecutedUsd: number;
+  totalHbctBought: number;
+  pendingCount: number;
+  completedCount: number;
+  failedCount: number;
+  pendingByCurrency: {
+    currency: string;
+    amount: number;
+    usdValue: number;
+  }[];
+}
+
+export interface BuybackConfig {
+  enabled: boolean;
+  percentageOfPayment: number;
+  minAmountToExecute: number;
+  autoExecute: boolean;
+}
+
+export interface BuybackWallet {
+  success: boolean;
+  walletAddress: string | null;
+  balances: {
+    bnb: string;
+    usdt: string;
+    usdc: string;
+    hbct: string;
+  };
+  bnbPriceUsd: number;
+  bnbPriceSource: string;
+}
+
+export interface BuybackPendingTotal {
+  success: boolean;
+  totalBnbRequired: number;
+  breakdown: {
+    currency: string;
+    amount: number;
+    bnbEquivalent: number;
+    usdValue: number;
+    txCount: number;
+  }[];
+  estimatedGasFee: number;
+  gasPriceGwei: number;
+  totalWithGas: number;
+  totalTxCount: number;
+  bnbPriceUsd: number;
+  dataSource: {
+    bnbPrice: string;
+    gasPrice: string;
+  };
+}
+
+export interface BuybackReadyCheck {
+  ready: boolean;
+  walletAddress: string | null;
+  currentBnbBalance: number;
+  requiredBnb: number;
+  requiredGas: number;
+  totalRequired: number;
+  shortfall: number;
+  message: string;
+}
+
+export interface BuybackExecuteResult {
+  success: boolean;
+  message: string;
+  executionId?: string;
+  totalProcessed: number;
+  totalBnbSwapped: number;
+  totalHbctBought: number;
+  txHash?: string;
+  shortfall?: number;
+  error?: string;
+}
+
+export interface BuybackSwapConfig {
+  success: boolean;
+  hbctAddress: string;
+  wbnbAddress: string;
+  routerAddress: string;
+  walletAddress: string | null;
+  canGetQuote: boolean;
+  testQuoteError?: string;
+  testQuoteAmount?: string;
+}
+
+export interface BuybackAllocation {
+  id: string;
+  purchaseId: string;
+  userId: string;
+  userEmail: string | null;
+  userName: string | null;
+  amount: string;
+  currency: string;
+  usdValue: string;
+  status: string;
+  hbctBought: string | null;
+  swapTxHash: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+  executedAt: string | null;
+  completedAt: string | null;
+}
+
+export interface BuybackAllocationsResponse {
+  allocations: BuybackAllocation[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface BuybackExecution {
+  id: string;
+  totalBnbSwapped: string;
+  totalUsdValue: string;
+  totalHbctBought: string | null;
+  bnbPriceUsd: string;
+  status: string;
+  swapTxHash: string | null;
+  errorMessage: string | null;
+  allocationCount: number;
+  createdAt: string;
+  executedAt: string | null;
+  completedAt: string | null;
+  allocations: {
+    id: string;
+    amount: string;
+    currency: string;
+    usdValue: string;
+    hbctBought: string | null;
+    status: string;
+  }[];
+}
+
+export interface BuybackExecutionsResponse {
+  executions: BuybackExecution[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
 
 // Admin User Details type
 export interface AdminUserDetails {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Wallet, ChevronRight, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useWallet, useCorrectChain } from "@/hooks/useWallet";
 import { WalletConnectModal } from "./WalletConnectModal";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ interface WalletButtonMobileProps {
 }
 
 export function WalletButtonMobile({ className, onNavigate }: WalletButtonMobileProps) {
+  const t = useTranslations("wallet");
   const {
     shortAddress,
     isConnected,
@@ -54,7 +56,7 @@ export function WalletButtonMobile({ className, onNavigate }: WalletButtonMobile
           )}
         >
           <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Connecting...</span>
+          <span>{t("connecting")}</span>
         </div>
         <WalletConnectModal isOpen={isModalOpen} onClose={closeModal} />
       </>
@@ -98,7 +100,7 @@ export function WalletButtonMobile({ className, onNavigate }: WalletButtonMobile
           {/* Content with slide animation */}
           <div className="relative overflow-hidden min-w-[80px]">
             {!isConnected ? (
-              <span>Connect</span>
+              <span>{t("connect")}</span>
             ) : (
               <div
                 className={cn(

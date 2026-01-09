@@ -43,6 +43,47 @@ export const supportApi = {
     api.post<{ success: boolean; message: string }>('/support/contact', data),
 
   // ============================================
+  // Guest Ticket Endpoints (Public)
+  // ============================================
+
+  /**
+   * Create a guest ticket (no login required)
+   */
+  createGuestTicket: (data: {
+    subject: string;
+    message: string;
+    email: string;
+    name: string;
+    category?: string;
+    priority?: string;
+  }) =>
+    api.post<{ ticketNumber: string; accessToken: string; message: string }>(
+      '/support/guest/tickets',
+      data
+    ),
+
+  /**
+   * Get guest ticket by access token
+   */
+  getGuestTicket: (token: string) =>
+    api.get<SupportTicket>(`/support/guest/tickets/${token}`),
+
+  /**
+   * Request ticket access link (sends email)
+   */
+  requestTicketAccess: (data: { ticketNumber: string; email: string }) =>
+    api.post<{ success: boolean; message: string }>(
+      '/support/guest/tickets/access',
+      data
+    ),
+
+  /**
+   * Reply to guest ticket
+   */
+  replyToGuestTicket: (data: { accessToken: string; content: string }) =>
+    api.post<TicketMessage>('/support/guest/tickets/reply', data),
+
+  // ============================================
   // User Ticket Endpoints
   // ============================================
 

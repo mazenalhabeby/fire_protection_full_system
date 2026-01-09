@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   useWalletTransactionHistory,
   useWalletTransactionSummary,
@@ -30,6 +31,7 @@ import type {
 export default function TransactionsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("wallet.transactions");
 
   // Filters from URL
   const initialStatus = searchParams.get("status") as WalletTransactionStatus | null;
@@ -102,10 +104,10 @@ export default function TransactionsPage() {
             </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                HBCT Transaction History
+                {t("title")}
               </h1>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                {total} transaction{total !== 1 ? "s" : ""}
+                {total !== 1 ? t("transactionCountPlural", { count: total }) : t("transactionCount", { count: total })}
               </p>
             </div>
           </div>
@@ -121,7 +123,7 @@ export default function TransactionsPage() {
               )}
             >
               <Filter className="h-4 w-4" />
-              Filters
+              {t("filters")}
               {hasFilters && (
                 <span className={cn(
                   "w-5 h-5 rounded-full text-xs flex items-center justify-center",
@@ -136,7 +138,7 @@ export default function TransactionsPage() {
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm"
             >
               <Download className="h-4 w-4" />
-              Export
+              {t("export")}
             </button>
           </div>
         </div>
@@ -145,14 +147,14 @@ export default function TransactionsPage() {
         {showFilters && (
           <div className="mb-6 p-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-gray-900 dark:text-white">Filters</h3>
+              <h3 className="font-medium text-gray-900 dark:text-white">{t("filters")}</h3>
               {hasFilters && (
                 <button
                   onClick={clearFilters}
                   className="text-sm text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1"
                 >
                   <X className="h-4 w-4" />
-                  Clear all
+                  {t("clearAll")}
                 </button>
               )}
             </div>
@@ -160,7 +162,7 @@ export default function TransactionsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Status Filter */}
               <div>
-                <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">Status</label>
+                <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">{t("status")}</label>
                 <select
                   value={status || ""}
                   onChange={(e) => {
@@ -169,7 +171,7 @@ export default function TransactionsPage() {
                   }}
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                 >
-                  <option value="">All statuses</option>
+                  <option value="">{t("allStatuses")}</option>
                   <option value="PENDING">Pending</option>
                   <option value="PROCESSING">Processing</option>
                   <option value="COMPLETED">Completed</option>
@@ -180,7 +182,7 @@ export default function TransactionsPage() {
 
               {/* Type Filter */}
               <div>
-                <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">Type</label>
+                <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">{t("type")}</label>
                 <select
                   value={type || ""}
                   onChange={(e) => {
@@ -189,7 +191,7 @@ export default function TransactionsPage() {
                   }}
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                 >
-                  <option value="">All types</option>
+                  <option value="">{t("allTypes")}</option>
                   <option value="DEPOSIT">Deposit</option>
                   <option value="WITHDRAWAL">Withdrawal</option>
                   <option value="INTERNAL_TRANSFER_SEND">Sent</option>
@@ -209,7 +211,7 @@ export default function TransactionsPage() {
             <div className="p-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-1">
                 <TrendingUp className="h-4 w-4 text-emerald-500" />
-                Total In
+                {t("summary.totalIn")}
               </div>
               <p className="text-lg font-bold text-gray-900 dark:text-white">
                 {parseFloat(summary.totalIn).toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">HBCT</span>
@@ -218,7 +220,7 @@ export default function TransactionsPage() {
             <div className="p-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-1">
                 <TrendingDown className="h-4 w-4 text-red-500" />
-                Total Out
+                {t("summary.totalOut")}
               </div>
               <p className="text-lg font-bold text-gray-900 dark:text-white">
                 {parseFloat(summary.totalOut).toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">HBCT</span>
@@ -227,10 +229,10 @@ export default function TransactionsPage() {
             <div className="p-4 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-1">
                 <Calendar className="h-4 w-4 text-brand-500" />
-                This Month
+                {t("summary.thisMonth")}
               </div>
               <p className="text-lg font-bold text-gray-900 dark:text-white">
-                {summary.transactionCount} tx
+                {summary.transactionCount} {t("summary.tx")}
               </p>
             </div>
           </div>
@@ -242,8 +244,8 @@ export default function TransactionsPage() {
             <div className="p-12">
               <EmptyState
                 icon={Calendar}
-                message="No transactions found"
-                description={hasFilters ? "Try adjusting your filters" : "Your HBCT transaction history will appear here"}
+                message={t("empty")}
+                description={hasFilters ? t("emptyWithFilters") : t("emptyDesc")}
                 size="lg"
               />
             </div>
@@ -266,7 +268,7 @@ export default function TransactionsPage() {
               )}
             >
               <ChevronLeft className="h-4 w-4" />
-              Previous
+              {t("previous")}
             </button>
             <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -306,7 +308,7 @@ export default function TransactionsPage() {
                 "disabled:opacity-50 disabled:cursor-not-allowed"
               )}
             >
-              Next
+              {t("next")}
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -86,15 +87,15 @@ const maskIpAddress = (ip: string | null, showFull: boolean = false) => {
 };
 
 // Format time ago
-const getTimeAgo = (dateString: string) => {
+const getTimeAgo = (dateString: string, t: (key: string, values?: Record<string, unknown>) => string) => {
   const date = new Date(dateString);
   const now = new Date();
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (seconds < 60) return "Just now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+  if (seconds < 60) return t("time.justNow");
+  if (seconds < 3600) return t("time.minutesAgo", { count: Math.floor(seconds / 60) });
+  if (seconds < 86400) return t("time.hoursAgo", { count: Math.floor(seconds / 3600) });
+  if (seconds < 604800) return t("time.daysAgo", { count: Math.floor(seconds / 86400) });
   return date.toLocaleDateString();
 };
 
@@ -125,6 +126,7 @@ const isSessionSuspicious = (session: Session, currentSession: Session | null) =
 };
 
 export function ActiveSessionsSection() {
+  const t = useTranslations("settings.sessions");
   const { getSessions, revokeSession, logoutAllOtherSessions, trustDevice, untrustDevice } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -141,7 +143,7 @@ export function ActiveSessionsSection() {
       const sessionsData = await getSessions();
       setSessions(sessionsData);
     } catch (error) {
-      toast.error("Failed to load sessions");
+      toast.error(t("loadError"));
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -157,9 +159,9 @@ export function ActiveSessionsSection() {
     try {
       await revokeSession(sessionId);
       setSessions((prev) => prev.filter((s) => s.id !== sessionId));
-      toast.success("Session revoked successfully");
+      toast.success(t("revokeSuccess"));
     } catch (error: any) {
-      toast.error(error.message || "Failed to revoke session");
+      toast.error(error.message || t("revokeError"));
     } finally {
       setRevokingSessionId(null);
     }
@@ -170,9 +172,9 @@ export function ActiveSessionsSection() {
     try {
       const count = await logoutAllOtherSessions();
       setSessions((prev) => prev.filter((s) => s.isCurrent));
-      toast.success(`Revoked ${count} session${count !== 1 ? "s" : ""}`);
+      toast.success(t("revokedCount", { count }));
     } catch (error: any) {
-      toast.error(error.message || "Failed to revoke sessions");
+      toast.error(error.message || t("revokeError"));
     } finally {
       setIsRevokingAll(false);
     }
@@ -187,9 +189,9 @@ export function ActiveSessionsSection() {
           s.id === sessionId ? { ...s, isTrusted: true } : s
         )
       );
-      toast.success("Device marked as trusted");
+      toast.success(t("trustSuccess"));
     } catch (error: any) {
-      toast.error(error.message || "Failed to trust device");
+      toast.error(error.message || t("trustError"));
     } finally {
       setTrustingSessionId(null);
     }
@@ -204,9 +206,9 @@ export function ActiveSessionsSection() {
           s.id === sessionId ? { ...s, isTrusted: false, trustDeviceName: null } : s
         )
       );
-      toast.success("Device trust removed");
+      toast.success(t("untrustSuccess"));
     } catch (error: any) {
-      toast.error(error.message || "Failed to remove trust");
+      toast.error(error.message || t("untrustError"));
     } finally {
       setTrustingSessionId(null);
     }
@@ -237,7 +239,7 @@ export function ActiveSessionsSection() {
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-100 to-brand-200 dark:from-brand-900/30 dark:to-brand-800/30 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-brand-600 dark:text-brand-400" />
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading sessions...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t("loading")}</p>
         </div>
       </div>
     );
@@ -271,10 +273,10 @@ export function ActiveSessionsSection() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Active Sessions
+                  {t("title")}
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                  Manage devices logged into your account
+                  {t("description")}
                 </p>
               </div>
             </div>
@@ -284,7 +286,7 @@ export function ActiveSessionsSection() {
                 size="sm"
                 onClick={() => setShowFullIp(!showFullIp)}
                 className="text-gray-500 hover:text-gray-700"
-                title={showFullIp ? "Hide full IP" : "Show full IP"}
+                title={showFullIp ? t("hideFullIp") : t("showFullIp")}
               >
                 {showFullIp ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
@@ -304,7 +306,7 @@ export function ActiveSessionsSection() {
             <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
               <div className="flex items-center gap-2">
                 <Monitor className="h-4 w-4 text-gray-500" />
-                <span className="text-xs text-gray-500 dark:text-gray-400">Active</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{t("stats.active")}</span>
               </div>
               <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
                 {stats.total}<span className="text-sm font-normal text-gray-400">/{MAX_SESSIONS_PER_USER}</span>
@@ -313,14 +315,14 @@ export function ActiveSessionsSection() {
             <div className="p-3 rounded-xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-                <span className="text-xs text-brand-600 dark:text-brand-400">Trusted</span>
+                <span className="text-xs text-brand-600 dark:text-brand-400">{t("stats.trusted")}</span>
               </div>
               <p className="mt-1 text-2xl font-semibold text-brand-700 dark:text-brand-300">{stats.trusted}</p>
             </div>
             <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-xs text-blue-600 dark:text-blue-400">Other</span>
+                <span className="text-xs text-blue-600 dark:text-blue-400">{t("stats.other")}</span>
               </div>
               <p className="mt-1 text-2xl font-semibold text-blue-700 dark:text-blue-300">{stats.other}</p>
             </div>
@@ -342,7 +344,7 @@ export function ActiveSessionsSection() {
                   stats.suspicious > 0
                     ? "text-amber-600 dark:text-amber-400"
                     : "text-gray-500 dark:text-gray-400"
-                )}>Review</span>
+                )}>{t("stats.review")}</span>
               </div>
               <p className={cn(
                 "mt-1 text-2xl font-semibold",
@@ -368,7 +370,7 @@ export function ActiveSessionsSection() {
                 ) : (
                   <LogOut className="h-4 w-4 mr-2" />
                 )}
-                Revoke All Other Sessions
+                {t("revokeAll")}
               </Button>
             </div>
           )}
@@ -381,12 +383,10 @@ export function ActiveSessionsSection() {
               <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                  Suspicious activity detected
+                  {t("suspicious.title")}
                 </p>
                 <p className="text-sm text-amber-700 dark:text-amber-300 mt-0.5">
-                  {stats.suspicious} session{stats.suspicious !== 1 ? "s" : ""} from
-                  {stats.suspicious === 1 ? " a different location" : " different locations"}.
-                  Review and revoke any you don't recognize.
+                  {t("suspicious.description", { count: stats.suspicious })}
                 </p>
               </div>
             </div>
@@ -420,6 +420,7 @@ export function ActiveSessionsSection() {
               onUntrust={() => handleUntrustDevice(stats.currentSession!.id)}
               isTrusting={trustingSessionId === stats.currentSession.id}
               showFullIp={showFullIp}
+              t={t}
             />
           </div>
         )}
@@ -448,6 +449,7 @@ export function ActiveSessionsSection() {
                   onUntrust={() => handleUntrustDevice(session.id)}
                   isTrusting={trustingSessionId === session.id}
                   showFullIp={showFullIp}
+                  t={t}
                 />
               ))}
             </div>
@@ -483,6 +485,7 @@ interface SessionCardProps {
   onUntrust?: () => void;
   isTrusting?: boolean;
   showFullIp?: boolean;
+  t: (key: string, values?: Record<string, unknown>) => string;
 }
 
 function SessionCard({
@@ -497,6 +500,7 @@ function SessionCard({
   onUntrust,
   isTrusting = false,
   showFullIp = false,
+  t,
 }: SessionCardProps) {
   const DeviceIcon = getDeviceIcon(session.deviceType);
   const osInfo = getOSInfo(session.os);
@@ -529,24 +533,24 @@ function SessionCard({
                 </span>
                 {isCurrent && (
                   <Badge variant="success" size="sm">
-                    This device
+                    {t("currentSession")}
                   </Badge>
                 )}
                 {session.isTrusted && (
                   <Badge variant="default" size="sm" className="bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
                     <ShieldCheck className="h-3 w-3 mr-1" />
-                    Trusted
+                    {t("trusted")}
                   </Badge>
                 )}
                 {session.isVpnDetected && (
                   <Badge variant="danger" size="sm">
                     <WifiOff className="h-3 w-3 mr-1" />
-                    VPN
+                    {t("vpn")}
                   </Badge>
                 )}
                 {isSuspicious && !session.isVpnDetected && (
                   <Badge variant="warning" size="sm">
-                    Review
+                    {t("stats.review")}
                   </Badge>
                 )}
               </div>
@@ -555,7 +559,7 @@ function SessionCard({
                 <span className="text-gray-300 dark:text-gray-600">•</span>
                 <div className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>{getTimeAgo(session.lastActivityAt)}</span>
+                  <span>{getTimeAgo(session.lastActivityAt, t)}</span>
                 </div>
                 {(session.city || session.country) && (
                   <>
@@ -686,7 +690,7 @@ function SessionCard({
                   ) : (
                     <>
                       <Shield className="h-4 w-4 mr-1.5" />
-                      Remove Trust
+                      {t("removeTrust")}
                     </>
                   )}
                 </Button>
@@ -706,7 +710,7 @@ function SessionCard({
                   ) : (
                     <>
                       <ShieldCheck className="h-4 w-4 mr-1.5" />
-                      Trust Device
+                      {t("trustDevice")}
                     </>
                   )}
                 </Button>
@@ -727,7 +731,7 @@ function SessionCard({
                   ) : (
                     <>
                       <XCircle className="h-4 w-4 mr-1.5" />
-                      Revoke Session
+                      {t("revokeSession")}
                     </>
                   )}
                 </Button>

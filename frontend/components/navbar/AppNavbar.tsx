@@ -3,9 +3,10 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Link } from "@/i18n/navigation";
 import { usePathname, useRouter } from "@/i18n/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Menu, X, User, LogOut, ChevronDown, ChevronLeft, UserPlus, ArrowRight, Sun, Moon, Monitor, Globe, Check, Settings, HelpCircle, Users, Wallet, Link2, Bell, Shield } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { cn, capitalize, formatName, formatTokenBalance } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggleCompact } from "@/components/ui/theme-toggle";
@@ -21,6 +22,8 @@ const languages = [
   { code: "en" as Locale, name: "English", flag: "🇺🇸", short: "EN" },
   { code: "de" as Locale, name: "Deutsch", flag: "🇩🇪", short: "DE" },
   { code: "fr" as Locale, name: "Français", flag: "🇫🇷", short: "FR" },
+  { code: "es" as Locale, name: "Español", flag: "🇪🇸", short: "ES" },
+  { code: "it" as Locale, name: "Italiano", flag: "🇮🇹", short: "IT" },
 ];
 
 interface NavItem {
@@ -36,12 +39,13 @@ interface AppNavbarProps {
   className?: string;
 }
 
-const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", protected: true },
-  { href: "/buy-tokens", label: "Buy Tokens", protected: true },
-  { href: "/locking", label: "Locking", protected: true },
-  { href: "/marketplace", label: "Marketplace", protected: true, comingSoon: true },
+const navItemsConfig: { href: string; labelKey: string; protected?: boolean; adminOnly?: boolean; comingSoon?: boolean }[] = [
+  { href: "/dashboard", labelKey: "dashboard", protected: true },
+  { href: "/buy-tokens", labelKey: "buyTokens", protected: true },
+  { href: "/locking", labelKey: "locking", protected: true },
+  { href: "/marketplace", labelKey: "marketplace", protected: true, comingSoon: true },
 ];
+
 
 // Navbar skeleton shown during auth loading
 function NavbarSkeleton() {
@@ -83,6 +87,8 @@ function NavbarSkeleton() {
 export function AppNavbar({ className }: AppNavbarProps) {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const { hasSessionHint } = useInitialHints();
+  const t = useTranslations("navigation");
+  const tNavbar = useTranslations("navbar");
 
   // Show skeleton while loading OR if we have session hint but auth not verified yet
   // This prevents flash of unauthenticated UI when user is actually logged in
@@ -178,7 +184,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
   }, [isMobileMenuOpen]);
 
   // Filter nav items based on auth state
-  const visibleNavItems = navItems.filter((item) => {
+  const visibleNavItems = navItemsConfig.filter((item) => {
     if (item.protected && !isAuthenticated) return false;
     if (item.adminOnly && user?.role !== "ADMIN") return false;
     return true;
@@ -220,9 +226,9 @@ export function AppNavbar({ className }: AppNavbarProps) {
                       "text-gray-400 dark:text-gray-500 cursor-not-allowed"
                     )}
                   >
-                    {item.label}
+                    {t(item.labelKey)}
                     <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
-                      Soon
+                      {t("comingSoon")}
                     </span>
                   </div>
                 ) : (
@@ -244,7 +250,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                           ]
                     )}
                   >
-                    {item.label}
+                    {t(item.labelKey)}
                     {/* Active indicator */}
                     {isActiveLink(item.href) && (
                       <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand-500" />
@@ -299,7 +305,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                     >
                       <Wallet className="h-4 w-4" />
                       <div className="flex flex-col items-start leading-none">
-                        <span className="text-[10px] text-gray-400 dark:text-gray-500">My Wallet</span>
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500">{tNavbar("myWallet")}</span>
                         <span className="font-semibold">{displayBalance} <span className="text-[10px] font-normal text-gray-500 dark:text-gray-400">HBCT</span></span>
                       </div>
                     </Link>
@@ -333,9 +339,15 @@ export function AppNavbar({ className }: AppNavbarProps) {
                     >
                       {/* Avatar with status */}
                       <div className="relative">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white text-sm font-bold shadow-md shadow-brand-500/30">
-                          {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || "U"}
-                        </div>
+                        <UserAvatar
+                          src={user?.profileImageUrl}
+                          firstName={user?.firstName}
+                          lastName={user?.lastName}
+                          email={user?.email}
+                          username={user?.username}
+                          size="sm"
+                          className="shadow-md shadow-brand-500/30"
+                        />
                         {/* Online status */}
                         <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-800" />
                       </div>
@@ -345,7 +357,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                         <span className="text-xs font-semibold text-gray-900 dark:text-white max-w-[80px] truncate">
                           {capitalize(user?.firstName) || user?.email?.split("@")[0]}
                         </span>
-                        <span className="text-[10px] text-gray-400 dark:text-gray-500">View Profile</span>
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500">{tNavbar("viewProfile")}</span>
                       </div>
 
                       {/* Chevron */}
@@ -376,9 +388,15 @@ export function AppNavbar({ className }: AppNavbarProps) {
                             onClick={() => setIsUserMenuOpen(false)}
                             className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
                           >
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white text-lg font-semibold shadow-lg">
-                              {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || "U"}
-                            </div>
+                            <UserAvatar
+                              src={user?.profileImageUrl}
+                              firstName={user?.firstName}
+                              lastName={user?.lastName}
+                              email={user?.email}
+                              username={user?.username}
+                              size="lg"
+                              className="shadow-lg"
+                            />
                             <div className="flex-1 min-w-0">
                               <p className="text-[15px] font-semibold text-gray-900 dark:text-white truncate">
                                 {formatName(user?.firstName, user?.lastName)}
@@ -403,8 +421,8 @@ export function AppNavbar({ className }: AppNavbarProps) {
                               <Wallet className="h-5 w-5 text-white" />
                             </div>
                             <div className="flex-1">
-                              <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">My Wallet</span>
-                              <p className="text-[11px] text-gray-500 dark:text-gray-400">Send, receive & manage tokens</p>
+                              <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">{tNavbar("myWallet")}</span>
+                              <p className="text-[11px] text-gray-500 dark:text-gray-400">{tNavbar("sendReceiveTokens")}</p>
                             </div>
                           </Link>
 
@@ -418,15 +436,15 @@ export function AppNavbar({ className }: AppNavbarProps) {
                               <Users className="h-5 w-5 text-white" />
                             </div>
                             <div className="flex-1">
-                              <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">Affiliates</span>
-                              <p className="text-[11px] text-gray-500 dark:text-gray-400">Earn commissions on referrals</p>
+                              <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">{t("affiliates")}</span>
+                              <p className="text-[11px] text-gray-500 dark:text-gray-400">{tNavbar("earnCommissions")}</p>
                             </div>
                           </Link>
 
                           {/* Admin Button - For admins or users with RBAC roles */}
                           {(user?.role === "ADMIN" || user?.roleId) && (
                             <a
-                              href={process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3002"}
+                              href={process.env.NEXT_PUBLIC_ADMIN_URL || "/admin"}
                               onClick={() => setIsUserMenuOpen(false)}
                               className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors group"
                             >
@@ -434,8 +452,8 @@ export function AppNavbar({ className }: AppNavbarProps) {
                                 <Shield className="h-5 w-5 text-white" />
                               </div>
                               <div className="flex-1">
-                                <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">Admin Panel</span>
-                                <p className="text-[11px] text-gray-500 dark:text-gray-400">Manage system settings</p>
+                                <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">{tNavbar("adminPanel")}</span>
+                                <p className="text-[11px] text-gray-500 dark:text-gray-400">{tNavbar("manageSystem")}</p>
                               </div>
                             </a>
                           )}
@@ -458,7 +476,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                                 )}
                               </div>
                               <div>
-                                <p className="text-[13px] font-medium text-gray-800 dark:text-gray-100">Appearance</p>
+                                <p className="text-[13px] font-medium text-gray-800 dark:text-gray-100">{tNavbar("appearance")}</p>
                               </div>
                             </div>
                             <div className="grid grid-cols-3 gap-1.5 p-1 bg-gray-100 dark:bg-gray-700/50 rounded-xl">
@@ -472,7 +490,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                                 )}
                               >
                                 <Sun className="h-4 w-4" />
-                                <span className="text-[11px] font-medium">Light</span>
+                                <span className="text-[11px] font-medium">{tNavbar("light")}</span>
                               </button>
                               <button
                                 onClick={() => setTheme('dark')}
@@ -484,7 +502,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                                 )}
                               >
                                 <Moon className="h-4 w-4" />
-                                <span className="text-[11px] font-medium">Dark</span>
+                                <span className="text-[11px] font-medium">{tNavbar("dark")}</span>
                               </button>
                               <button
                                 onClick={() => setTheme('system')}
@@ -496,7 +514,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                                 )}
                               >
                                 <Monitor className="h-4 w-4" />
-                                <span className="text-[11px] font-medium">Auto</span>
+                                <span className="text-[11px] font-medium">{tNavbar("auto")}</span>
                               </button>
                             </div>
                           </div>
@@ -516,7 +534,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                                 <Globe className="h-5 w-5 text-white" />
                               </div>
                               <div className="text-left">
-                                <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100 block">Language</span>
+                                <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100 block">{tNavbar("language")}</span>
                                 <span className="text-[12px] text-gray-500 dark:text-gray-400">
                                   {languages.find(l => l.code === locale)?.name || 'English'}
                                 </span>
@@ -540,7 +558,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                               <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
                                 <Settings className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                               </div>
-                              <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">Settings</span>
+                              <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">{tNavbar("settings")}</span>
                             </div>
                             <ChevronDown className="h-4 w-4 text-gray-400 -rotate-90" />
                           </Link>
@@ -554,7 +572,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                               <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
                                 <HelpCircle className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                               </div>
-                              <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">Help & Support</span>
+                              <span className="text-[15px] font-medium text-gray-800 dark:text-gray-100">{tNavbar("helpSupport")}</span>
                             </div>
                             <ChevronDown className="h-4 w-4 text-gray-400 -rotate-90" />
                           </Link>
@@ -575,7 +593,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                             <div className="w-9 h-9 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center group-hover:bg-red-200 dark:group-hover:bg-red-900/50 transition-colors">
                               <LogOut className="h-5 w-5 text-red-600 dark:text-red-400" />
                             </div>
-                            <span className="text-[15px] font-medium text-red-600 dark:text-red-400">Log Out</span>
+                            <span className="text-[15px] font-medium text-red-600 dark:text-red-400">{tNavbar("logOut")}</span>
                           </button>
                         </div>
                       </div>
@@ -598,7 +616,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                             <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                               <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                             </div>
-                            <span className="text-[17px] font-semibold text-gray-900 dark:text-white">Language</span>
+                            <span className="text-[17px] font-semibold text-gray-900 dark:text-white">{tNavbar("language")}</span>
                           </button>
                         </div>
 
@@ -670,7 +688,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                   )}
                 >
                   <UserPlus className="h-4 w-4" />
-                  Register
+                  {t("register")}
                 </Link>
 
                 {/* Premium Login Button */}
@@ -688,7 +706,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                   <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
                   <span className="relative flex items-center gap-1.5">
-                    Login
+                    {t("login")}
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 </Link>
@@ -764,9 +782,14 @@ export function AppNavbar({ className }: AppNavbarProps) {
               {isAuthenticated ? (
                 <>
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold">
-                      {user?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || "U"}
-                    </div>
+                    <UserAvatar
+                      src={user?.profileImageUrl}
+                      firstName={user?.firstName}
+                      lastName={user?.lastName}
+                      email={user?.email}
+                      username={user?.username}
+                      size="md"
+                    />
                     <div>
                       <p className="text-white font-semibold">
                         {capitalize(user?.firstName) || "User"}
@@ -781,11 +804,11 @@ export function AppNavbar({ className }: AppNavbarProps) {
                 <>
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
-                    <p className="text-brand-400 text-xs font-medium uppercase tracking-wider">Welcome to HBCT</p>
+                    <p className="text-brand-400 text-xs font-medium uppercase tracking-wider">{tNavbar("welcomeToHbct")}</p>
                   </div>
-                  <h2 className="text-white font-bold text-lg mb-1">Fire Protection</h2>
+                  <h2 className="text-white font-bold text-lg mb-1">{tNavbar("fireProtection")}</h2>
                   <p className="text-white/50 text-xs leading-relaxed">
-                    Revolutionary blockchain technology for fire safety
+                    {tNavbar("revolutionaryBlockchain")}
                   </p>
                 </>
               )}
@@ -817,9 +840,9 @@ export function AppNavbar({ className }: AppNavbarProps) {
                         "border border-transparent"
                       )}
                     >
-                      {item.label}
+                      {t(item.labelKey)}
                       <span className="ml-auto px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-full bg-amber-500/20 text-amber-400">
-                        Coming Soon
+                        {t("comingSoonFull")}
                       </span>
                     </div>
                   ) : (
@@ -846,7 +869,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                       {isActiveLink(item.href) && (
                         <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
                       )}
-                      {item.label}
+                      {t(item.labelKey)}
                       {/* Active arrow */}
                       {isActiveLink(item.href) && (
                         <ArrowRight className="ml-auto h-4 w-4 text-brand-400" />
@@ -888,7 +911,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                       <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                         <Wallet className="h-3.5 w-3.5 text-white" />
                       </div>
-                      My Wallet
+                      {tNavbar("myWallet")}
                       {isActiveLink("/wallet") && (
                         <ArrowRight className="ml-auto h-4 w-4 text-emerald-400" />
                       )}
@@ -919,7 +942,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                       <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
                         <Users className="h-3.5 w-3.5 text-white" />
                       </div>
-                      Affiliates
+                      {t("affiliates")}
                       {isActiveLink("/affiliates") && (
                         <ArrowRight className="ml-auto h-4 w-4 text-purple-400" />
                       )}
@@ -943,7 +966,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                         <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center">
                           <Shield className="h-3.5 w-3.5 text-white" />
                         </div>
-                        Admin Panel
+                        {tNavbar("adminPanel")}
                       </a>
                     </li>
                   )}
@@ -962,7 +985,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                       )}
                     >
                       <Settings className="h-5 w-5 text-white/60" />
-                      Settings
+                      {tNavbar("settings")}
                       <ChevronDown className="ml-auto h-4 w-4 text-white/40 -rotate-90" />
                     </Link>
                   </li>
@@ -989,7 +1012,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                       )}
                     >
                       <HelpCircle className="h-5 w-5 text-white/60" />
-                      Help & Support
+                      {tNavbar("helpSupport")}
                       {isActiveLink("/help") ? (
                         <ArrowRight className="ml-auto h-4 w-4 text-brand-400" />
                       ) : (
@@ -1016,8 +1039,8 @@ export function AppNavbar({ className }: AppNavbarProps) {
                     )}
                   </div>
                   <div>
-                    <p className="text-white font-medium text-sm">Appearance</p>
-                    <p className="text-white/50 text-xs">Choose your theme</p>
+                    <p className="text-white font-medium text-sm">{tNavbar("appearance")}</p>
+                    <p className="text-white/50 text-xs">{tNavbar("chooseTheme")}</p>
                   </div>
                 </div>
 
@@ -1043,7 +1066,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                         mounted && theme === 'light' && "animate-spin-slow"
                       )} />
                     </div>
-                    <span className="text-xs font-medium">Light</span>
+                    <span className="text-xs font-medium">{tNavbar("light")}</span>
                   </button>
 
                   <button
@@ -1066,7 +1089,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                         mounted && theme === 'dark' && "rotate-[-20deg]"
                       )} />
                     </div>
-                    <span className="text-xs font-medium">Dark</span>
+                    <span className="text-xs font-medium">{tNavbar("dark")}</span>
                   </button>
 
                   <button
@@ -1086,7 +1109,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                     )}>
                       <Monitor className="h-5 w-5" />
                     </div>
-                    <span className="text-xs font-medium">Auto</span>
+                    <span className="text-xs font-medium">{tNavbar("auto")}</span>
                   </button>
                 </div>
               </div>
@@ -1102,7 +1125,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                       <Globe className="h-5 w-5 text-white" />
                     </div>
                     <div className="text-left">
-                      <p className="text-white font-medium text-sm">Language</p>
+                      <p className="text-white font-medium text-sm">{tNavbar("language")}</p>
                       <p className="text-white/50 text-xs">{languages.find(l => l.code === locale)?.name || 'English'}</p>
                     </div>
                   </div>
@@ -1131,7 +1154,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                   )}
                 >
                   <LogOut className="h-4 w-4" />
-                  Logout
+                  {t("logout")}
                 </button>
               ) : (
                 <>
@@ -1148,7 +1171,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                   >
                     <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                     <span className="relative flex items-center gap-2">
-                      Login
+                      {t("login")}
                       <ArrowRight className="h-4 w-4" />
                     </span>
                   </Link>
@@ -1167,7 +1190,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
                     )}
                   >
                     <UserPlus className="h-4 w-4" />
-                    Register
+                    {t("register")}
                   </Link>
                 </>
               )}
@@ -1192,7 +1215,7 @@ export function AppNavbar({ className }: AppNavbarProps) {
               >
                 <ChevronLeft className="h-5 w-5 text-white" />
               </button>
-              <h2 className="text-white font-semibold text-lg">Language</h2>
+              <h2 className="text-white font-semibold text-lg">{tNavbar("language")}</h2>
             </div>
 
             {/* Language List */}

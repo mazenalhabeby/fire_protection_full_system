@@ -14,7 +14,7 @@ import {
 import { useParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { supportApi } from "@/lib/api";
-import { FAQAccordion } from "@/components/help";
+import { FAQAccordion, HelpNav } from "@/components/help";
 import type { FAQCategory } from "@/types/support";
 
 // Mock FAQ data for initial display (will be replaced by API data)
@@ -173,14 +173,14 @@ export default function HelpPage() {
       title: "Contact Support",
       description: "Send us a message",
       icon: Mail,
-      href: `/${locale}/help/contact`,
+      href: "/help/contact",
       color: "from-purple-500 to-pink-500",
     },
     {
       title: "My Tickets",
       description: "View your support history",
       icon: Ticket,
-      href: `/${locale}/help/tickets`,
+      href: "/help/tickets",
       color: "from-orange-500 to-amber-500",
       requiresAuth: true,
     },
@@ -188,7 +188,7 @@ export default function HelpPage() {
       title: "New Ticket",
       description: "Create a support request",
       icon: MessageSquare,
-      href: `/${locale}/help/tickets/new`,
+      href: "/help/tickets/new",
       color: "from-green-500 to-emerald-500",
       requiresAuth: true,
     },
@@ -196,6 +196,11 @@ export default function HelpPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      {/* Help Navigation */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <HelpNav />
+      </div>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden py-16 sm:py-24">
         {/* Background Elements */}
@@ -304,7 +309,7 @@ export default function HelpPage() {
 
                 <div className="flex gap-4">
                   <Link
-                    href={`/${locale}/help/contact`}
+                    href="/help/contact"
                     className="flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 font-medium rounded-xl hover:bg-gray-100 transition-colors"
                   >
                     <Mail className="w-5 h-5" />
@@ -313,7 +318,7 @@ export default function HelpPage() {
 
                   {isAuthenticated && (
                     <Link
-                      href={`/${locale}/help/tickets/new`}
+                      href="/help/tickets/new"
                       className="flex items-center gap-2 px-6 py-3 bg-white/20 text-white font-medium rounded-xl hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/30"
                     >
                       <Ticket className="w-5 h-5" />

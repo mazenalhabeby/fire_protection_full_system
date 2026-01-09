@@ -357,16 +357,24 @@ export default function RegisterPage() {
   };
 
   const handleGoogleSignup = () => {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!backendUrl) {
+      toast.error("API URL not configured. Please contact support.");
+      return;
+    }
     setSocialLoading("google");
     // Redirect to backend Google OAuth endpoint (handles both login and signup)
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
     window.location.href = `${backendUrl}/auth/google`;
   };
 
   const handleFacebookSignup = () => {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!backendUrl) {
+      toast.error("API URL not configured. Please contact support.");
+      return;
+    }
     setSocialLoading("facebook");
     // Redirect to backend Facebook OAuth endpoint (handles both login and signup)
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
     window.location.href = `${backendUrl}/auth/facebook`;
   };
 

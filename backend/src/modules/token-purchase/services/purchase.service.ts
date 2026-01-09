@@ -8,6 +8,7 @@ import {
 import { PrismaService } from '../../../prisma/prisma.service';
 import { BalanceService } from '../../wallet/services/balance.service';
 import { BlockchainClientService } from '../../blockchain/blockchain.client';
+import { BuybackService } from '../../blockchain/buyback.service';
 import { PriceService } from './price.service';
 import { PurchaseLimitsService } from './purchase-limits.service';
 import { NotificationsService } from '../../notifications/notifications.service';
@@ -39,6 +40,7 @@ export class PurchaseService {
     private readonly prisma: PrismaService,
     private readonly balanceService: BalanceService,
     private readonly blockchainClient: BlockchainClientService,
+    private readonly buybackService: BuybackService,
     private readonly priceService: PriceService,
     private readonly purchaseLimitsService: PurchaseLimitsService,
     private readonly notificationsService: NotificationsService,
@@ -264,6 +266,33 @@ export class PurchaseService {
       `Completed off-chain purchase ${result.id} for user ${userId}: ${hbctAmount.toFixed(4)} HBCT`,
     );
 
+    // BUYBACK: Allocate 10% of payment for buyback & liquidity
+    if (this.buybackService.isEnabled()) {
+      try {
+        const buybackAmount = this.buybackService.calculateBuybackAmount(paymentAmount, paymentCurrency);
+        if (buybackAmount.gt(0)) {
+          const buybackUsdValue = usdValue.mul(
+            this.buybackService.getConfig().percentageOfPayment
+          ).div(100);
+
+          await this.buybackService.allocateBuyback(
+            result.id,
+            userId,
+            buybackAmount,
+            paymentCurrency as 'BNB' | 'USDT' | 'USDC',
+            buybackUsdValue,
+          );
+
+          this.logger.log(
+            `Buyback allocated: ${buybackAmount.toFixed(6)} ${paymentCurrency} ($${buybackUsdValue.toFixed(2)})`
+          );
+        }
+      } catch (buybackError: any) {
+        // Don't fail the purchase if buyback allocation fails
+        this.logger.error(`Buyback allocation failed (non-critical): ${buybackError.message}`);
+      }
+    }
+
     return {
       success: true,
       purchaseId: result.id,
@@ -277,6 +306,9 @@ export class PurchaseService {
 
   /**
    * Purchase HBCT tokens and send to external wallet (ON_CHAIN)
+   * Two-step flow:
+   * 1. Credit tokens to internal balance (visible in wallet history)
+   * 2. Auto-withdraw to external wallet (visible in wallet history)
    */
   async purchaseOnChain(params: PurchaseOnChainParams): Promise<PurchaseResult> {
     const {
@@ -286,11 +318,27 @@ export class PurchaseService {
       destinationWalletId,
       referralCode,
       ipAddress,
+      txHash,
     } = params;
 
     this.logger.log(
-      `Starting on-chain purchase for user ${userId}: ${paymentAmount} ${paymentCurrency}`,
+      `Starting on-chain purchase (two-step) for user ${userId}: ${paymentAmount} ${paymentCurrency}`,
     );
+
+    // Require txHash for on-chain payment verification
+    if (!txHash) {
+      throw new BadRequestException('Transaction hash is required for purchase');
+    }
+
+    // Security: Check if this transaction hash has already been used (prevent replay attack)
+    const existingPurchase = await this.prisma.tokenPurchase.findFirst({
+      where: { txHash },
+    });
+
+    if (existingPurchase) {
+      this.logger.warn(`Replay attack attempt: txHash ${txHash} already used by purchase ${existingPurchase.id}`);
+      throw new BadRequestException('This transaction has already been used for a purchase');
+    }
 
     // Verify linked wallet exists and is verified
     const linkedWallet = await this.prisma.userWallet.findFirst({
@@ -318,6 +366,15 @@ export class PurchaseService {
       paymentAmount,
     );
 
+    this.logger.log(`========================================`);
+    this.logger.log(`ON-CHAIN PURCHASE (TWO-STEP) DEBUG`);
+    this.logger.log(`Input paymentAmount: ${paymentAmount.toString()} ${paymentCurrency}`);
+    this.logger.log(`USD Value: $${usdValue.toFixed(6)}`);
+    this.logger.log(`HBCT Price: $${priceUsed.toFixed(6)}`);
+    this.logger.log(`Calculated HBCT Amount: ${hbctAmount.toFixed(6)}`);
+    this.logger.log(`Destination: ${linkedWallet.walletAddress}`);
+    this.logger.log(`========================================`);
+
     // Calculate fees
     const platformFeePercent = this.priceService.getPlatformFeePercent();
     const platformFee = paymentAmount.mul(platformFeePercent).div(100);
@@ -329,129 +386,220 @@ export class PurchaseService {
     // Validate against limits
     await this.purchaseLimitsService.validatePurchase(userId, usdValue);
 
-    // Check sufficient balance (disabled for testing - using on-chain wallet)
-    // const hasBalance = await this.balanceService.hasSufficientBalance(
-    //   userId,
-    //   paymentCurrency,
-    //   totalPayment,
-    // );
+    // Verify blockchain transaction
+    const depositWallet = process.env.DEPOSIT_WALLET_ADDRESS;
+    if (!depositWallet) {
+      throw new BadRequestException('Deposit wallet not configured');
+    }
 
-    // if (!hasBalance) {
-    //   throw new BadRequestException(
-    //     `Insufficient ${paymentCurrency} balance. Required: ${totalPayment.toFixed(8)} (includes network fee)`,
-    //   );
-    // }
+    this.logger.log(`Verifying transaction ${txHash} for ${paymentAmount} ${paymentCurrency}`);
 
-    // Execute purchase
-    const result = await this.prisma.$transaction(async (tx) => {
-      // 1. Create purchase record
-      const purchase = await tx.tokenPurchase.create({
-        data: {
-          userId,
-          paymentCurrency,
-          paymentAmount,
-          hbctAmount,
-          tokenPrice: priceUsed,
-          deliveryMethod: TokenDeliveryMethod.ON_CHAIN,
-          destinationWalletId,
-          destinationAddress: linkedWallet.walletAddress,
-          platformFee,
-          networkFee,
-          status: TokenPurchaseStatus.PROCESSING,
-          ipAddress,
-        },
-      });
+    const verification = await this.blockchainClient.verifyPaymentTransaction(
+      txHash,
+      depositWallet,
+      paymentAmount.toString(),
+      paymentCurrency as 'BNB' | 'USDT' | 'USDC',
+    );
 
-      // 2. Lock payment amount (disabled for testing - using on-chain wallet)
-      // await this.balanceService.lockBalance(
-      //   userId,
-      //   paymentCurrency,
-      //   totalPayment,
-      // );
+    if (!verification.valid) {
+      this.logger.error(`Transaction verification failed: ${verification.error}`);
+      throw new BadRequestException(verification.error || 'Payment verification failed');
+    }
 
-      return purchase;
+    this.logger.log(
+      `Transaction verified: ${verification.amount} ${paymentCurrency} from ${verification.from} (${verification.confirmations} confirmations)`,
+    );
+
+    // STEP 1: Create purchase record
+    const purchase = await this.prisma.tokenPurchase.create({
+      data: {
+        userId,
+        paymentCurrency,
+        paymentAmount,
+        hbctAmount,
+        tokenPrice: priceUsed,
+        deliveryMethod: TokenDeliveryMethod.ON_CHAIN,
+        destinationWalletId,
+        destinationAddress: linkedWallet.walletAddress,
+        platformFee,
+        networkFee,
+        status: TokenPurchaseStatus.PROCESSING,
+        ipAddress,
+        paymentTransactionId: txHash,
+      },
     });
 
-    // 3. Execute blockchain transfer (outside transaction for reliability)
+    // STEP 2: Credit HBCT to user's internal wallet balance
+    const creditResult = await this.balanceService.creditBalance({
+      userId,
+      currency: Currency.HBCT,
+      amount: hbctAmount,
+      type: WalletTransactionType.TOKEN_PURCHASE,
+      description: `Purchased ${hbctAmount.toFixed(4)} HBCT with ${paymentAmount.toFixed(4)} ${paymentCurrency}`,
+      metadata: {
+        purchaseId: purchase.id,
+        paymentCurrency,
+        paymentAmount: paymentAmount.toString(),
+        deliveryMethod: 'ON_CHAIN',
+        txHash,
+      },
+      ipAddress,
+      externalTxHash: txHash, // Payment txHash for the credit
+    });
+
+    if (!creditResult.success) {
+      // Rollback: delete the purchase record
+      await this.prisma.tokenPurchase.delete({ where: { id: purchase.id } });
+      throw new BadRequestException(creditResult.error || 'Failed to credit balance');
+    }
+
+    // Update purchase with credit transaction ID
+    await this.prisma.tokenPurchase.update({
+      where: { id: purchase.id },
+      data: {
+        creditTransactionId: creditResult.transactionId,
+      },
+    });
+
+    // Handle affiliate commission
+    await this.prisma.$transaction(async (tx) => {
+      await this.handleAffiliateCommission(
+        tx,
+        userId,
+        hbctAmount,
+        purchase.id,
+        ipAddress,
+        referralCode,
+      );
+    });
+
+    // BUYBACK: Allocate 10% of payment for buyback & liquidity
+    if (this.buybackService.isEnabled()) {
+      try {
+        const buybackAmount = this.buybackService.calculateBuybackAmount(paymentAmount, paymentCurrency);
+        if (buybackAmount.gt(0)) {
+          const buybackUsdValue = usdValue.mul(
+            this.buybackService.getConfig().percentageOfPayment
+          ).div(100);
+
+          await this.buybackService.allocateBuyback(
+            purchase.id,
+            userId,
+            buybackAmount,
+            paymentCurrency as 'BNB' | 'USDT' | 'USDC',
+            buybackUsdValue,
+          );
+
+          this.logger.log(
+            `Buyback allocated: ${buybackAmount.toFixed(6)} ${paymentCurrency} ($${buybackUsdValue.toFixed(2)})`
+          );
+        }
+      } catch (buybackError: any) {
+        // Don't fail the purchase if buyback allocation fails
+        this.logger.error(`Buyback allocation failed (non-critical): ${buybackError.message}`);
+      }
+    }
+
+    const purchaseResult = { purchase, creditTransactionId: creditResult.transactionId };
+
+    this.logger.log(
+      `Step 1 completed: Credited ${hbctAmount.toFixed(4)} HBCT to user ${userId} internal balance`,
+    );
+
+    // STEP 2: Auto-withdraw to external wallet
     try {
-      // TODO: Integrate with BlockchainClientService
-      // For now, simulate successful transfer
-      const txHash = await this.executeOnChainTransfer(
+      // Execute blockchain transfer FIRST to get txHash
+      const deliveryTxHash = await this.executeOnChainTransfer(
         linkedWallet.walletAddress,
         hbctAmount,
       );
 
-      // 4. Complete the purchase
-      await this.prisma.$transaction(async (tx) => {
-        // Debit from locked balance (disabled for testing - using on-chain wallet)
-        // await this.balanceService.debitFromLocked(
-        //   userId,
-        //   paymentCurrency,
-        //   totalPayment,
-        // );
+      this.logger.log(`Step 2a: Blockchain transfer complete, txHash: ${deliveryTxHash}`);
 
+      // Debit from internal balance for withdrawal (with txHash)
+      const debitResult = await this.balanceService.debitBalance({
+        userId,
+        currency: Currency.HBCT,
+        amount: hbctAmount,
+        type: WalletTransactionType.WITHDRAWAL,
+        description: `Auto-withdrawal to ${linkedWallet.walletAddress.slice(0, 6)}...${linkedWallet.walletAddress.slice(-4)}`,
+        metadata: {
+          purchaseId: purchaseResult.purchase.id,
+          destinationAddress: linkedWallet.walletAddress,
+          autoWithdrawal: true,
+        },
+        ipAddress,
+        externalTxHash: deliveryTxHash,
+      });
+
+      if (!debitResult.success) {
+        throw new Error(debitResult.error || 'Failed to record withdrawal');
+      }
+
+      this.logger.log(`Step 2b: Withdrawal recorded with txHash: ${deliveryTxHash}`);
+
+      // Complete the purchase
+      await this.prisma.$transaction(async (tx) => {
         // Update purchase status
         await tx.tokenPurchase.update({
-          where: { id: result.id },
+          where: { id: purchaseResult.purchase.id },
           data: {
             status: TokenPurchaseStatus.COMPLETED,
-            txHash,
+            txHash: deliveryTxHash,
             completedAt: new Date(),
           },
         });
 
         // Record limit usage
         await this.purchaseLimitsService.recordPurchaseUsage(userId, usdValue);
-
-        // Handle affiliate commission (automatically uses user's referredById if no referralCode)
-        await this.handleAffiliateCommission(
-          tx,
-          userId,
-          hbctAmount,
-          result.id,
-          ipAddress,
-          referralCode,
-        );
       });
 
       this.logger.log(
-        `Completed on-chain purchase ${result.id} for user ${userId}: ${hbctAmount.toFixed(4)} HBCT to ${linkedWallet.walletAddress}`,
+        `Completed on-chain purchase ${purchaseResult.purchase.id} for user ${userId}: ${hbctAmount.toFixed(4)} HBCT to ${linkedWallet.walletAddress}`,
       );
 
       return {
         success: true,
-        purchaseId: result.id,
+        purchaseId: purchaseResult.purchase.id,
         hbctAmount: hbctAmount.toFixed(8),
         paymentAmount: totalPayment.toFixed(8),
         paymentCurrency,
         deliveryMethod: TokenDeliveryMethod.ON_CHAIN,
-        txHash,
+        txHash: deliveryTxHash,
         message: `Purchase completed. ${hbctAmount.toFixed(4)} HBCT sent to ${linkedWallet.walletAddress}`,
       };
     } catch (error) {
-      // Unlock balance on failure
-      await this.balanceService.unlockBalance(
-        userId,
-        paymentCurrency,
-        totalPayment,
-      );
-
-      // Update purchase status to failed
+      // Withdrawal failed - but tokens are still in user's internal balance
+      // Update purchase status to show partial completion
       await this.prisma.tokenPurchase.update({
-        where: { id: result.id },
+        where: { id: purchaseResult.purchase.id },
         data: {
           status: TokenPurchaseStatus.FAILED,
-          failureReason: error.message,
+          failureReason: `Withdrawal failed: ${error.message}. Tokens are in your internal balance.`,
         },
       });
 
+      // Re-credit the tokens back to user's balance since withdrawal failed
+      await this.balanceService.creditBalance({
+        userId,
+        currency: Currency.HBCT,
+        amount: hbctAmount,
+        type: WalletTransactionType.REFUND,
+        description: `Refund: Auto-withdrawal failed`,
+        metadata: {
+          purchaseId: purchaseResult.purchase.id,
+          reason: error.message,
+        },
+        ipAddress,
+      });
+
       this.logger.error(
-        `On-chain purchase failed for user ${userId}: ${error.message}`,
+        `On-chain withdrawal failed for user ${userId}: ${error.message}. Tokens refunded to internal balance.`,
         error.stack,
       );
 
       throw new BadRequestException(
-        `On-chain transfer failed: ${error.message}`,
+        `Withdrawal failed: ${error.message}. Your tokens have been added to your internal balance instead.`,
       );
     }
   }

@@ -1,0 +1,110 @@
+# ===========================================
+# HBCT Fire Protection - Docker Compose Production
+# ===========================================
+# Production configuration with security hardening
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# IMPORTANT: Set all environment variables before deployment!
+# Required variables:
+#   - POSTGRES_PASSWORD (strong, unique password)
+#   - JWT_SECRET (64-byte hex string)
+#   - JWT_REFRESH_SECRET (64-byte hex string)
+#   - FRONTEND_URL (production domain)
+#   - ADMIN_URL (production admin domain)
+#   - BACKEND_URL (production API domain)
+#   - NEXT_PUBLIC_API_URL (production API URL)
+#   - NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
+
+services:
+  # Database - No exposed ports in production
+  db:
+    ports: !reset []
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-hbct_db}
+
+  # Backend - Production configuration
+  backend:
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-hbct_db}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      ADMIN_URL: ${ADMIN_URL}
+      BACKEND_URL: ${BACKEND_URL}
+      # Email configuration
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-HBC Fire Protection}
+      # OAuth
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
+      # 2FA
+      TWO_FACTOR_ENCRYPTION_KEY: ${TWO_FACTOR_ENCRYPTION_KEY:-}
+      # Blockchain
+      BSC_RPC_URL: ${BSC_RPC_URL:-}
+      HBCT_TOKEN_ADDRESS: ${HBCT_TOKEN_ADDRESS:-}
+      DEPOSIT_WALLET_ADDRESS: ${DEPOSIT_WALLET_ADDRESS:-}
+      WITHDRAWAL_WALLET_ADDRESS: ${WITHDRAWAL_WALLET_ADDRESS:-}
+      WITHDRAWAL_PRIVATE_KEY: ${WITHDRAWAL_PRIVATE_KEY:-}
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Frontend - Production configuration
+  frontend:
+    build:
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID}
+        NEXT_PUBLIC_DEPOSIT_WALLET_ADDRESS: ${NEXT_PUBLIC_DEPOSIT_WALLET_ADDRESS:-}
+        NEXT_PUBLIC_ADMIN_URL: ${NEXT_PUBLIC_ADMIN_URL}
+        NEXT_PUBLIC_COOKIE_DOMAIN: ${NEXT_PUBLIC_COOKIE_DOMAIN:-}
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Admin - Production configuration
+  admin:
+    build:
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_FRONTEND_URL: ${NEXT_PUBLIC_FRONTEND_URL}
+        NEXT_PUBLIC_COOKIE_DOMAIN: ${NEXT_PUBLIC_COOKIE_DOMAIN:-}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3

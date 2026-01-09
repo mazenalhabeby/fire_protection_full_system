@@ -1,0 +1,513 @@
+{
+  "admin": {
+    "title": "Panel de Administración",
+    "dashboard": "Panel de Control",
+    "users": "Usuarios",
+    "affiliates": "Afiliados",
+    "locks": "Bloqueos de Tokens",
+    "deposits": "Depósitos",
+    "withdrawals": "Retiros",
+    "buyback": "Pool de Recompra",
+    "purchases": "Compras",
+    "support": "Soporte",
+    "roles": "Roles",
+    "settings": "Configuración",
+    "backToApp": "Volver a la App"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "logout": "Cerrar Sesión",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "adminRequired": "Se requiere acceso de administrador"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ha ocurrido un error",
+    "retry": "Reintentar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "submit": "Enviar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "noResults": "No se encontraron resultados",
+    "refresh": "Actualizar",
+    "actions": "Acciones",
+    "status": "Estado",
+    "date": "Fecha",
+    "amount": "Monto",
+    "user": "Usuario",
+    "page": "Página",
+    "of": "de",
+    "total": "total",
+    "allStatus": "Todos los Estados",
+    "copy": "Copiar",
+    "copied": "¡Copiado!",
+    "viewOnExplorer": "Ver en BSCScan",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "process": "Procesar",
+    "reason": "Razón"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "subtitle": "Resumen de las estadísticas de su plataforma",
+    "stats": {
+      "totalUsers": "Total Usuarios",
+      "activeUsers": "Usuarios Activos",
+      "totalDeposits": "Total Depósitos",
+      "totalWithdrawals": "Total Retiros",
+      "pendingApprovals": "Aprobaciones Pendientes",
+      "openTickets": "Tickets Abiertos",
+      "totalVolume": "Volumen Total",
+      "totalRevenue": "Ingresos Totales"
+    },
+    "recentActivity": "Actividad Reciente",
+    "quickActions": "Acciones Rápidas"
+  },
+  "deposits": {
+    "title": "Gestión de Depósitos",
+    "subtitle": "Monitorear y gestionar depósitos on-chain",
+    "stats": {
+      "totalDeposits": "Total Depósitos",
+      "totalAmount": "Monto Total (HBCT)",
+      "pending": "Pendientes",
+      "credited": "Acreditados",
+      "locked24h": "Bloqueados (24h)",
+      "unmapped": "Sin Asignar"
+    },
+    "listener": {
+      "title": "Listener de Depósitos",
+      "running": "Ejecutando",
+      "stopped": "Detenido",
+      "pollingEvery": "Verificando cada {seconds}s",
+      "processNow": "Procesar Ahora",
+      "start": "Iniciar",
+      "stop": "Detener"
+    },
+    "lookup": {
+      "title": "Búsqueda de Transacción & Escaneo Histórico",
+      "subtitle": "Usar cuando un usuario reporta un depósito faltante",
+      "placeholder": "Ingrese hash de transacción (0x...)",
+      "button": "Buscar",
+      "quickScan": "Escaneo Rápido (24h)",
+      "fullScan": "Escaneo Completo (7 días)",
+      "scanning24h": "Escaneando últimas 24 horas...",
+      "scanning7d": "Escaneando últimos 7 días...",
+      "pleaseWaitBlockchain": "Por favor espere mientras verificamos la blockchain...",
+      "mayTakeSeveralMinutes": "Esto puede tomar varios minutos. Por favor espere...",
+      "scanCannotBeStopped": "Nota: El escaneo se ejecuta en el servidor y no puede detenerse."
+    },
+    "filters": {
+      "allDeposits": "Todos los Depósitos",
+      "locked": "Bloqueados",
+      "unmapped": "Sin Asignar"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "confirmed": "Confirmado",
+      "credited": "Acreditado",
+      "locked": "Bloqueado",
+      "failed": "Fallido",
+      "unmapped": "Sin Asignar"
+    },
+    "table": {
+      "txHash": "Hash TX",
+      "from": "De",
+      "amount": "Monto",
+      "user": "Usuario",
+      "status": "Estado",
+      "confirmations": "Confirmaciones",
+      "date": "Fecha",
+      "actions": "Acciones",
+      "noDeposits": "No se encontraron depósitos"
+    },
+    "actions": {
+      "mapUser": "Asignar Usuario",
+      "release": "Liberar",
+      "reassign": "Reasignar",
+      "unmap": "Desasignar"
+    },
+    "modals": {
+      "mapDeposit": {
+        "title": "Asignar Depósito a Usuario",
+        "subtitle": "Vincular este depósito sin asignar a una cuenta de usuario",
+        "searchUser": "Buscar Usuario",
+        "searchPlaceholder": "Buscar por correo, nombre de usuario o dirección wallet...",
+        "selectedUser": "Usuario Seleccionado",
+        "verifyWarning": {
+          "title": "Verificar Antes de Asignar",
+          "description": "Asegúrese de que el depósito realmente pertenece a este usuario. El monto será acreditado inmediatamente."
+        },
+        "button": "Asignar Depósito",
+        "mapping": "Asignando..."
+      },
+      "unmapDeposit": {
+        "title": "Desasignar Depósito",
+        "subtitle": "Remover asignación de usuario y revertir crédito",
+        "transaction": "Transacción",
+        "depositAmount": "Monto del Depósito",
+        "currentUser": "Usuario Actual",
+        "userBalance": "Saldo del Usuario",
+        "insufficientBalance": "Saldo Insuficiente",
+        "insufficientWarning": "El usuario solo tiene {balance} HBCT pero el depósito fue de {amount} HBCT.",
+        "forceUnmap": "Forzar desasignación sin debitar",
+        "forceUnmapDesc": "Desasignar el registro de depósito sin deducir del saldo del usuario",
+        "reasonLabel": "Razón para Desasignar *",
+        "reasonPlaceholder": "ej: Depósito asignado al usuario incorrecto por error...",
+        "balanceReversalWarning": {
+          "title": "Advertencia: Reversión de Saldo",
+          "description": "Esto debitará {amount} HBCT del saldo del usuario."
+        },
+        "button": "Desasignar Depósito",
+        "forceButton": "Forzar Desasignación",
+        "unmapping": "Desasignando..."
+      },
+      "reassignDeposit": {
+        "title": "Reasignar Depósito",
+        "subtitle": "Mover depósito de un usuario a otro",
+        "searchNewUser": "Buscar Nuevo Usuario",
+        "newUser": "Nuevo Usuario",
+        "forceReassign": "Forzar reasignación sin debitar usuario anterior",
+        "forceReassignDesc": "Acreditar nuevo usuario sin deducir del anterior",
+        "reasonLabel": "Razón para Reasignación *",
+        "reasonPlaceholder": "ej: Asignación original incorrecta...",
+        "balanceTransferWarning": {
+          "title": "Transferencia de Saldo",
+          "description": "Esto debitará {amount} HBCT del usuario actual."
+        },
+        "button": "Reasignar Depósito",
+        "forceButton": "Forzar Reasignación",
+        "reassigning": "Reasignando..."
+      },
+      "releaseDeposit": {
+        "title": "Liberar Depósito Bloqueado",
+        "subtitle": "Liberar depósito antes de que expire el bloqueo de 24h",
+        "assignedUser": "Usuario Asignado",
+        "timeRemaining": "Tiempo Restante",
+        "lockReason": "Razón del Bloqueo",
+        "readyToRelease": "Listo para liberar",
+        "whyLocked": {
+          "title": "¿Por qué está bloqueado este depósito?",
+          "description": "El depósito fue asignado a un usuario cuya dirección wallet no coincide con el remitente."
+        },
+        "reasonLabel": "Razón para Liberación Anticipada *",
+        "reasonPlaceholder": "ej: Usuario verificó propiedad via ticket de soporte...",
+        "button": "Liberar Ahora",
+        "releasing": "Liberando..."
+      }
+    },
+    "timeRemaining": "{hours}h {minutes}m restantes",
+    "readyToRelease": "Listo para liberar"
+  },
+  "withdrawals": {
+    "title": "Gestión de Retiros",
+    "subtitle": "Monitorear y procesar retiros de usuarios",
+    "stats": {
+      "totalWithdrawals": "Total Retiros",
+      "totalAmount": "Monto Total (HBCT)",
+      "pendingApproval": "Pendiente de Aprobación",
+      "totalFees": "Total Comisiones (HBCT)"
+    },
+    "hotWallet": {
+      "title": "Hot Wallet",
+      "pending": "Pendiente",
+      "lowBalanceWarning": "¡Alerta de saldo bajo! Recargar hot wallet."
+    },
+    "status": {
+      "pendingConfirmation": "Esperando Confirmación",
+      "pendingApproval": "Requiere Aprobación",
+      "approved": "Aprobado",
+      "processing": "Procesando",
+      "completed": "Completado",
+      "rejected": "Rechazado",
+      "cancelled": "Cancelado",
+      "failed": "Fallido"
+    },
+    "table": {
+      "user": "Usuario",
+      "amount": "Monto",
+      "fee": "Comisión",
+      "toAddress": "Dirección Dest.",
+      "status": "Estado",
+      "tx": "TX",
+      "date": "Fecha",
+      "actions": "Acciones",
+      "noWithdrawals": "No se encontraron retiros"
+    },
+    "actions": {
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "process": "Procesar"
+    },
+    "confirmApprove": "¿Está seguro de que desea aprobar este retiro?",
+    "confirmProcess": "¿Procesar manualmente este retiro ahora?",
+    "rejectPlaceholder": "Razón",
+    "toast": {
+      "approveSuccess": "Retiro aprobado exitosamente",
+      "rejectSuccess": "Retiro rechazado",
+      "processSuccess": "Procesamiento de retiro iniciado",
+      "noPermissionApprove": "No tiene permiso para aprobar retiros",
+      "noPermissionReject": "No tiene permiso para rechazar retiros",
+      "noPermissionProcess": "No tiene permiso para procesar retiros"
+    }
+  },
+  "users": {
+    "title": "Gestión de Usuarios",
+    "subtitle": "Ver y gestionar cuentas de usuarios",
+    "stats": {
+      "totalUsers": "Total Usuarios",
+      "verifiedUsers": "Usuarios Verificados",
+      "activeToday": "Activos Hoy",
+      "newThisMonth": "Nuevos Este Mes"
+    },
+    "table": {
+      "user": "Usuario",
+      "email": "Correo",
+      "status": "Estado",
+      "balance": "Saldo",
+      "role": "Rol",
+      "joined": "Registro",
+      "lastActive": "Última Actividad",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "suspended": "Suspendido",
+      "banned": "Baneado"
+    },
+    "actions": {
+      "viewDetails": "Ver Detalles",
+      "editUser": "Editar Usuario",
+      "suspendUser": "Suspender Usuario",
+      "banUser": "Banear Usuario",
+      "restoreUser": "Restaurar Usuario"
+    }
+  },
+  "support": {
+    "title": "Tickets de Soporte",
+    "subtitle": "Gestionar solicitudes de soporte al cliente",
+    "stats": {
+      "openTickets": "Tickets Abiertos",
+      "pendingResponse": "Pendiente de Respuesta",
+      "resolvedToday": "Resueltos Hoy",
+      "avgResponseTime": "Tiempo de Respuesta Promedio"
+    },
+    "status": {
+      "open": "Abierto",
+      "inProgress": "En Progreso",
+      "waitingOnCustomer": "Esperando Cliente",
+      "resolved": "Resuelto",
+      "closed": "Cerrado"
+    },
+    "priority": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "urgent": "Urgente"
+    },
+    "table": {
+      "id": "ID",
+      "subject": "Asunto",
+      "user": "Usuario",
+      "category": "Categoría",
+      "priority": "Prioridad",
+      "status": "Estado",
+      "created": "Creado",
+      "lastUpdate": "Última Actualización",
+      "actions": "Acciones"
+    },
+    "actions": {
+      "reply": "Responder",
+      "assignToMe": "Asignarme",
+      "changeStatus": "Cambiar Estado",
+      "changePriority": "Cambiar Prioridad",
+      "close": "Cerrar Ticket"
+    }
+  },
+  "purchases": {
+    "title": "Compras de Tokens",
+    "subtitle": "Ver todas las transacciones de compra",
+    "stats": {
+      "totalPurchases": "Total Compras",
+      "totalVolume": "Volumen Total",
+      "todayPurchases": "Compras de Hoy",
+      "averageOrder": "Orden Promedio"
+    },
+    "table": {
+      "id": "ID",
+      "user": "Usuario",
+      "amount": "Monto",
+      "tokens": "Tokens",
+      "currency": "Moneda",
+      "status": "Estado",
+      "txHash": "Hash TX",
+      "date": "Fecha"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "completed": "Completado",
+      "failed": "Fallido",
+      "refunded": "Reembolsado"
+    }
+  },
+  "buyback": {
+    "title": "Pool de Recompra",
+    "subtitle": "Gestionar el sistema de recompra de tokens",
+    "stats": {
+      "poolBalance": "Saldo del Pool",
+      "totalBought": "Total HBCT Comprados",
+      "pendingAllocations": "Asignaciones Pendientes",
+      "lastExecution": "Última Ejecución"
+    },
+    "allocations": {
+      "title": "Asignaciones Pendientes",
+      "currency": "Moneda",
+      "amount": "Monto",
+      "source": "Fuente",
+      "date": "Fecha",
+      "noAllocations": "No hay asignaciones pendientes"
+    },
+    "actions": {
+      "executeBuyback": "Ejecutar Recompra",
+      "executing": "Ejecutando...",
+      "addAllocation": "Agregar Asignación"
+    },
+    "history": {
+      "title": "Historial de Ejecución",
+      "bnbSpent": "BNB Gastados",
+      "hbctBought": "HBCT Comprados",
+      "txHash": "Hash TX",
+      "date": "Fecha"
+    }
+  },
+  "affiliates": {
+    "title": "Gestión de Afiliados",
+    "subtitle": "Ver y gestionar programa de afiliados",
+    "stats": {
+      "totalAffiliates": "Total Afiliados",
+      "totalReferrals": "Total Referidos",
+      "totalCommissions": "Total Comisiones",
+      "pendingPayouts": "Pagos Pendientes"
+    },
+    "table": {
+      "affiliate": "Afiliado",
+      "tier": "Nivel",
+      "referrals": "Referidos",
+      "totalEarned": "Total Ganado",
+      "pendingPayout": "Pago Pendiente",
+      "status": "Estado"
+    },
+    "tiers": {
+      "bronze": "Bronce",
+      "silver": "Plata",
+      "gold": "Oro",
+      "platinum": "Platino",
+      "diamond": "Diamante"
+    }
+  },
+  "locks": {
+    "title": "Bloqueos de Tokens",
+    "subtitle": "Ver todas las actividades de bloqueo",
+    "stats": {
+      "totalLocked": "Total Bloqueado",
+      "activeLocks": "Bloqueos Activos",
+      "totalRewards": "Total Recompensas",
+      "avgLockPeriod": "Período Promedio"
+    },
+    "table": {
+      "user": "Usuario",
+      "amount": "Monto",
+      "tier": "Nivel",
+      "startDate": "Fecha Inicio",
+      "unlockDate": "Fecha Desbloqueo",
+      "reward": "Recompensa",
+      "status": "Estado"
+    },
+    "status": {
+      "active": "Activo",
+      "completed": "Completado",
+      "unlocked": "Desbloqueado"
+    }
+  },
+  "roles": {
+    "title": "Gestión de Roles",
+    "subtitle": "Gestionar roles y permisos de admin",
+    "stats": {
+      "totalAdmins": "Total Admins",
+      "superAdmins": "Super Admins",
+      "moderators": "Moderadores"
+    },
+    "table": {
+      "user": "Usuario",
+      "role": "Rol",
+      "permissions": "Permisos",
+      "assignedBy": "Asignado Por",
+      "assignedAt": "Asignado El"
+    },
+    "roles": {
+      "superAdmin": "Super Admin",
+      "admin": "Admin",
+      "moderator": "Moderador",
+      "support": "Soporte"
+    },
+    "actions": {
+      "assignRole": "Asignar Rol",
+      "removeRole": "Remover Rol",
+      "editPermissions": "Editar Permisos"
+    }
+  },
+  "settings": {
+    "title": "Configuración de Plataforma",
+    "subtitle": "Configurar ajustes globales de plataforma",
+    "sections": {
+      "general": "General",
+      "security": "Seguridad",
+      "payments": "Pagos",
+      "notifications": "Notificaciones",
+      "integrations": "Integraciones"
+    },
+    "general": {
+      "siteName": "Nombre del Sitio",
+      "siteDescription": "Descripción del Sitio",
+      "maintenanceMode": "Modo Mantenimiento",
+      "maintenanceModeDesc": "Activar para poner el sitio en mantenimiento"
+    },
+    "security": {
+      "twoFactorRequired": "Requerir 2FA para Admins",
+      "sessionTimeout": "Tiempo de Sesión (minutos)",
+      "maxLoginAttempts": "Máx. Intentos de Login",
+      "ipWhitelist": "Lista Blanca de IP"
+    },
+    "payments": {
+      "tokenPrice": "Precio del Token (USD)",
+      "minPurchase": "Compra Mínima (USD)",
+      "maxPurchase": "Compra Máxima (USD)",
+      "withdrawalFee": "Comisión de Retiro (%)",
+      "minWithdrawal": "Retiro Mínimo"
+    }
+  },
+  "pagination": {
+    "page": "Página",
+    "of": "de",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "showingResults": "Mostrando {from} a {to} de {total} resultados"
+  },
+  "errors": {
+    "unauthorized": "Acceso no autorizado",
+    "notFound": "No encontrado",
+    "serverError": "Error del servidor",
+    "networkError": "Error de red",
+    "validationError": "Error de validación",
+    "permissionDenied": "Permiso denegado"
+  }
+}

@@ -2,31 +2,40 @@
 
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { WithdrawalForm } from "@/components/wallet-internal/WithdrawalForm";
 import { WithdrawalHistory } from "@/components/wallet-internal/WithdrawalHistory";
 import { WithdrawalConfirmationModal } from "@/components/wallet-internal/WithdrawalConfirmationModal";
-import type { WithdrawalRequest } from "@/types/withdrawals";
+import type { WithdrawalRequest, WithdrawalResponse, ConfirmationMethod } from "@/types/withdrawals";
 
 export default function WithdrawPage() {
   const router = useRouter();
+  const t = useTranslations("wallet.withdraw");
   const [showForm, setShowForm] = useState(true);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null);
+  const [confirmationMethod, setConfirmationMethod] = useState<ConfirmationMethod>('email');
   const [pendingWithdrawalId, setPendingWithdrawalId] = useState<string | null>(null);
 
-  const handleWithdrawalSuccess = (withdrawalId: string) => {
-    setPendingWithdrawalId(withdrawalId);
-    setShowForm(false);
+  // Called when withdrawal request is created - show modal immediately
+  const handleWithdrawalSuccess = (withdrawal: WithdrawalResponse) => {
+    setPendingWithdrawalId(withdrawal.id);
+    setConfirmationMethod(withdrawal.confirmationMethod);
+    setSelectedWithdrawal(withdrawal);
   };
 
   const handleConfirmClick = (withdrawal: WithdrawalRequest) => {
+    // For existing withdrawals from history, check if they use 2FA (no confirmationExpiresAt)
+    const method: ConfirmationMethod = !withdrawal.confirmationExpiresAt ? '2fa' : 'email';
+    setConfirmationMethod(method);
     setSelectedWithdrawal(withdrawal);
   };
 
   const handleConfirmSuccess = () => {
     setSelectedWithdrawal(null);
     setPendingWithdrawalId(null);
+    setShowForm(false); // Switch to history to see the confirmed withdrawal
   };
 
   return (
@@ -50,13 +59,13 @@ export default function WithdrawPage() {
           className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm font-medium">Back to Wallet</span>
+          <span className="text-sm font-medium">{t("backToWallet")}</span>
         </button>
 
         {/* Header */}
         <PageHeader
-          title="Withdraw HBCT"
-          subtitle="Send HBCT tokens to your external wallet"
+          title={t("title")}
+          subtitle={t("subtitle")}
         />
 
         <div className="mt-8 space-y-6">
@@ -70,7 +79,7 @@ export default function WithdrawPage() {
                   : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
             >
-              New Withdrawal
+              {t("tabs.newWithdrawal")}
             </button>
             <button
               onClick={() => setShowForm(false)}
@@ -80,7 +89,7 @@ export default function WithdrawPage() {
                   : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
             >
-              History
+              {t("tabs.history")}
             </button>
           </div>
 
@@ -106,7 +115,7 @@ export default function WithdrawPage() {
           {pendingWithdrawalId && !showForm && (
             <div className="p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200 dark:border-emerald-500/20">
               <p className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">
-                Withdrawal request submitted! Check your email for the confirmation code.
+                {t("successMessage")}
               </p>
             </div>
           )}
@@ -116,6 +125,7 @@ export default function WithdrawPage() {
       {/* Confirmation Modal */}
       <WithdrawalConfirmationModal
         withdrawal={selectedWithdrawal}
+        confirmationMethod={confirmationMethod}
         isOpen={!!selectedWithdrawal}
         onClose={() => setSelectedWithdrawal(null)}
         onSuccess={handleConfirmSuccess}

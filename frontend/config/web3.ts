@@ -16,10 +16,10 @@ export const metadata = {
   icons: ["/logo.png"],
 };
 
-// Supported chains - BSC is primary for HBCT token
+// Supported chains - BSC Mainnet is primary for production
 export const chains = [bsc, bscTestnet, mainnet, sepolia] as const;
 
-// Default chain for the app
+// Default chain for the app (BSC Mainnet for production)
 export const defaultChain = bsc;
 
 // Wagmi storage configuration for SSR

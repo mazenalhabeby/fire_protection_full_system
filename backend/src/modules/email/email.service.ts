@@ -54,10 +54,11 @@ export class EmailService {
       'SMTP_FROM_NAME',
       'HBC Fire Protection',
     );
-    this.frontendUrl = this.configService.get<string>(
-      'FRONTEND_URL',
-      'http://localhost:3000',
-    );
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    if (!frontendUrl && process.env.NODE_ENV === 'production') {
+      throw new Error('FRONTEND_URL environment variable is required in production');
+    }
+    this.frontendUrl = frontendUrl || 'http://localhost:3000';
 
     // Initialize transporter
     const smtpHost = this.configService.get<string>('SMTP_HOST');
@@ -882,6 +883,173 @@ export class EmailService {
     return this.sendEmail({
       to: adminEmail,
       subject: `🎫 [${priority}] New Ticket #${ticketNumber}: ${subject}`,
+      html,
+    });
+  }
+
+  async sendTicketUserReplyNotification(
+    staffEmail: string,
+    ticketNumber: string,
+    subject: string,
+    replyContent: string,
+    userName: string,
+  ): Promise<boolean> {
+    const content = `
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        A user has replied to a support ticket that requires your attention.
+      </p>
+
+      ${this.getDetailsList([
+        { label: 'Ticket Number', value: `#${ticketNumber}` },
+        { label: 'Subject', value: subject },
+        { label: 'From', value: userName },
+      ])}
+
+      <div style="background: ${BRAND.background}; border-left: 4px solid ${BRAND.info}; border-radius: 0 10px 10px 0; padding: 20px; margin: 25px 0;">
+        <p style="margin: 0 0 8px 0; font-size: 12px; color: ${BRAND.textSecondary}; text-transform: uppercase; letter-spacing: 0.5px;">User's Reply</p>
+        <div style="font-size: 15px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+          ${replyContent}
+        </div>
+      </div>
+
+      ${this.getButton('View Ticket', `${this.frontendUrl}/en/admin/support`, BRAND.secondary)}
+    `;
+
+    const html = this.getBaseTemplate({
+      title: 'New Reply on Support Ticket',
+      subtitle: `Ticket #${ticketNumber}`,
+      content,
+      footerText: 'Support Staff Notification - HBC Fire Protection',
+    });
+
+    return this.sendEmail({
+      to: staffEmail,
+      subject: `💬 [Ticket #${ticketNumber}] ${userName} replied: ${subject}`,
+      html,
+    });
+  }
+
+  async sendGuestTicketCreatedEmail(
+    email: string,
+    name: string,
+    ticketNumber: string,
+    subject: string,
+    accessToken: string,
+  ): Promise<boolean> {
+    const ticketUrl = `${this.frontendUrl}/en/help/ticket?token=${accessToken}`;
+
+    const content = `
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        Hello <strong>${name}</strong>,<br/><br/>
+        Thank you for contacting HBC Fire Protection Support. Your ticket has been created and our team will respond as soon as possible.
+      </p>
+
+      ${this.getDetailsList([
+        { label: 'Ticket Number', value: `#${ticketNumber}` },
+        { label: 'Subject', value: subject },
+      ])}
+
+      ${this.getInfoBox('Save this email! You will need the link below to access your ticket and view responses.', 'warning')}
+
+      ${this.getButton('View Your Ticket', ticketUrl, BRAND.accent)}
+
+      <p style="margin: 25px 0 0 0; font-size: 14px; color: ${BRAND.textSecondary};">
+        You can also use your ticket number <strong>#${ticketNumber}</strong> and email address to retrieve your ticket at any time.
+      </p>
+    `;
+
+    const html = this.getBaseTemplate({
+      title: 'Support Ticket Created',
+      subtitle: `Ticket #${ticketNumber}`,
+      content,
+      footerText: 'Thank you for contacting HBC Fire Protection!',
+    });
+
+    return this.sendEmail({
+      to: email,
+      subject: `🎫 [Ticket #${ticketNumber}] ${subject} - Ticket Created`,
+      html,
+    });
+  }
+
+  async sendGuestTicketAccessEmail(
+    email: string,
+    ticketNumber: string,
+    accessToken: string,
+  ): Promise<boolean> {
+    const ticketUrl = `${this.frontendUrl}/en/help/ticket?token=${accessToken}`;
+
+    const content = `
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        You requested access to your support ticket. Click the button below to view your ticket and any responses.
+      </p>
+
+      ${this.getDetailsList([
+        { label: 'Ticket Number', value: `#${ticketNumber}` },
+      ])}
+
+      ${this.getButton('Access Your Ticket', ticketUrl, BRAND.accent)}
+
+      <p style="margin: 25px 0 0 0; font-size: 14px; color: ${BRAND.textSecondary};">
+        If you did not request this, please ignore this email.
+      </p>
+    `;
+
+    const html = this.getBaseTemplate({
+      title: 'Ticket Access Link',
+      subtitle: `Ticket #${ticketNumber}`,
+      content,
+      footerText: 'HBC Fire Protection Support',
+    });
+
+    return this.sendEmail({
+      to: email,
+      subject: `🔗 [Ticket #${ticketNumber}] Access Link`,
+      html,
+    });
+  }
+
+  async sendGuestTicketReplyEmail(
+    email: string,
+    name: string,
+    ticketNumber: string,
+    subject: string,
+    replyContent: string,
+    accessToken: string,
+  ): Promise<boolean> {
+    const ticketUrl = `${this.frontendUrl}/en/help/ticket?token=${accessToken}`;
+
+    const content = `
+      <p style="margin: 0 0 20px 0; font-size: 16px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+        Hello <strong>${name}</strong>,<br/><br/>
+        There's a new reply on your support ticket.
+      </p>
+
+      ${this.getDetailsList([
+        { label: 'Ticket', value: `#${ticketNumber}` },
+        { label: 'Subject', value: subject },
+      ])}
+
+      <div style="background: ${BRAND.background}; border-left: 4px solid ${BRAND.accent}; border-radius: 0 10px 10px 0; padding: 20px; margin: 25px 0;">
+        <p style="margin: 0 0 8px 0; font-size: 12px; color: ${BRAND.textSecondary}; text-transform: uppercase; letter-spacing: 0.5px;">Reply from Support</p>
+        <div style="font-size: 15px; color: ${BRAND.textPrimary}; line-height: 1.7;">
+          ${replyContent}
+        </div>
+      </div>
+
+      ${this.getButton('View Full Conversation', ticketUrl, BRAND.accent)}
+    `;
+
+    const html = this.getBaseTemplate({
+      title: 'New Reply on Your Ticket',
+      subtitle: `Ticket #${ticketNumber}`,
+      content,
+      footerText: 'HBC Fire Protection Support',
+    });
+
+    return this.sendEmail({
+      to: email,
+      subject: `💬 [Ticket #${ticketNumber}] New Reply: ${subject}`,
       html,
     });
   }

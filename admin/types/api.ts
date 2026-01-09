@@ -163,10 +163,17 @@ export interface AffiliateTier {
   name: string;
   commissionRate: string;
   minReferrals: number;
+  // Admin management fields
   color?: string;
-  isActive: boolean;
+  isActive?: boolean;
   affiliateCount?: number;
   createdAt?: string;
+  // Display/progression fields
+  level?: number;
+  minVolume?: string;
+  benefits?: string[];
+  badgeColor?: string;
+  icon?: string;
 }
 
 export interface CreateLockRequest {
@@ -324,20 +331,8 @@ export interface Order {
 }
 
 // ============================================
-// Affiliate Types
+// Affiliate Detail Types
 // ============================================
-
-export interface AffiliateTier {
-  id: string;
-  name: string;
-  level: number;
-  commissionRate: string;
-  minReferrals: number;
-  minVolume: string;
-  benefits: string[];
-  badgeColor: string;
-  icon?: string;
-}
 
 export interface Affiliate {
   id: string;
@@ -415,7 +410,8 @@ export interface AffiliatePerformance {
   conversionRate: string;
 }
 
-export interface WithdrawalRequest {
+// Affiliate withdrawal request (for affiliate payouts)
+export interface AffiliateWithdrawalRequest {
   id: string;
   amount: string;
   walletAddress: string;
@@ -535,7 +531,8 @@ export type WalletTransactionType =
   | 'AIRDROP'
   | 'AFFILIATE_COMMISSION'
   | 'FEE'
-  | 'REFUND';
+  | 'REFUND'
+  | 'ADMIN_ADJUSTMENT';
 
 export type WalletTransactionStatus =
   | 'PENDING'

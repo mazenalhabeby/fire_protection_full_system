@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,11 +36,9 @@ type ActivityCategory = "all" | "security" | "access" | "location";
 // Activity severity levels
 type Severity = "info" | "success" | "warning" | "danger";
 
-// Activity type configuration
+// Activity type configuration (icons, severity, category only - labels come from translations)
 interface ActivityTypeConfig {
   icon: React.ElementType;
-  label: string;
-  description: string;
   severity: Severity;
   category: ActivityCategory;
 }
@@ -47,109 +46,97 @@ interface ActivityTypeConfig {
 const activityConfig: Record<string, ActivityTypeConfig> = {
   login: {
     icon: LogIn,
-    label: "Sign In",
-    description: "Successfully signed into your account",
     severity: "success",
     category: "access",
   },
   logout: {
     icon: LogOut,
-    label: "Sign Out",
-    description: "Signed out of your account",
     severity: "info",
     category: "access",
   },
   session_reused: {
     icon: RefreshCw,
-    label: "Session Resumed",
-    description: "Continued an existing session",
     severity: "info",
     category: "access",
   },
   token_refresh: {
     icon: Zap,
-    label: "Token Refreshed",
-    description: "Session token was renewed",
     severity: "info",
     category: "access",
   },
   device_trusted: {
     icon: ShieldCheck,
-    label: "Device Trusted",
-    description: "Marked this device as trusted",
     severity: "success",
     category: "security",
   },
   device_untrusted: {
     icon: Shield,
-    label: "Trust Removed",
-    description: "Removed trust from this device",
     severity: "info",
     category: "security",
   },
   ip_country_change: {
     icon: MapPin,
-    label: "Location Changed",
-    description: "Access from a different country detected",
     severity: "warning",
     category: "location",
   },
   continent_change: {
     icon: Globe,
-    label: "Region Changed",
-    description: "Access from a different continent detected",
     severity: "warning",
     category: "location",
   },
   impossible_travel: {
     icon: AlertTriangle,
-    label: "Suspicious Location",
-    description: "Impossible travel detected - potential security risk",
     severity: "danger",
     category: "location",
   },
   new_location: {
     icon: Globe,
-    label: "New Location",
-    description: "First access from this location",
     severity: "warning",
     category: "location",
   },
   refresh_failure: {
     icon: ShieldAlert,
-    label: "Refresh Failed",
-    description: "Token refresh attempt failed",
     severity: "warning",
     category: "security",
   },
   session_revoked: {
     icon: ShieldAlert,
-    label: "Session Revoked",
-    description: "Session was terminated for security",
     severity: "danger",
     category: "security",
   },
   fingerprint_mismatch: {
     icon: Fingerprint,
-    label: "Device Mismatch",
-    description: "Device fingerprint didn't match",
     severity: "danger",
     category: "security",
   },
   vpn_detected: {
     icon: AlertTriangle,
-    label: "VPN Detected",
-    description: "VPN or proxy connection detected",
     severity: "warning",
     category: "location",
   },
 };
 
+// Translation key mapping for action types
+const actionKeyMap: Record<string, string> = {
+  login: "login",
+  logout: "logout",
+  session_reused: "sessionReused",
+  token_refresh: "tokenRefresh",
+  device_trusted: "deviceTrusted",
+  device_untrusted: "deviceUntrusted",
+  ip_country_change: "ipCountryChange",
+  continent_change: "continentChange",
+  impossible_travel: "impossibleTravel",
+  new_location: "newLocation",
+  refresh_failure: "refreshFailure",
+  session_revoked: "sessionRevoked",
+  fingerprint_mismatch: "fingerprintMismatch",
+  vpn_detected: "vpnDetected",
+};
+
 const getActivityConfig = (action: string): ActivityTypeConfig => {
   return activityConfig[action] || {
     icon: Activity,
-    label: action.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-    description: "Activity recorded",
     severity: "info",
     category: "security",
   };
@@ -182,8 +169,8 @@ const severityStyles: Record<Severity, { bg: string; icon: string; ring: string;
   },
 };
 
-// Date grouping helpers
-const getDateGroup = (dateString: string): string => {
+// Date grouping helpers - returns translation keys
+const getDateGroupKey = (dateString: string): string => {
   const date = new Date(dateString);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -194,11 +181,11 @@ const getDateGroup = (dateString: string): string => {
   const thisMonth = new Date(today);
   thisMonth.setDate(thisMonth.getDate() - 30);
 
-  if (date >= today) return "Today";
-  if (date >= yesterday) return "Yesterday";
-  if (date >= thisWeek) return "This Week";
-  if (date >= thisMonth) return "This Month";
-  return "Earlier";
+  if (date >= today) return "today";
+  if (date >= yesterday) return "yesterday";
+  if (date >= thisWeek) return "thisWeek";
+  if (date >= thisMonth) return "thisMonth";
+  return "earlier";
 };
 
 const formatTime = (dateString: string) => {
@@ -294,15 +281,16 @@ const formatActivityDescription = (
   return parts.length > 0 ? parts.join(" ") : defaultDescription;
 };
 
-// Filter tabs configuration
-const filterTabs: { id: ActivityCategory; label: string; icon: React.ElementType }[] = [
-  { id: "all", label: "All", icon: Activity },
-  { id: "security", label: "Security", icon: Shield },
-  { id: "access", label: "Access", icon: LogIn },
-  { id: "location", label: "Location", icon: MapPin },
+// Filter tabs configuration - labels come from translations
+const filterTabs: { id: ActivityCategory; icon: React.ElementType }[] = [
+  { id: "all", icon: Activity },
+  { id: "security", icon: Shield },
+  { id: "access", icon: LogIn },
+  { id: "location", icon: MapPin },
 ];
 
 export function SessionActivitySection() {
+  const t = useTranslations("settings.activity");
   const { getSessionActivities } = useAuth();
   const [activities, setActivities] = useState<SessionActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -311,13 +299,31 @@ export function SessionActivitySection() {
   const [showFullIp, setShowFullIp] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  // Helper functions to get translated labels/descriptions
+  const getActivityLabel = (action: string): string => {
+    const key = actionKeyMap[action];
+    if (key) {
+      return t(`types.${key}.label`);
+    }
+    // Fallback for unknown action types
+    return action.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  };
+
+  const getActivityDescription = (action: string): string => {
+    const key = actionKeyMap[action];
+    if (key) {
+      return t(`types.${key}.description`);
+    }
+    return t("defaultDescription");
+  };
+
   const loadActivities = async (showRefreshing = false) => {
     if (showRefreshing) setIsRefreshing(true);
     try {
       const data = await getSessionActivities(100);
       setActivities(data);
     } catch (error) {
-      toast.error("Failed to load security activity");
+      toast.error(t("loadError"));
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -335,7 +341,7 @@ export function SessionActivitySection() {
       : activities.filter((a) => getActivityConfig(a.action).category === filter);
 
     const grouped = filtered.reduce((acc, activity) => {
-      const group = getDateGroup(activity.createdAt);
+      const group = getDateGroupKey(activity.createdAt);
       if (!acc[group]) acc[group] = [];
       acc[group].push(activity);
       return acc;
@@ -359,7 +365,7 @@ export function SessionActivitySection() {
     };
   }, [activities, filter]);
 
-  const dateOrder = ["Today", "Yesterday", "This Week", "This Month", "Earlier"];
+  const dateOrder = ["today", "yesterday", "thisWeek", "thisMonth", "earlier"];
 
   if (isLoading) {
     return (
@@ -370,7 +376,7 @@ export function SessionActivitySection() {
               <Loader2 className="h-8 w-8 animate-spin text-brand-600 dark:text-brand-400" />
             </div>
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading activity...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t("loading")}</p>
         </div>
       </div>
     );
@@ -395,10 +401,10 @@ export function SessionActivitySection() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Security Activity
+                  {t("title")}
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                  Monitor all security events on your account
+                  {t("description")}
                 </p>
               </div>
             </div>
@@ -427,14 +433,14 @@ export function SessionActivitySection() {
             <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
               <div className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-gray-500" />
-                <span className="text-xs text-gray-500 dark:text-gray-400">Total Events</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{t("stats.total")}</span>
               </div>
               <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{stats.total}</p>
             </div>
             <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800">
               <div className="flex items-center gap-2">
                 <LogIn className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-xs text-emerald-600 dark:text-emerald-400">24h Logins</span>
+                <span className="text-xs text-emerald-600 dark:text-emerald-400">{t("stats.logins24h")}</span>
               </div>
               <p className="mt-1 text-2xl font-semibold text-emerald-700 dark:text-emerald-300">{stats.recentLogins}</p>
             </div>
@@ -456,7 +462,7 @@ export function SessionActivitySection() {
                   stats.securityEvents > 0
                     ? "text-amber-600 dark:text-amber-400"
                     : "text-gray-500 dark:text-gray-400"
-                )}>Alerts</span>
+                )}>{t("stats.alerts")}</span>
               </div>
               <p className={cn(
                 "mt-1 text-2xl font-semibold",
@@ -486,7 +492,7 @@ export function SessionActivitySection() {
                   )}
                 >
                   <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="hidden sm:inline">{t(`filters.${tab.id}`)}</span>
                 </button>
               );
             })}
@@ -507,10 +513,10 @@ export function SessionActivitySection() {
                 <div className="sticky top-0 z-10 px-6 py-3 bg-gray-50/95 dark:bg-gray-800/95 backdrop-blur border-b border-gray-100 dark:border-gray-700">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                      {dateGroup}
+                      {t(`dateGroups.${dateGroup}`)}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {items.length} event{items.length !== 1 ? "s" : ""}
+                      {t("eventCount", { count: items.length })}
                     </span>
                   </div>
                 </div>
@@ -559,21 +565,21 @@ export function SessionActivitySection() {
                               <div>
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className="font-medium text-gray-900 dark:text-white">
-                                    {config.label}
+                                    {getActivityLabel(activity.action)}
                                   </span>
                                   {config.severity !== "info" && (
                                     <span className={cn(
                                       "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
                                       styles.badge
                                     )}>
-                                      {config.severity === "success" && "Success"}
-                                      {config.severity === "warning" && "Warning"}
-                                      {config.severity === "danger" && "Alert"}
+                                      {config.severity === "success" && t("severity.success")}
+                                      {config.severity === "warning" && t("severity.warning")}
+                                      {config.severity === "danger" && t("severity.alert")}
                                     </span>
                                   )}
                                 </div>
                                 <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                                  {formatActivityDescription(activity, config.description)}
+                                  {formatActivityDescription(activity, getActivityDescription(activity.action))}
                                 </p>
                               </div>
                               <div className="flex items-center gap-3 flex-shrink-0">
@@ -599,14 +605,14 @@ export function SessionActivitySection() {
                                 <div className="mt-4 p-4 rounded-xl bg-gray-100/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50">
                                   <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Time</p>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("details.time")}</p>
                                       <p className="font-medium text-gray-900 dark:text-white">
                                         {formatFullDate(activity.createdAt)}
                                       </p>
                                     </div>
                                     {ipAddress && (
                                       <div>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">IP Address</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("details.ipAddress")}</p>
                                         <p className="font-mono text-gray-900 dark:text-white">
                                           {maskIpAddress(ipAddress, showFullIp)}
                                         </p>
@@ -614,7 +620,7 @@ export function SessionActivitySection() {
                                     )}
                                     {(city || country) && (
                                       <div>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Location</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("details.location")}</p>
                                         <div className="flex items-center gap-1.5">
                                           <MapPin className="h-3.5 w-3.5 text-gray-400" />
                                           <p className="font-medium text-gray-900 dark:text-white">
@@ -627,7 +633,7 @@ export function SessionActivitySection() {
                                     )}
                                     {device && (
                                       <div>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Device</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("details.device")}</p>
                                         <p className="font-medium text-gray-900 dark:text-white">
                                           {device}
                                         </p>
@@ -635,7 +641,7 @@ export function SessionActivitySection() {
                                     )}
                                     {activity.userAgent && !device && (
                                       <div className="col-span-2">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">User Agent</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("details.userAgent")}</p>
                                         <p className="text-gray-700 dark:text-gray-300 text-xs truncate">
                                           {activity.userAgent}
                                         </p>
@@ -662,12 +668,12 @@ export function SessionActivitySection() {
               <Shield className="h-8 w-8 text-gray-400" />
             </div>
             <h3 className="font-medium text-gray-900 dark:text-white mb-1">
-              {filter === "all" ? "No Activity Yet" : `No ${filterTabs.find(t => t.id === filter)?.label} Activity`}
+              {filter === "all" ? t("noActivity.title") : t("noActivity.titleFiltered", { filter: t(`filters.${filter}`) })}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {filter === "all"
-                ? "Activity will appear here as you use your account"
-                : "Try selecting a different filter to see more activity"
+                ? t("noActivity.description")
+                : t("noActivity.descriptionFiltered")
               }
             </p>
           </div>
@@ -676,12 +682,12 @@ export function SessionActivitySection() {
 
       {/* Legend */}
       <div className="rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-900 dark:to-gray-800/50 border border-gray-200 dark:border-gray-700 p-4">
-        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3">Activity Types</p>
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3">{t("legend.title")}</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {Object.entries(severityStyles).map(([severity, styles]) => (
             <div key={severity} className="flex items-center gap-2">
               <div className={cn("w-3 h-3 rounded-full", styles.bg)} />
-              <span className="text-xs text-gray-600 dark:text-gray-400 capitalize">{severity}</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">{t(`legend.${severity}`)}</span>
             </div>
           ))}
         </div>

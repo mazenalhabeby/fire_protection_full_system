@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { DepositsService } from './deposits.service';
 import { BlockchainConfigService } from '../blockchain/blockchain.config';
 
@@ -118,5 +119,21 @@ export class DepositsListenerService implements OnModuleInit, OnModuleDestroy {
       isRunning: this.isRunning,
       pollingInterval: this.blockchainConfig.depositPollingInterval,
     };
+  }
+
+  /**
+   * Auto-release expired locked deposits (runs every 5 minutes)
+   * This ensures locked deposits are released promptly after their 24h lock period
+   */
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async autoReleaseExpiredDeposits(): Promise<void> {
+    try {
+      const count = await this.depositsService.releaseExpiredDeposits();
+      if (count > 0) {
+        this.logger.log(`Auto-released ${count} expired locked deposits`);
+      }
+    } catch (error) {
+      this.logger.error(`Error auto-releasing deposits: ${error.message}`);
+    }
   }
 }

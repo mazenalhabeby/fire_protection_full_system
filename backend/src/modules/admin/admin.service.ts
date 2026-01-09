@@ -1663,4 +1663,136 @@ export class AdminService {
       ),
     };
   }
+
+  /**
+   * Create test buyback allocations for testing
+   * Creates $0.20 worth of BNB and $0.50 worth of USDC
+   */
+  async createTestBuybackAllocations() {
+    // Get BNB price (approx $700)
+    const bnbPrice = 700;
+    const bnbAmount = 0.2 / bnbPrice; // $0.20 worth of BNB
+
+    // Get or create a test user
+    let testUser = await this.prisma.user.findFirst({
+      where: { email: 'test@example.com' },
+    });
+
+    if (!testUser) {
+      testUser = await this.prisma.user.create({
+        data: {
+          email: 'test@example.com',
+          firstName: 'Test',
+          lastName: 'User',
+          authProvider: 'CREDENTIALS',
+          isEmailVerified: true,
+        },
+      });
+    }
+
+    // Create test buyback allocations
+    const allocations = await this.prisma.$transaction([
+      // BNB allocation - $0.20
+      this.prisma.buybackAllocation.create({
+        data: {
+          purchaseId: `test-bnb-${Date.now()}`,
+          userId: testUser.id,
+          amount: new Decimal(bnbAmount.toFixed(8)),
+          currency: 'BNB',
+          usdValue: new Decimal(0.2),
+          status: 'PENDING',
+        },
+      }),
+      // USDC allocation - $0.50
+      this.prisma.buybackAllocation.create({
+        data: {
+          purchaseId: `test-usdc-${Date.now()}`,
+          userId: testUser.id,
+          amount: new Decimal(0.5),
+          currency: 'USDC',
+          usdValue: new Decimal(0.5),
+          status: 'PENDING',
+        },
+      }),
+    ]);
+
+    this.logger.log(`Created ${allocations.length} test buyback allocations`);
+
+    return {
+      success: true,
+      message: `Created ${allocations.length} test buyback allocations`,
+      allocations: allocations.map((a) => ({
+        id: a.id,
+        currency: a.currency,
+        amount: a.amount.toString(),
+        usdValue: a.usdValue.toString(),
+      })),
+    };
+  }
+
+  /**
+   * Get buyback allocations with pagination and filtering
+   */
+  async getBuybackAllocations(params: {
+    status?: string;
+    page: number;
+    limit: number;
+  }) {
+    const { status, page, limit } = params;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.BuybackAllocationWhereInput = {};
+    if (status && ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED'].includes(status)) {
+      where.status = status as 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+    }
+
+    const [allocations, total] = await Promise.all([
+      this.prisma.buybackAllocation.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.buybackAllocation.count({ where }),
+    ]);
+
+    // Fetch user emails for allocations that have userId
+    const userIds = allocations.filter(a => a.userId).map(a => a.userId!);
+    const users = userIds.length > 0
+      ? await this.prisma.user.findMany({
+          where: { id: { in: userIds } },
+          select: { id: true, email: true, firstName: true, lastName: true },
+        })
+      : [];
+    const userMap = new Map(users.map(u => [u.id, u]));
+
+    return {
+      allocations: allocations.map((a) => {
+        const user = a.userId ? userMap.get(a.userId) : null;
+        return {
+          id: a.id,
+          purchaseId: a.purchaseId,
+          userId: a.userId,
+          userEmail: user?.email || null,
+          userName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email : null,
+          amount: a.amount.toString(),
+          currency: a.currency,
+          usdValue: a.usdValue.toString(),
+          status: a.status,
+          hbctBought: a.hbctBought?.toString() || null,
+          swapTxHash: a.swapTxHash || null,
+          errorMessage: a.errorMessage || null,
+          createdAt: a.createdAt.toISOString(),
+          executedAt: a.executedAt?.toISOString() || null,
+          completedAt: a.completedAt?.toISOString() || null,
+        };
+      }),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
 }

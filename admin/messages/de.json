@@ -7,7 +7,9 @@
     "locks": "Token-Sperren",
     "deposits": "Einzahlungen",
     "withdrawals": "Auszahlungen",
+    "buyback": "Rückkauf-Pool",
     "purchases": "Käufe",
+    "support": "Support",
     "roles": "Rollen",
     "settings": "Einstellungen",
     "backToApp": "Zurück zur App"
@@ -18,5 +20,494 @@
     "email": "E-Mail",
     "password": "Passwort",
     "adminRequired": "Admin-Zugang erforderlich"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Ein Fehler ist aufgetreten",
+    "retry": "Erneut versuchen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "view": "Ansehen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "submit": "Absenden",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "sort": "Sortieren",
+    "noResults": "Keine Ergebnisse gefunden",
+    "refresh": "Aktualisieren",
+    "actions": "Aktionen",
+    "status": "Status",
+    "date": "Datum",
+    "amount": "Betrag",
+    "user": "Benutzer",
+    "page": "Seite",
+    "of": "von",
+    "total": "gesamt",
+    "allStatus": "Alle Status",
+    "copy": "Kopieren",
+    "copied": "Kopiert!",
+    "viewOnExplorer": "Auf BSCScan ansehen",
+    "approve": "Genehmigen",
+    "reject": "Ablehnen",
+    "process": "Verarbeiten",
+    "reason": "Grund"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Übersicht Ihrer Plattform-Statistiken",
+    "stats": {
+      "totalUsers": "Benutzer Gesamt",
+      "activeUsers": "Aktive Benutzer",
+      "totalDeposits": "Einzahlungen Gesamt",
+      "totalWithdrawals": "Auszahlungen Gesamt",
+      "pendingApprovals": "Ausstehende Genehmigungen",
+      "openTickets": "Offene Tickets",
+      "totalVolume": "Gesamtvolumen",
+      "totalRevenue": "Gesamtumsatz"
+    },
+    "recentActivity": "Letzte Aktivität",
+    "quickActions": "Schnellaktionen"
+  },
+  "deposits": {
+    "title": "Einzahlungsverwaltung",
+    "subtitle": "On-Chain-Einzahlungen überwachen und verwalten",
+    "stats": {
+      "totalDeposits": "Einzahlungen Gesamt",
+      "totalAmount": "Gesamtbetrag (HBCT)",
+      "pending": "Ausstehend",
+      "credited": "Gutgeschrieben",
+      "locked24h": "Gesperrt (24h)",
+      "unmapped": "Nicht Zugeordnet"
+    },
+    "listener": {
+      "title": "Einzahlungs-Listener",
+      "running": "Läuft",
+      "stopped": "Gestoppt",
+      "pollingEvery": "Abfrage alle {seconds}s",
+      "processNow": "Jetzt Verarbeiten",
+      "start": "Starten",
+      "stop": "Stoppen"
+    },
+    "lookup": {
+      "title": "Transaktionssuche & Historischer Scan",
+      "subtitle": "Verwenden wenn ein Benutzer eine fehlende Einzahlung meldet",
+      "placeholder": "Transaktions-Hash eingeben (0x...)",
+      "button": "Suchen",
+      "quickScan": "Schnellscan (24h)",
+      "fullScan": "Vollscan (7 Tage)",
+      "scanning24h": "Scanne letzte 24 Stunden...",
+      "scanning7d": "Scanne letzte 7 Tage...",
+      "pleaseWaitBlockchain": "Bitte warten während wir die Blockchain prüfen...",
+      "mayTakeSeveralMinutes": "Dies kann mehrere Minuten dauern. Bitte warten...",
+      "scanCannotBeStopped": "Hinweis: Der Scan läuft auf dem Server und kann nicht gestoppt werden."
+    },
+    "filters": {
+      "allDeposits": "Alle Einzahlungen",
+      "locked": "Gesperrt",
+      "unmapped": "Nicht Zugeordnet"
+    },
+    "status": {
+      "pending": "Ausstehend",
+      "confirmed": "Bestätigt",
+      "credited": "Gutgeschrieben",
+      "locked": "Gesperrt",
+      "failed": "Fehlgeschlagen",
+      "unmapped": "Nicht Zugeordnet"
+    },
+    "table": {
+      "txHash": "TX Hash",
+      "from": "Von",
+      "amount": "Betrag",
+      "user": "Benutzer",
+      "status": "Status",
+      "confirmations": "Bestätigungen",
+      "date": "Datum",
+      "actions": "Aktionen",
+      "noDeposits": "Keine Einzahlungen gefunden"
+    },
+    "actions": {
+      "mapUser": "Benutzer Zuordnen",
+      "release": "Freigeben",
+      "reassign": "Neu Zuweisen",
+      "unmap": "Zuordnung Entfernen"
+    },
+    "modals": {
+      "mapDeposit": {
+        "title": "Einzahlung Benutzer Zuordnen",
+        "subtitle": "Diese nicht zugeordnete Einzahlung mit einem Benutzerkonto verknüpfen",
+        "searchUser": "Benutzer Suchen",
+        "searchPlaceholder": "Nach E-Mail, Benutzername oder Wallet-Adresse suchen...",
+        "selectedUser": "Ausgewählter Benutzer",
+        "verifyWarning": {
+          "title": "Vor Zuordnung Überprüfen",
+          "description": "Stellen Sie sicher, dass die Einzahlung tatsächlich diesem Benutzer gehört. Der Betrag wird sofort gutgeschrieben."
+        },
+        "button": "Einzahlung Zuordnen",
+        "mapping": "Zuordnen..."
+      },
+      "unmapDeposit": {
+        "title": "Einzahlungszuordnung Entfernen",
+        "subtitle": "Benutzerzuordnung entfernen und Gutschrift rückgängig machen",
+        "transaction": "Transaktion",
+        "depositAmount": "Einzahlungsbetrag",
+        "currentUser": "Aktueller Benutzer",
+        "userBalance": "Benutzer-Guthaben",
+        "insufficientBalance": "Unzureichendes Guthaben",
+        "insufficientWarning": "Benutzer hat nur {balance} HBCT aber Einzahlung war {amount} HBCT.",
+        "forceUnmap": "Zuordnung ohne Belastung entfernen",
+        "forceUnmapDesc": "Einzahlungsdatensatz entfernen ohne Benutzer-Guthaben zu belasten",
+        "reasonLabel": "Grund für Entfernung *",
+        "reasonPlaceholder": "z.B.: Einzahlung wurde versehentlich falschem Benutzer zugeordnet...",
+        "balanceReversalWarning": {
+          "title": "Achtung: Guthaben-Rückbuchung",
+          "description": "Dies wird {amount} HBCT vom Benutzer-Guthaben abbuchen."
+        },
+        "button": "Zuordnung Entfernen",
+        "forceButton": "Entfernung Erzwingen",
+        "unmapping": "Entferne..."
+      },
+      "reassignDeposit": {
+        "title": "Einzahlung Neu Zuweisen",
+        "subtitle": "Einzahlung von einem Benutzer zu einem anderen verschieben",
+        "searchNewUser": "Neuen Benutzer Suchen",
+        "newUser": "Neuer Benutzer",
+        "forceReassign": "Neuzuweisung ohne Belastung des alten Benutzers erzwingen",
+        "forceReassignDesc": "Neuen Benutzer gutschreiben ohne alten Benutzer zu belasten",
+        "reasonLabel": "Grund für Neuzuweisung *",
+        "reasonPlaceholder": "z.B.: Ursprüngliche Zuordnung war falsch...",
+        "balanceTransferWarning": {
+          "title": "Guthaben-Transfer",
+          "description": "Dies wird {amount} HBCT vom aktuellen Benutzer abbuchen."
+        },
+        "button": "Einzahlung Neu Zuweisen",
+        "forceButton": "Neuzuweisung Erzwingen",
+        "reassigning": "Weise neu zu..."
+      },
+      "releaseDeposit": {
+        "title": "Gesperrte Einzahlung Freigeben",
+        "subtitle": "Einzahlung vor Ablauf der 24h-Sperre freigeben",
+        "assignedUser": "Zugewiesener Benutzer",
+        "timeRemaining": "Verbleibende Zeit",
+        "lockReason": "Sperrgrund",
+        "readyToRelease": "Bereit zur Freigabe",
+        "whyLocked": {
+          "title": "Warum ist diese Einzahlung gesperrt?",
+          "description": "Die Einzahlung wurde einem Benutzer zugeordnet dessen Wallet-Adresse nicht mit dem Absender übereinstimmt."
+        },
+        "reasonLabel": "Grund für Vorzeitige Freigabe *",
+        "reasonPlaceholder": "z.B.: Benutzer hat Eigentum über Support-Ticket verifiziert...",
+        "button": "Jetzt Freigeben",
+        "releasing": "Freigabe..."
+      }
+    },
+    "timeRemaining": "{hours}h {minutes}m verbleibend",
+    "readyToRelease": "Bereit zur Freigabe"
+  },
+  "withdrawals": {
+    "title": "Auszahlungsverwaltung",
+    "subtitle": "Benutzer-Auszahlungen überwachen und verarbeiten",
+    "stats": {
+      "totalWithdrawals": "Auszahlungen Gesamt",
+      "totalAmount": "Gesamtbetrag (HBCT)",
+      "pendingApproval": "Genehmigung Ausstehend",
+      "totalFees": "Gebühren Gesamt (HBCT)"
+    },
+    "hotWallet": {
+      "title": "Hot Wallet",
+      "pending": "Ausstehend",
+      "lowBalanceWarning": "Niedriger Kontostand! Hot Wallet auffüllen."
+    },
+    "status": {
+      "pendingConfirmation": "Warte auf Bestätigung",
+      "pendingApproval": "Genehmigung Erforderlich",
+      "approved": "Genehmigt",
+      "processing": "In Bearbeitung",
+      "completed": "Abgeschlossen",
+      "rejected": "Abgelehnt",
+      "cancelled": "Storniert",
+      "failed": "Fehlgeschlagen"
+    },
+    "table": {
+      "user": "Benutzer",
+      "amount": "Betrag",
+      "fee": "Gebühr",
+      "toAddress": "An Adresse",
+      "status": "Status",
+      "tx": "TX",
+      "date": "Datum",
+      "actions": "Aktionen",
+      "noWithdrawals": "Keine Auszahlungen gefunden"
+    },
+    "actions": {
+      "approve": "Genehmigen",
+      "reject": "Ablehnen",
+      "process": "Verarbeiten"
+    },
+    "confirmApprove": "Sind Sie sicher, dass Sie diese Auszahlung genehmigen möchten?",
+    "confirmProcess": "Diese Auszahlung jetzt manuell verarbeiten?",
+    "rejectPlaceholder": "Grund",
+    "toast": {
+      "approveSuccess": "Auszahlung erfolgreich genehmigt",
+      "rejectSuccess": "Auszahlung abgelehnt",
+      "processSuccess": "Auszahlungsverarbeitung gestartet",
+      "noPermissionApprove": "Sie haben keine Berechtigung Auszahlungen zu genehmigen",
+      "noPermissionReject": "Sie haben keine Berechtigung Auszahlungen abzulehnen",
+      "noPermissionProcess": "Sie haben keine Berechtigung Auszahlungen zu verarbeiten"
+    }
+  },
+  "users": {
+    "title": "Benutzerverwaltung",
+    "subtitle": "Benutzerkonten anzeigen und verwalten",
+    "stats": {
+      "totalUsers": "Benutzer Gesamt",
+      "verifiedUsers": "Verifizierte Benutzer",
+      "activeToday": "Heute Aktiv",
+      "newThisMonth": "Neu Diesen Monat"
+    },
+    "table": {
+      "user": "Benutzer",
+      "email": "E-Mail",
+      "status": "Status",
+      "balance": "Guthaben",
+      "role": "Rolle",
+      "joined": "Registriert",
+      "lastActive": "Zuletzt Aktiv",
+      "actions": "Aktionen"
+    },
+    "status": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "suspended": "Gesperrt",
+      "banned": "Gebannt"
+    },
+    "actions": {
+      "viewDetails": "Details Anzeigen",
+      "editUser": "Benutzer Bearbeiten",
+      "suspendUser": "Benutzer Sperren",
+      "banUser": "Benutzer Bannen",
+      "restoreUser": "Benutzer Wiederherstellen"
+    }
+  },
+  "support": {
+    "title": "Support-Tickets",
+    "subtitle": "Kundensupport-Anfragen verwalten",
+    "stats": {
+      "openTickets": "Offene Tickets",
+      "pendingResponse": "Antwort Ausstehend",
+      "resolvedToday": "Heute Gelöst",
+      "avgResponseTime": "Durchschn. Antwortzeit"
+    },
+    "status": {
+      "open": "Offen",
+      "inProgress": "In Bearbeitung",
+      "waitingOnCustomer": "Warte auf Kunde",
+      "resolved": "Gelöst",
+      "closed": "Geschlossen"
+    },
+    "priority": {
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch",
+      "urgent": "Dringend"
+    },
+    "table": {
+      "id": "ID",
+      "subject": "Betreff",
+      "user": "Benutzer",
+      "category": "Kategorie",
+      "priority": "Priorität",
+      "status": "Status",
+      "created": "Erstellt",
+      "lastUpdate": "Letzte Aktualisierung",
+      "actions": "Aktionen"
+    },
+    "actions": {
+      "reply": "Antworten",
+      "assignToMe": "Mir Zuweisen",
+      "changeStatus": "Status Ändern",
+      "changePriority": "Priorität Ändern",
+      "close": "Ticket Schließen"
+    }
+  },
+  "purchases": {
+    "title": "Token-Käufe",
+    "subtitle": "Alle Kauftransaktionen anzeigen",
+    "stats": {
+      "totalPurchases": "Käufe Gesamt",
+      "totalVolume": "Gesamtvolumen",
+      "todayPurchases": "Heutige Käufe",
+      "averageOrder": "Durchschnittliche Bestellung"
+    },
+    "table": {
+      "id": "ID",
+      "user": "Benutzer",
+      "amount": "Betrag",
+      "tokens": "Tokens",
+      "currency": "Währung",
+      "status": "Status",
+      "txHash": "TX Hash",
+      "date": "Datum"
+    },
+    "status": {
+      "pending": "Ausstehend",
+      "completed": "Abgeschlossen",
+      "failed": "Fehlgeschlagen",
+      "refunded": "Erstattet"
+    }
+  },
+  "buyback": {
+    "title": "Rückkauf-Pool",
+    "subtitle": "Token-Rückkauf-System verwalten",
+    "stats": {
+      "poolBalance": "Pool-Guthaben",
+      "totalBought": "HBCT Gekauft Gesamt",
+      "pendingAllocations": "Ausstehende Zuweisungen",
+      "lastExecution": "Letzte Ausführung"
+    },
+    "allocations": {
+      "title": "Ausstehende Zuweisungen",
+      "currency": "Währung",
+      "amount": "Betrag",
+      "source": "Quelle",
+      "date": "Datum",
+      "noAllocations": "Keine ausstehenden Zuweisungen"
+    },
+    "actions": {
+      "executeBuyback": "Rückkauf Ausführen",
+      "executing": "Ausführung...",
+      "addAllocation": "Zuweisung Hinzufügen"
+    },
+    "history": {
+      "title": "Ausführungsverlauf",
+      "bnbSpent": "BNB Ausgegeben",
+      "hbctBought": "HBCT Gekauft",
+      "txHash": "TX Hash",
+      "date": "Datum"
+    }
+  },
+  "affiliates": {
+    "title": "Partner-Verwaltung",
+    "subtitle": "Partnerprogramm anzeigen und verwalten",
+    "stats": {
+      "totalAffiliates": "Partner Gesamt",
+      "totalReferrals": "Empfehlungen Gesamt",
+      "totalCommissions": "Provisionen Gesamt",
+      "pendingPayouts": "Ausstehende Auszahlungen"
+    },
+    "table": {
+      "affiliate": "Partner",
+      "tier": "Stufe",
+      "referrals": "Empfehlungen",
+      "totalEarned": "Gesamt Verdient",
+      "pendingPayout": "Ausstehende Auszahlung",
+      "status": "Status"
+    },
+    "tiers": {
+      "bronze": "Bronze",
+      "silver": "Silber",
+      "gold": "Gold",
+      "platinum": "Platin",
+      "diamond": "Diamant"
+    }
+  },
+  "locks": {
+    "title": "Token-Sperren",
+    "subtitle": "Alle Token-Sperr-Aktivitäten anzeigen",
+    "stats": {
+      "totalLocked": "Gesamt Gesperrt",
+      "activeLocks": "Aktive Sperren",
+      "totalRewards": "Belohnungen Gesamt",
+      "avgLockPeriod": "Durchschn. Sperrzeit"
+    },
+    "table": {
+      "user": "Benutzer",
+      "amount": "Betrag",
+      "tier": "Stufe",
+      "startDate": "Startdatum",
+      "unlockDate": "Entsperrdatum",
+      "reward": "Belohnung",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Aktiv",
+      "completed": "Abgeschlossen",
+      "unlocked": "Entsperrt"
+    }
+  },
+  "roles": {
+    "title": "Rollenverwaltung",
+    "subtitle": "Admin-Rollen und Berechtigungen verwalten",
+    "stats": {
+      "totalAdmins": "Admins Gesamt",
+      "superAdmins": "Super-Admins",
+      "moderators": "Moderatoren"
+    },
+    "table": {
+      "user": "Benutzer",
+      "role": "Rolle",
+      "permissions": "Berechtigungen",
+      "assignedBy": "Zugewiesen Von",
+      "assignedAt": "Zugewiesen Am"
+    },
+    "roles": {
+      "superAdmin": "Super-Admin",
+      "admin": "Admin",
+      "moderator": "Moderator",
+      "support": "Support"
+    },
+    "actions": {
+      "assignRole": "Rolle Zuweisen",
+      "removeRole": "Rolle Entfernen",
+      "editPermissions": "Berechtigungen Bearbeiten"
+    }
+  },
+  "settings": {
+    "title": "Plattform-Einstellungen",
+    "subtitle": "Plattformweite Einstellungen konfigurieren",
+    "sections": {
+      "general": "Allgemein",
+      "security": "Sicherheit",
+      "payments": "Zahlungen",
+      "notifications": "Benachrichtigungen",
+      "integrations": "Integrationen"
+    },
+    "general": {
+      "siteName": "Seitenname",
+      "siteDescription": "Seitenbeschreibung",
+      "maintenanceMode": "Wartungsmodus",
+      "maintenanceModeDesc": "Aktivieren um die Seite in den Wartungsmodus zu versetzen"
+    },
+    "security": {
+      "twoFactorRequired": "2FA für Admins erforderlich",
+      "sessionTimeout": "Sitzungs-Timeout (Minuten)",
+      "maxLoginAttempts": "Max. Anmeldeversuche",
+      "ipWhitelist": "IP-Whitelist"
+    },
+    "payments": {
+      "tokenPrice": "Token-Preis (USD)",
+      "minPurchase": "Mindestkauf (USD)",
+      "maxPurchase": "Maximalkauf (USD)",
+      "withdrawalFee": "Auszahlungsgebühr (%)",
+      "minWithdrawal": "Mindestauszahlung"
+    }
+  },
+  "pagination": {
+    "page": "Seite",
+    "of": "von",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "showingResults": "Zeige {from} bis {to} von {total} Ergebnissen"
+  },
+  "errors": {
+    "unauthorized": "Nicht autorisierter Zugriff",
+    "notFound": "Nicht gefunden",
+    "serverError": "Serverfehler aufgetreten",
+    "networkError": "Netzwerkfehler",
+    "validationError": "Validierungsfehler",
+    "permissionDenied": "Berechtigung verweigert"
   }
 }

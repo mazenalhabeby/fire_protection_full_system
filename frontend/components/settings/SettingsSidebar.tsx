@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
   User,
@@ -24,15 +25,16 @@ interface SettingsSidebarProps {
   onSectionChange: (section: SettingsSection) => void;
 }
 
-const sections: { id: SettingsSection; label: string; icon: React.ElementType; danger?: boolean }[] = [
-  { id: "profile", label: "Profile", icon: User },
-  { id: "security", label: "Security", icon: Shield },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "wallets", label: "Connected Wallets", icon: Wallet },
-  { id: "delete", label: "Delete Account", icon: Trash2, danger: true },
+const sectionConfig: { id: SettingsSection; labelKey: string; icon: React.ElementType; danger?: boolean }[] = [
+  { id: "profile", labelKey: "profile", icon: User },
+  { id: "security", labelKey: "security", icon: Shield },
+  { id: "notifications", labelKey: "notifications", icon: Bell },
+  { id: "wallets", labelKey: "wallets", icon: Wallet },
+  { id: "delete", labelKey: "deleteAccount", icon: Trash2, danger: true },
 ];
 
 export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSidebarProps) {
+  const t = useTranslations("settings.sidebar");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -79,7 +81,7 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
       {/* Desktop Sidebar */}
       <aside className="hidden md:block w-64 shrink-0">
         <nav className="sticky top-24 space-y-1">
-          {sections.map((section) => {
+          {sectionConfig.map((section) => {
             const Icon = section.icon;
             const isActive = activeSection === section.id;
             const isDanger = section.danger;
@@ -105,7 +107,7 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
                     isActive && isDanger && "text-red-500",
                     !isActive && isDanger && "text-red-400"
                   )} />
-                  <span className="font-medium">{section.label}</span>
+                  <span className="font-medium">{t(section.labelKey)}</span>
                 </button>
               </div>
             );
@@ -145,7 +147,7 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
           className="overflow-x-auto scrollbar-none"
         >
           <div className="flex gap-2 min-w-max pb-2">
-            {sections.map((section) => {
+            {sectionConfig.map((section) => {
               const Icon = section.icon;
               const isActive = activeSection === section.id;
               const isDanger = section.danger;
@@ -163,7 +165,7 @@ export function SettingsSidebar({ activeSection, onSectionChange }: SettingsSide
                   )}
                 >
                   <Icon className="h-4 w-4" />
-                  {section.label}
+                  {t(section.labelKey)}
                 </button>
               );
             })}

@@ -17,19 +17,25 @@ import {
 const languageNames: Record<Locale, string> = {
   en: "English",
   de: "Deutsch",
-  fr: "Francais",
+  fr: "Français",
+  es: "Español",
+  it: "Italiano",
 };
 
 const languageFlags: Record<Locale, string> = {
   en: "🇺🇸",
   de: "🇩🇪",
   fr: "🇫🇷",
+  es: "🇪🇸",
+  it: "🇮🇹",
 };
 
 const languageNativeNames: Record<Locale, string> = {
   en: "United States",
   de: "Deutschland",
   fr: "France",
+  es: "España",
+  it: "Italia",
 };
 
 interface LanguageSwitcherProps {

@@ -4,6 +4,7 @@ export type OnchainDepositStatus =
   | 'PENDING'
   | 'CONFIRMED'
   | 'CREDITED'
+  | 'LOCKED'    // Mapped by admin but locked for 24h (unverified wallet)
   | 'FAILED'
   | 'UNMAPPED';
 
@@ -30,6 +31,14 @@ export interface OnchainDeposit {
     firstName: string | null;
     lastName: string | null;
   };
+  // Lock system fields
+  lockedUntil?: string | null;
+  lockedAt?: string | null;
+  lockedByAdminId?: string | null;
+  lockReason?: string | null;
+  releasedAt?: string | null;
+  releasedByAdminId?: string | null;
+  walletVerified?: boolean;
 }
 
 export interface DepositListResponse {

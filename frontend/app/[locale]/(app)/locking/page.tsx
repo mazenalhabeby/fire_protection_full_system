@@ -129,14 +129,14 @@ export default function LockingPage() {
     if (!selectedLock) return;
     try {
       const result = await earlyUnlockMutation.mutateAsync(selectedLock.id);
-      toast.success(`Unlocked ${result.unlockedAmount} HBCT with ${result.actualReward} HBCT rewards (${result.penaltyPercent}% penalty applied)`);
+      toast.success(t("earlyUnlockSuccess", { unlockedAmount: result.unlockedAmount, actualReward: result.actualReward, penaltyPercent: result.penaltyPercent }));
       setShowEarlyUnlockModal(false);
       setSelectedLock(null);
     } catch (err) {
       if (err instanceof ApiError) {
         toast.error(err.message);
       } else {
-        toast.error("Failed to early unlock");
+        toast.error(t("earlyUnlockError"));
       }
     }
   };
@@ -145,14 +145,14 @@ export default function LockingPage() {
     if (!selectedLock) return;
     try {
       const result = await cancelLockMutation.mutateAsync(selectedLock.id);
-      toast.success(`Lock cancelled. ${result.refundedAmount} HBCT returned to your balance.`);
+      toast.success(t("cancelSuccess", { refundedAmount: result.refundedAmount }));
       setShowCancelModal(false);
       setSelectedLock(null);
     } catch (err) {
       if (err instanceof ApiError) {
         toast.error(err.message);
       } else {
-        toast.error("Failed to cancel lock");
+        toast.error(t("cancelError"));
       }
     }
   };
@@ -276,7 +276,7 @@ export default function LockingPage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-purple-500/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="relative flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Total Locked</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">{t("stats.totalLocked")}</p>
                 <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{totalLocked.toLocaleString()}</p>
                 <p className="text-xs text-purple-500 font-medium mt-1">HBCT</p>
               </div>
@@ -291,9 +291,9 @@ export default function LockingPage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-500/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="relative flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Total Rewards</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">{t("stats.totalRewards")}</p>
                 <p className="text-2xl md:text-3xl font-bold text-emerald-500">+{totalRewards.toLocaleString()}</p>
-                <p className="text-xs text-emerald-500 font-medium mt-1">HBCT Earned</p>
+                <p className="text-xs text-emerald-500 font-medium mt-1">{t("stats.hbctEarned")}</p>
               </div>
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
                 <Gift className="h-7 w-7 text-white" />
@@ -306,9 +306,9 @@ export default function LockingPage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="relative flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">Active Locks</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-1">{t("stats.activeLocks")}</p>
                 <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{activeLocks}</p>
-                <p className="text-xs text-amber-500 font-medium mt-1">Currently Staking</p>
+                <p className="text-xs text-amber-500 font-medium mt-1">{t("stats.currentlyStaking")}</p>
               </div>
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform duration-300">
                 <Clock className="h-7 w-7 text-white" />
@@ -330,8 +330,8 @@ export default function LockingPage() {
                     <Lock className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">How Locking Works</h3>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400">Earn rewards by locking tokens</p>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">{t("howItWorks.title")}</h3>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">{t("howItWorks.subtitle")}</p>
                   </div>
                 </div>
 
@@ -343,10 +343,10 @@ export default function LockingPage() {
                       <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-sm">
                         <Clock className="h-3.5 w-3.5 text-white" />
                       </div>
-                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">0-24h</span>
+                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">{t("howItWorks.gracePeriodTime")}</span>
                     </div>
-                    <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">Grace Period</p>
-                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Full refund</p>
+                    <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("howItWorks.gracePeriod")}</p>
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">{t("howItWorks.fullRefund")}</p>
                   </div>
 
                   {/* Step 2 - Locked */}
@@ -355,10 +355,10 @@ export default function LockingPage() {
                       <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
                         <Lock className="h-3.5 w-3.5 text-white" />
                       </div>
-                      <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase">24h-50%</span>
+                      <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase">{t("howItWorks.lockedTime")}</span>
                     </div>
-                    <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">Locked</p>
-                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">No early unlock</p>
+                    <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("howItWorks.locked")}</p>
+                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">{t("howItWorks.noEarlyUnlock")}</p>
                   </div>
 
                   {/* Step 3 - Early Unlock with Fees */}
@@ -367,13 +367,13 @@ export default function LockingPage() {
                       <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-400 to-fuchsia-500 flex items-center justify-center shadow-sm">
                         <Unlock className="h-3.5 w-3.5 text-white" />
                       </div>
-                      <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase">50-99%</span>
+                      <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase">{t("howItWorks.earlyUnlockTime")}</span>
                     </div>
-                    <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">Early Unlock</p>
+                    <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("howItWorks.earlyUnlock")}</p>
                     <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 font-bold">50-70%: 25%</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold">70-90%: 15%</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">90%+: 5%</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 font-bold">{t("howItWorks.penalty50to70")}</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold">{t("howItWorks.penalty70to90")}</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">{t("howItWorks.penalty90plus")}</span>
                     </div>
                   </div>
 
@@ -383,10 +383,10 @@ export default function LockingPage() {
                       <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-sm">
                         <Gift className="h-3.5 w-3.5 text-white" />
                       </div>
-                      <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase">100%</span>
+                      <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase">{t("howItWorks.fullRewardsTime")}</span>
                     </div>
-                    <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">Full Rewards</p>
-                    <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium mt-0.5">Zero fees</p>
+                    <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">{t("howItWorks.fullRewards")}</p>
+                    <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium mt-0.5">{t("howItWorks.zeroFees")}</p>
                   </div>
                 </div>
               </div>
@@ -404,11 +404,11 @@ export default function LockingPage() {
                 <div className="flex items-center justify-between">
                   <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                     <Lock className="h-4 w-4 text-purple-500" />
-                    Lock Tokens
+                    {t("form.lockTokens")}
                   </h2>
                   <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1 px-2 py-1 bg-emerald-500/10 rounded-full">
                     <TrendingUp className="h-3 w-3" />
-                    Up to {Math.max(...tiers.map(t => parseFloat(t.bonusPercent)))}% Bonus
+                    {t("form.upToBonus", { max: Math.max(...tiers.map(t => parseFloat(t.bonusPercent))) })}
                   </span>
                 </div>
               </div>
@@ -416,7 +416,7 @@ export default function LockingPage() {
               <div className="p-5 space-y-5">
                 {/* Tier Selection - 3D Coin Cards */}
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 md:mb-4 font-medium">Select Lock Period</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 md:mb-4 font-medium">{t("form.selectLockPeriod")}</p>
                   <div className="grid grid-cols-3 gap-2 md:gap-4">
                     {displayTiers.map((tier) => {
                       const config = getTierStyle(tier.name);
@@ -502,17 +502,17 @@ export default function LockingPage() {
                 {/* Amount Input */}
                 <div className="p-3 md:p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Amount to Lock</span>
+                    <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{t("form.amountToLock")}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] sm:text-xs text-gray-400">
-                        Available: <span className="font-semibold text-gray-600 dark:text-gray-300">{availableBalance.toLocaleString()}</span> HBCT
+                        {t("form.available")} <span className="font-semibold text-gray-600 dark:text-gray-300">{availableBalance.toLocaleString()}</span> HBCT
                       </span>
                       {availableBalance > 0 && (
                         <button
                           onClick={() => setAmount(availableBalance.toString())}
                           className="text-[10px] sm:text-xs px-2 py-0.5 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 font-medium hover:bg-brand-500/20 transition-colors"
                         >
-                          MAX
+                          {t("form.max")}
                         </button>
                       )}
                     </div>
@@ -559,7 +559,7 @@ export default function LockingPage() {
                     </div>
                     {selectedTierData && (
                       <div className="flex items-center gap-2 sm:block sm:text-right pt-2 sm:pt-0 border-t sm:border-t-0 border-emerald-500/20">
-                        <p className="text-xs text-gray-400">Lock Period:</p>
+                        <p className="text-xs text-gray-400">{t("form.lockPeriod")}</p>
                         <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                           {selectedTierData.lockMonths} {t("months")}
                         </p>
@@ -580,13 +580,13 @@ export default function LockingPage() {
                   fullWidth
                 >
                   {availableBalance === 0
-                    ? "No Balance"
+                    ? t("form.noBalance")
                     : !amount || enteredAmount === 0
-                    ? "Enter Amount"
+                    ? t("form.enterAmount")
                     : hasInsufficientBalance
-                    ? "Insufficient Balance"
+                    ? t("form.insufficientBalance")
                     : isBelowMinimum
-                    ? `Min: ${minAmount.toLocaleString()} HBCT`
+                    ? t("form.minAmount", { amount: minAmount.toLocaleString() })
                     : t("lockNow")}
                 </PremiumButton>
               </div>
@@ -622,7 +622,7 @@ export default function LockingPage() {
                   )}
                 >
                   <History className="h-4 w-4" />
-                  History
+                  {t("history.title")}
                 </button>
               </div>
 
@@ -631,13 +631,13 @@ export default function LockingPage() {
                   <div className="p-4">
                     <div className="text-center py-8">
                       <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-3" />
-                      <p className="text-gray-600 dark:text-gray-400 mb-2">Failed to load locks</p>
+                      <p className="text-gray-600 dark:text-gray-400 mb-2">{t("locks.failedToLoad")}</p>
                       <p className="text-xs text-red-500 mb-3">{(locksError as Error)?.message || 'Unknown error'}</p>
                       <button
                         onClick={() => refetchLocks()}
                         className="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors"
                       >
-                        Retry
+                        {t("locks.retry")}
                       </button>
                     </div>
                   </div>
@@ -824,7 +824,7 @@ export default function LockingPage() {
                                             "text-slate-600 dark:text-slate-400"
                                           : "text-gray-500"
                                       )}>
-                                        {lock.tier.name} Lock
+                                        {lock.tier.name} {t("locks.lock")}
                                       </span>
                                       <span className={cn(
                                         "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase",
@@ -839,7 +839,7 @@ export default function LockingPage() {
                                           isActive ? "bg-emerald-500 animate-pulse" :
                                           isCancelled ? "bg-red-500" : "bg-blue-500"
                                         )} />
-                                        {isActive ? "Active" : isCancelled ? "Cancelled" : "Completed"}
+                                        {isActive ? t("active") : isCancelled ? t("locks.cancelled") : t("completed")}
                                       </span>
                                     </div>
                                     <p className="text-3xl font-black text-gray-900 dark:text-white tracking-tight leading-none">
@@ -849,9 +849,9 @@ export default function LockingPage() {
                                     {isActive && (
                                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 flex items-center gap-1.5">
                                         <Clock className="h-3 w-3" />
-                                        <span className="font-semibold">{daysRemaining}</span> days remaining
+                                        <span className="font-semibold">{daysRemaining}</span> {t("locks.daysRemaining")}
                                         <span className="text-gray-300 dark:text-gray-600 mx-1">•</span>
-                                        <span className="font-bold text-gray-900 dark:text-white">{Math.round(progressPercent)}%</span> complete
+                                        <span className="font-bold text-gray-900 dark:text-white">{Math.round(progressPercent)}%</span> {t("locks.complete")}
                                       </p>
                                     )}
                                   </div>
@@ -895,7 +895,7 @@ export default function LockingPage() {
                                           ? "text-purple-600 dark:text-purple-400 bg-purple-500/10"
                                           : "text-slate-600 dark:text-slate-400 bg-slate-500/10"
                                       )}>
-                                        {daysPassed}/{totalDays} days
+                                        {daysPassed}/{totalDays} {t("locks.days")}
                                       </span>
                                       <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1">
                                         {new Date(lock.endDate).toLocaleDateString()}
@@ -926,7 +926,7 @@ export default function LockingPage() {
                                         lock.tier.name === "Platinum" ? "text-purple-500" :
                                         "text-slate-500"
                                       )} />
-                                      <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold mb-0.5">Duration</p>
+                                      <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold mb-0.5">{t("locks.duration")}</p>
                                       <p className="text-lg font-black text-gray-900 dark:text-white">{lock.tier.lockMonths}M</p>
                                     </div>
                                   </div>
@@ -935,7 +935,7 @@ export default function LockingPage() {
                                     <div className="absolute top-0 right-0 w-12 h-12 bg-emerald-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
                                     <div className="relative">
                                       <Gift className="h-5 w-5 text-emerald-500 mb-2" />
-                                      <p className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider font-semibold mb-0.5">Reward</p>
+                                      <p className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase tracking-wider font-semibold mb-0.5">{t("reward")}</p>
                                       <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">+{parseFloat(lock.rewardAmount).toLocaleString()}</p>
                                     </div>
                                   </div>
@@ -944,7 +944,7 @@ export default function LockingPage() {
                                     <div className="absolute top-0 right-0 w-12 h-12 bg-amber-400/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
                                     <div className="relative">
                                       <TrendingUp className="h-5 w-5 text-amber-500 mb-2" />
-                                      <p className="text-[10px] text-amber-600 dark:text-amber-400 uppercase tracking-wider font-semibold mb-0.5">Bonus</p>
+                                      <p className="text-[10px] text-amber-600 dark:text-amber-400 uppercase tracking-wider font-semibold mb-0.5">{t("bonus")}</p>
                                       <p className="text-lg font-black text-amber-600 dark:text-amber-400">+{lock.tier.bonusPercent}%</p>
                                     </div>
                                   </div>
@@ -964,14 +964,14 @@ export default function LockingPage() {
                                           {unlockMutation.isPending ? (
                                             <>
                                               <Loader2 className="h-5 w-5 animate-spin" />
-                                              <span>Claiming...</span>
+                                              <span>{t("locks.claiming")}</span>
                                             </>
                                           ) : (
                                             <>
                                               <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
                                                 <Gift className="h-4 w-4" />
                                               </div>
-                                              <span>Claim {parseFloat(lock.rewardAmount).toLocaleString()} HBCT</span>
+                                              <span>{t("locks.claim", { amount: parseFloat(lock.rewardAmount).toLocaleString() })}</span>
                                               <ChevronRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                                             </>
                                           )}
@@ -988,8 +988,8 @@ export default function LockingPage() {
                                               className="group/btn flex-1 relative overflow-hidden py-4 rounded-2xl bg-gradient-to-r from-slate-500 via-gray-500 to-slate-500 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white font-bold text-sm transition-all duration-500 flex items-center justify-center gap-2 disabled:opacity-50 shadow-xl shadow-gray-500/20 hover:shadow-gray-500/40 hover:-translate-y-0.5"
                                             >
                                               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
-                                              <span>Cancel Lock</span>
-                                              <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-semibold">No Fee</span>
+                                              <span>{t("locks.cancelLock")}</span>
+                                              <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-semibold">{t("locks.noFee")}</span>
                                             </button>
                                           )}
                                           {canEarlyUnlock && (
@@ -1002,8 +1002,8 @@ export default function LockingPage() {
                                               className="group/btn flex-1 relative overflow-hidden py-4 rounded-2xl bg-gradient-to-r from-rose-500 via-red-500 to-rose-500 bg-size-200 bg-pos-0 hover:bg-pos-100 text-white font-bold text-sm transition-all duration-500 flex items-center justify-center gap-2 disabled:opacity-50 shadow-xl shadow-rose-500/30 hover:shadow-rose-500/50 hover:-translate-y-0.5"
                                             >
                                               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
-                                              <span>Early Unlock</span>
-                                              <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-semibold">{penalty?.percent}% Fee</span>
+                                              <span>{t("howItWorks.earlyUnlock")}</span>
+                                              <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-semibold">{t("locks.fee", { percent: penalty?.percent })}</span>
                                             </button>
                                           )}
                                           {/* Locked state - between grace period and 50% completion */}
@@ -1011,9 +1011,9 @@ export default function LockingPage() {
                                             <div className="flex-1 py-4 rounded-2xl bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-3">
                                               <Lock className="h-5 w-5 text-gray-400" />
                                               <div className="text-center">
-                                                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">Locked Until 50%</p>
+                                                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">{t("locks.lockedUntil50")}</p>
                                                 <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                                                  {(MIN_EARLY_UNLOCK_PERCENT - (penalty?.completed || 0)).toFixed(1)}% more to unlock early
+                                                  {(MIN_EARLY_UNLOCK_PERCENT - (penalty?.completed || 0)).toFixed(1)}% {t("locks.moreToUnlockEarly")}
                                                 </p>
                                               </div>
                                             </div>
@@ -1025,8 +1025,8 @@ export default function LockingPage() {
                                     {!canUnlock && !canCancel && (
                                       <p className="text-[10px] text-center text-gray-400 dark:text-gray-500">
                                         {canEarlyUnlock
-                                          ? `Early unlock available • You'll receive ${penalty?.actualReward.toFixed(2)} HBCT (${penalty?.percent}% penalty on accrued rewards)`
-                                          : `Early unlock available at 50% • Wait ${Math.ceil((MIN_EARLY_UNLOCK_PERCENT - (penalty?.completed || 0)) * totalDays / 100)} more days`}
+                                          ? `${t("locks.earlyUnlockAvailable")} • ${t("locks.youWillReceive", { amount: penalty?.actualReward.toFixed(2), penalty: penalty?.percent })}`
+                                          : `${t("locks.earlyUnlockAt50")} • ${t("locks.waitMoreDays", { days: Math.ceil((MIN_EARLY_UNLOCK_PERCENT - (penalty?.completed || 0)) * totalDays / 100) })}`}
                                       </p>
                                     )}
                                   </div>
@@ -1046,12 +1046,12 @@ export default function LockingPage() {
                                       ) : (
                                         <CheckCircle className="h-4 w-4 text-emerald-500" />
                                       )}
-                                      {isCancelled ? "Cancelled on" : "Completed on"} {new Date(lock.endDate).toLocaleDateString()}
+                                      {isCancelled ? t("locks.cancelledOn") : t("locks.completedOn")} {new Date(lock.endDate).toLocaleDateString()}
                                     </span>
                                     {isCompleted && (
                                       <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-500 px-3 py-1.5 rounded-full bg-emerald-500/10">
                                         <Gift className="h-3.5 w-3.5" />
-                                        +{parseFloat(lock.rewardAmount).toLocaleString()} Claimed
+                                        +{parseFloat(lock.rewardAmount).toLocaleString()} {t("locks.claimed")}
                                       </span>
                                     )}
                                   </div>
@@ -1072,7 +1072,7 @@ export default function LockingPage() {
                       <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
                     </div>
                   ) : !historyData?.history?.length ? (
-                    <EmptyState icon={History} message="No lock history yet" size="lg" />
+                    <EmptyState icon={History} message={t("history.noHistory")} size="lg" />
                   ) : (
                     <div className="space-y-2">
                       {historyData.history.map((entry) => (
@@ -1098,11 +1098,11 @@ export default function LockingPage() {
                               </div>
                               <div>
                                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                  {entry.action === "LOCK" && "Locked Tokens"}
-                                  {entry.action === "UNLOCK" && "Unlocked Tokens"}
-                                  {entry.action === "EARLY_UNLOCK" && "Early Unlock"}
-                                  {entry.action === "CANCEL" && "Lock Cancelled"}
-                                  {entry.action === "REWARD_DISTRIBUTION" && "Reward Received"}
+                                  {entry.action === "LOCK" && t("history.lockedTokens")}
+                                  {entry.action === "UNLOCK" && t("history.unlockedTokens")}
+                                  {entry.action === "EARLY_UNLOCK" && t("history.earlyUnlock")}
+                                  {entry.action === "CANCEL" && t("history.lockCancelled")}
+                                  {entry.action === "REWARD_DISTRIBUTION" && t("history.rewardReceived")}
                                 </p>
                                 <p className="text-xs text-gray-500">{entry.tierName} • {new Date(entry.createdAt).toLocaleDateString()}</p>
                               </div>
@@ -1116,10 +1116,10 @@ export default function LockingPage() {
                                 {entry.action === "LOCK" ? "-" : "+"}{entry.amount} HBCT
                               </p>
                               {entry.rewardAmount && (
-                                <p className="text-xs text-emerald-500">+{entry.rewardAmount} reward</p>
+                                <p className="text-xs text-emerald-500">+{entry.rewardAmount} {t("history.reward")}</p>
                               )}
                               {entry.penaltyAmount && parseFloat(entry.penaltyAmount) > 0 && (
-                                <p className="text-xs text-red-500">-{entry.penaltyAmount} penalty</p>
+                                <p className="text-xs text-red-500">-{entry.penaltyAmount} {t("history.penalty")}</p>
                               )}
                             </div>
                           </div>
@@ -1146,7 +1146,7 @@ export default function LockingPage() {
               <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-amber-500" />
-                  Early Unlock
+                  {t("earlyUnlockModal.title")}
                 </h3>
                 <button
                   onClick={() => {
@@ -1162,7 +1162,7 @@ export default function LockingPage() {
                 {/* Progress indicator */}
                 <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Lock Progress</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{t("earlyUnlockModal.lockProgress")}</span>
                     <span className="text-sm font-bold text-purple-600 dark:text-purple-400">{penalty.completed.toFixed(1)}%</span>
                   </div>
                   <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -1176,35 +1176,33 @@ export default function LockingPage() {
                 {/* How it works explanation */}
                 <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                   <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
-                    <span className="font-bold">How it works:</span> You earn rewards proportionally to your lock time.
-                    At {penalty.completed.toFixed(0)}% completion, you&apos;ve earned {penalty.accruedReward.toFixed(2)} HBCT.
-                    A {penalty.percent}% penalty applies to this accrued amount.
+                    <span className="font-bold">{t("earlyUnlockModal.howItWorks")}</span> {t("earlyUnlockModal.howItWorksDesc", { completed: penalty.completed.toFixed(0), accrued: penalty.accruedReward.toFixed(2), penalty: penalty.percent })}
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Locked Amount</span>
+                    <span className="text-gray-500">{t("earlyUnlockModal.lockedAmount")}</span>
                     <span className="font-semibold text-gray-900 dark:text-white">{selectedLock.amount} HBCT</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Total Reward (if full term)</span>
+                    <span className="text-gray-500">{t("earlyUnlockModal.totalRewardIfFull")}</span>
                     <span className="font-semibold text-gray-400 line-through">+{penalty.totalReward.toFixed(2)} HBCT</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Accrued Reward ({penalty.completed.toFixed(0)}%)</span>
+                    <span className="text-gray-500">{t("earlyUnlockModal.accruedReward", { percent: penalty.completed.toFixed(0) })}</span>
                     <span className="font-semibold text-emerald-500">+{penalty.accruedReward.toFixed(2)} HBCT</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Penalty ({penalty.percent}% of accrued)</span>
+                    <span className="text-gray-500">{t("earlyUnlockModal.penaltyOf", { percent: penalty.percent })}</span>
                     <span className="font-semibold text-red-500">-{penalty.penaltyAmount.toFixed(2)} HBCT</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Forfeited (unearned + penalty)</span>
+                    <span className="text-gray-500">{t("earlyUnlockModal.forfeited")}</span>
                     <span className="font-semibold text-gray-400">-{penalty.forfeitedReward.toFixed(2)} HBCT</span>
                   </div>
                   <div className="pt-3 mt-2 border-t border-gray-100 dark:border-gray-800 flex justify-between">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">You Will Receive</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("earlyUnlockModal.youWillReceive")}</span>
                     <span className="text-lg font-bold text-gray-900 dark:text-white">
                       {totalReceived.toFixed(2)} HBCT
                     </span>
@@ -1214,7 +1212,7 @@ export default function LockingPage() {
                 {/* Tip to wait */}
                 <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
                   <p className="text-xs text-amber-700 dark:text-amber-300">
-                    💡 <span className="font-semibold">Tip:</span> Waiting for full term gets you {penalty.totalReward.toFixed(2)} HBCT in rewards — {(penalty.totalReward - penalty.actualReward).toFixed(2)} HBCT more!
+                    💡 <span className="font-semibold">{t("earlyUnlockModal.tip")}</span> {t("earlyUnlockModal.tipDesc", { total: penalty.totalReward.toFixed(2), more: (penalty.totalReward - penalty.actualReward).toFixed(2) })}
                   </p>
                 </div>
 
@@ -1226,7 +1224,7 @@ export default function LockingPage() {
                     }}
                     className="flex-1 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold text-sm transition-colors"
                   >
-                    Keep Locked
+                    {t("earlyUnlockModal.keepLocked")}
                   </button>
                   <button
                     onClick={handleEarlyUnlock}
@@ -1236,12 +1234,12 @@ export default function LockingPage() {
                     {earlyUnlockMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Processing...
+                        {t("earlyUnlockModal.processing")}
                       </>
                     ) : (
                       <>
                         <Unlock className="h-4 w-4" />
-                        Unlock Now
+                        {t("earlyUnlockModal.unlockNow")}
                       </>
                     )}
                   </button>
@@ -1259,7 +1257,7 @@ export default function LockingPage() {
             <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
               <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <XCircle className="h-5 w-5 text-gray-500" />
-                Cancel Lock
+                {t("cancelModal.title")}
               </h3>
               <button
                 onClick={() => {
@@ -1274,21 +1272,21 @@ export default function LockingPage() {
             <div className="p-5 space-y-4">
               <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                 <p className="text-sm text-emerald-700 dark:text-emerald-300">
-                  You are within the 24-hour grace period. <span className="font-bold">No penalty will be applied.</span>
+                  {t("cancelModal.gracePeriodMessage")} <span className="font-bold">{t("cancelModal.noPenalty")}</span>
                 </p>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Locked Amount</span>
+                  <span className="text-gray-500">{t("cancelModal.lockedAmount")}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">{selectedLock.amount} HBCT</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Forfeited Reward</span>
+                  <span className="text-gray-500">{t("cancelModal.forfeitedReward")}</span>
                   <span className="font-semibold text-gray-400 line-through">{selectedLock.rewardAmount} HBCT</span>
                 </div>
                 <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex justify-between text-sm">
-                  <span className="text-gray-500">Refund Amount</span>
+                  <span className="text-gray-500">{t("cancelModal.refundAmount")}</span>
                   <span className="font-bold text-gray-900 dark:text-white">{selectedLock.amount} HBCT</span>
                 </div>
               </div>
@@ -1301,7 +1299,7 @@ export default function LockingPage() {
                   }}
                   className="flex-1 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold text-sm transition-colors"
                 >
-                  Keep Lock
+                  {t("cancelModal.keepLock")}
                 </button>
                 <button
                   onClick={handleCancelLock}
@@ -1311,12 +1309,12 @@ export default function LockingPage() {
                   {cancelLockMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Cancelling...
+                      {t("cancelModal.cancelling")}
                     </>
                   ) : (
                     <>
                       <XCircle className="h-4 w-4" />
-                      Cancel Lock
+                      {t("cancelModal.cancelLock")}
                     </>
                   )}
                 </button>

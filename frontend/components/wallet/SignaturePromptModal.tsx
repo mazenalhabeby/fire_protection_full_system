@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Loader2, Smartphone, CheckCircle2, Fingerprint, X, ArrowRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 interface SignaturePromptModalProps {
@@ -34,6 +35,8 @@ export function SignaturePromptModal({
   errorMessage,
   autoCloseOnError = 3000,
 }: SignaturePromptModalProps) {
+  const t = useTranslations("wallet.signature");
+
   // Auto-close modal after showing error
   useEffect(() => {
     if (status === "error" && autoCloseOnError > 0) {
@@ -158,39 +161,39 @@ export function SignaturePromptModal({
                   status === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-gray-900 dark:text-white"
                 )}
               >
-                {status === "pending" && "Signature Required"}
-                {status === "signing" && (isWalletConnect ? "Check Your Wallet" : "Signing...")}
-                {status === "success" && "Verified!"}
-                {status === "error" && "Signature Failed"}
+                {status === "pending" && t("required")}
+                {status === "signing" && (isWalletConnect ? t("checkWallet") : t("signing"))}
+                {status === "success" && t("verified")}
+                {status === "error" && t("failed")}
               </DialogTitle>
 
               <DialogDescription className="text-sm text-gray-500 dark:text-gray-400 mb-6">
                 {status === "pending" && (
                   <>
-                    To verify ownership of your wallet, please sign the message in {walletName}.
+                    {t("verifyOwnership", { wallet: walletName })}
                   </>
                 )}
                 {status === "signing" && isWalletConnect && (
                   <span className="flex flex-col gap-1">
-                    <span>Open your mobile wallet app</span>
+                    <span>{t("openMobileApp")}</span>
                     <span className="text-purple-500 dark:text-purple-400 font-medium">
-                      A signature request is waiting
+                      {t("requestWaiting")}
                     </span>
                   </span>
                 )}
                 {status === "signing" && !isWalletConnect && (
                   <>
-                    Please confirm the signature request in your wallet extension.
+                    {t("confirmInExtension")}
                   </>
                 )}
                 {status === "success" && (
                   <>
-                    Your wallet has been verified successfully. Logging you in...
+                    {t("verifiedSuccess")}
                   </>
                 )}
                 {status === "error" && (
                   <span className="text-red-500 dark:text-red-400">
-                    {errorMessage || "The signature was rejected or failed. Please try again."}
+                    {errorMessage || t("rejectedOrFailed")}
                   </span>
                 )}
               </DialogDescription>
@@ -202,14 +205,14 @@ export function SignaturePromptModal({
                     <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
                       <CheckCircle2 className="w-4 h-4 text-white" />
                     </div>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">Connected</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">{t("connected")}</span>
                   </div>
                   <ArrowRight className="w-4 h-4 text-gray-300 dark:text-gray-600" />
                   <div className="flex items-center gap-2 text-xs">
                     <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center animate-pulse">
                       <Fingerprint className="w-4 h-4 text-white" />
                     </div>
-                    <span className="text-purple-600 dark:text-purple-400 font-medium">Sign Message</span>
+                    <span className="text-purple-600 dark:text-purple-400 font-medium">{t("signMessage")}</span>
                   </div>
                 </div>
               )}
@@ -218,7 +221,7 @@ export function SignaturePromptModal({
               {status === "error" && autoCloseOnError > 0 && (
                 <div className="flex flex-col items-center gap-2">
                   <p className="text-xs text-gray-400 dark:text-gray-500">
-                    Closing automatically...
+                    {t("closingAutomatically")}
                   </p>
                   <div className="w-32 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ interface DeleteAccountSectionProps {
 const TOTAL_STEPS = 4;
 
 export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
+  const t = useTranslations("settings.deleteAccount");
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -71,7 +73,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
     mutationFn: authApi.deleteMyAccount,
     onSuccess: (data) => {
       const gracePeriodDate = new Date(data.gracePeriodEndsAt).toLocaleDateString();
-      toast.success(`Account deleted successfully. You can recover it until ${gracePeriodDate}.`);
+      toast.success(t("success", { date: gracePeriodDate }));
 
       // Clear session and redirect
       clearSessionMarker();
@@ -113,7 +115,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
 
   const handleDelete = async () => {
     if (!emailValid) {
-      toast.error("Email doesn't match");
+      toast.error(t("step4.emailMismatch"));
       return;
     }
     deleteAccountMutation.mutate();
@@ -134,22 +136,22 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
     {
       key: "loseTokens" as const,
       icon: Wallet,
-      text: "I understand all my tokens and balances will be permanently lost after the grace period",
+      text: t("step2.confirmations.loseTokens"),
     },
     {
       key: "loseLockedTokens" as const,
       icon: Lock,
-      text: "I understand my locked tokens cannot be recovered after the grace period",
+      text: t("step2.confirmations.loseLockedTokens"),
     },
     {
       key: "loseAffiliateEarnings" as const,
       icon: Users,
-      text: "I understand my affiliate earnings will be forfeited",
+      text: t("step2.confirmations.loseAffiliateEarnings"),
     },
     {
       key: "canRecover" as const,
       icon: RefreshCcw,
-      text: "I understand I have 30 days to recover my account by contacting support",
+      text: t("step2.confirmations.canRecover"),
     },
   ];
 
@@ -168,7 +170,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
         <div className="p-6 border-b border-red-200 dark:border-red-800/50">
           <h2 className="text-lg font-semibold text-red-700 dark:text-red-400 flex items-center gap-2">
             <AlertTriangle className="h-5 w-5" />
-            Danger Zone
+            {t("dangerZone")}
           </h2>
         </div>
 
@@ -176,10 +178,10 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                Delete Your Account
+                {t("deleteYourAccount")}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md">
-                Request account deletion. You&apos;ll have 30 days to recover your account.
+                {t("deleteDescription")}
               </p>
             </div>
             <Button
@@ -188,7 +190,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
               className="shrink-0"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete My Account
+              {t("deleteButton")}
             </Button>
           </div>
         </div>
@@ -202,13 +204,13 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
           </div>
           <div>
             <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">
-              Account Recovery Policy
+              {t("recoveryPolicy.title")}
             </h3>
             <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1 list-disc list-inside">
-              <li><strong>30-day grace period:</strong> You can recover your account within 30 days</li>
-              <li><strong>1-year data retention:</strong> Your data is kept for 1 year for compliance</li>
-              <li><strong>Contact support:</strong> To recover, contact support with your original email</li>
-              <li><strong>Permanent deletion:</strong> After 1 year, all data is permanently purged</li>
+              <li>{t("recoveryPolicy.gracePeriod")}</li>
+              <li>{t("recoveryPolicy.dataRetention")}</li>
+              <li>{t("recoveryPolicy.contactSupport")}</li>
+              <li>{t("recoveryPolicy.permanentDeletion")}</li>
             </ul>
           </div>
         </div>
@@ -222,13 +224,13 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
           </div>
           <div>
             <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-2">
-              What happens when you delete your account?
+              {t("whatHappens.title")}
             </h3>
             <ul className="text-sm text-amber-700 dark:text-amber-400 space-y-1 list-disc list-inside">
-              <li>Your email will be anonymized immediately</li>
-              <li>All sessions will be logged out</li>
-              <li>You cannot login until the account is recovered</li>
-              <li>After 30 days, your tokens and earnings will be forfeited</li>
+              <li>{t("whatHappens.emailAnonymized")}</li>
+              <li>{t("whatHappens.sessionsLoggedOut")}</li>
+              <li>{t("whatHappens.cannotLogin")}</li>
+              <li>{t("whatHappens.tokensForfeited")}</li>
             </ul>
           </div>
         </div>
@@ -242,10 +244,10 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
             <>
               <DialogHeader>
                 <DialogTitle className="text-center text-xl">
-                  Checking Eligibility
+                  {t("eligibility.title")}
                 </DialogTitle>
                 <DialogDescription className="text-center">
-                  Verifying your account can be deleted
+                  {t("eligibility.description")}
                 </DialogDescription>
               </DialogHeader>
 
@@ -254,7 +256,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                   <div className="flex flex-col items-center gap-4">
                     <Loader2 className="h-12 w-12 text-gray-400 animate-spin" />
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Checking your account status...
+                      {t("eligibility.checking")}
                     </p>
                   </div>
                 ) : eligibility?.canDelete ? (
@@ -263,9 +265,9 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                       <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                      Your account is eligible for deletion.
+                      {t("eligibility.eligible")}
                       <br />
-                      Click Continue to proceed.
+                      {t("eligibility.eligibleContinue")}
                     </p>
                   </div>
                 ) : (
@@ -275,7 +277,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                         <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                        Your account cannot be deleted yet. Please resolve:
+                        {t("eligibility.notEligible")}
                       </p>
                     </div>
 
@@ -308,14 +310,14 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
 
               <DialogFooter>
                 <Button variant="outline" onClick={handleClose}>
-                  Cancel
+                  {t("steps.cancel")}
                 </Button>
                 {eligibility?.canDelete ? (
                   <Button
                     variant="destructive"
                     onClick={() => setCurrentStep(1)}
                   >
-                    Continue
+                    {t("steps.continue")}
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 ) : (
@@ -325,7 +327,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                     disabled={isCheckingEligibility}
                   >
                     <RefreshCcw className={cn("h-4 w-4 mr-2", isCheckingEligibility && "animate-spin")} />
-                    Recheck
+                    {t("eligibility.recheck")}
                   </Button>
                 )}
               </DialogFooter>
@@ -372,25 +374,24 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                   <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
                 </div>
                 <DialogTitle className="text-center text-xl">
-                  Delete Your Account?
+                  {t("step1.title")}
                 </DialogTitle>
                 <DialogDescription className="text-center">
-                  This will schedule your account for deletion. You&apos;ll have{" "}
-                  <strong className="text-gray-900 dark:text-white">30 days</strong> to recover it.
+                  {t("step1.description")}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="py-4">
                 <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50">
                   <p className="text-sm text-blue-700 dark:text-blue-400 text-center">
-                    <strong>Grace Period:</strong> 30 days to recover
+                    {t("step1.gracePeriod")}
                     <br />
-                    <strong>Data Retention:</strong> 1 year for compliance
+                    {t("step1.dataRetention")}
                   </p>
                 </div>
                 <div className="mt-4 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50">
                   <p className="text-sm text-red-700 dark:text-red-400 text-center font-medium">
-                    This process requires {TOTAL_STEPS} steps to complete to ensure this is not a mistake.
+                    {t("step1.stepsWarning", { steps: TOTAL_STEPS })}
                   </p>
                 </div>
               </div>
@@ -402,10 +403,10 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
             <>
               <DialogHeader>
                 <DialogTitle className="text-center text-lg">
-                  Confirm You Understand
+                  {t("step2.title")}
                 </DialogTitle>
                 <DialogDescription className="text-center">
-                  Please check each box to confirm you understand the consequences
+                  {t("step2.description")}
                 </DialogDescription>
               </DialogHeader>
 
@@ -458,7 +459,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
 
               {!allConfirmed && (
                 <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-                  Please check all boxes to continue
+                  {t("step2.checkAllBoxes")}
                 </p>
               )}
             </>
@@ -469,10 +470,10 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
             <>
               <DialogHeader>
                 <DialogTitle className="text-center text-lg">
-                  Type &quot;DELETE&quot; to Continue
+                  {t("step3.title")}
                 </DialogTitle>
                 <DialogDescription className="text-center">
-                  To confirm this is intentional, please type the word DELETE below
+                  {t("step3.description")}
                 </DialogDescription>
               </DialogHeader>
 
@@ -482,7 +483,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                     type="text"
                     value={deleteText}
                     onChange={(e) => setDeleteText(e.target.value)}
-                    placeholder="Type DELETE here"
+                    placeholder={t("step3.placeholder")}
                     className={cn(
                       "text-center text-lg font-mono tracking-widest uppercase",
                       deleteTextValid
@@ -501,7 +502,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                   </div>
                 </div>
                 <p className="text-xs text-center text-gray-500 mt-3">
-                  Case insensitive
+                  {t("step3.caseInsensitive")}
                 </p>
               </div>
             </>
@@ -515,16 +516,16 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                   <Trash2 className="h-7 w-7 text-red-600 dark:text-red-400" />
                 </div>
                 <DialogTitle className="text-center text-lg">
-                  Final Confirmation
+                  {t("step4.title")}
                 </DialogTitle>
                 <DialogDescription className="text-center">
-                  Enter your email address to request account deletion
+                  {t("step4.description")}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="py-4">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Your email address
+                  {t("step4.emailLabel")}
                 </label>
                 <div className="relative">
                   <Input
@@ -549,18 +550,18 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Type <span className="font-medium text-gray-700 dark:text-gray-300">{user?.email}</span> to confirm
+                  {t("step4.typeEmailToConfirm", { email: user?.email })}
                 </p>
 
                 {/* Final Warning */}
                 <div className="mt-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50">
                   <p className="text-xs text-blue-700 dark:text-blue-400 text-center">
-                    You will have <strong>30 days</strong> to recover your account by contacting support.
+                    {t("step4.recoveryWarning")}
                   </p>
                 </div>
                 <div className="mt-2 p-3 rounded-xl bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-800">
                   <p className="text-xs text-red-700 dark:text-red-400 text-center font-medium">
-                    After 30 days, your account and all data will be permanently deleted.
+                    {t("step4.permanentWarning")}
                   </p>
                 </div>
               </div>
@@ -578,7 +579,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                   disabled={deleteAccountMutation.isPending}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
-                  Back
+                  {t("steps.back")}
                 </Button>
               )}
 
@@ -588,7 +589,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                   onClick={handleClose}
                   disabled={deleteAccountMutation.isPending}
                 >
-                  Cancel
+                  {t("steps.cancel")}
                 </Button>
 
                 {currentStep < TOTAL_STEPS ? (
@@ -597,7 +598,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                     onClick={() => setCurrentStep((prev) => prev + 1)}
                     disabled={!canProceed()}
                   >
-                    Continue
+                    {t("steps.continue")}
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 ) : (
@@ -610,12 +611,12 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                     {deleteAccountMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Deleting...
+                        {t("step4.deleting")}
                       </>
                     ) : (
                       <>
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Account
+                        {t("step4.deleteForever")}
                       </>
                     )}
                   </Button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useAuth, useRequireAuth } from "@/hooks/useAuth";
 import { SettingsSkeleton } from "@/components/skeletons/page-skeletons";
@@ -19,6 +19,7 @@ const validSections: SettingsSection[] = ["profile", "security", "notifications"
 export default function SettingsPage() {
   const locale = useLocale();
   const searchParams = useSearchParams();
+  const t = useTranslations("settings");
   const { user } = useAuth();
   const { isLoading: authLoading, isAuthenticated } = useRequireAuth(`/${locale}/login`);
   const { isLoading: isMinLoading, stopLoading } = usePageLoading();
@@ -93,8 +94,8 @@ export default function SettingsPage() {
 
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-6xl">
         <PageHeader
-          title="Settings"
-          subtitle="Manage your account settings and preferences"
+          title={t("title")}
+          subtitle={t("subtitle")}
         />
 
         {/* Settings Layout */}

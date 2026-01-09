@@ -162,7 +162,7 @@ export default function TicketDetailPage() {
         {/* Back Link */}
         <div className="mb-6 animate-in fade-in slide-in-from-left-4 duration-300">
           <Link
-            href={`/${locale}/help/tickets`}
+            href="/help/tickets"
             className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -278,7 +278,7 @@ export default function TicketDetailPage() {
                   ticket if you need further assistance.
                 </p>
                 <Link
-                  href={`/${locale}/help/tickets/new`}
+                  href="/help/tickets/new"
                   className="inline-flex items-center gap-2 mt-3 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
                 >
                   Create New Ticket

@@ -12,6 +12,7 @@ import {
   Lock,
   ArrowDownLeft,
   ArrowUpRight,
+  TrendingUp,
   Settings,
   LayoutDashboard,
   LogOut,
@@ -22,6 +23,7 @@ import {
   Sun,
   Moon,
   Monitor,
+  HeadphonesIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/components/ui";
@@ -45,12 +47,16 @@ const languageNames: Record<Locale, string> = {
   en: "English",
   de: "Deutsch",
   fr: "Français",
+  es: "Español",
+  it: "Italiano",
 };
 
 const languageFlags: Record<Locale, string> = {
   en: "🇺🇸",
   de: "🇩🇪",
   fr: "🇫🇷",
+  es: "🇪🇸",
+  it: "🇮🇹",
 };
 
 export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -58,6 +64,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const locale = useLocale() as Locale;
   const router = useRouter();
   const t = useTranslations("admin");
+  const tAuth = useTranslations("auth");
   const { logout, hasPermission, user, userRole } = useAdminAuth();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
@@ -116,6 +123,20 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       icon: ArrowUpRight,
       color: "rose",
       permission: "withdrawals.view",
+    },
+    {
+      title: t("buyback"),
+      url: "/buyback",
+      icon: TrendingUp,
+      color: "emerald",
+      permission: "settings.view",
+    },
+    {
+      title: t("support"),
+      url: "/support",
+      icon: HeadphonesIcon,
+      color: "indigo",
+      permission: "support.view",
     },
     {
       title: t("roles"),
@@ -197,6 +218,13 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       activeText: "text-white",
       glow: "shadow-fuchsia-500/25",
     },
+    indigo: {
+      bg: "bg-indigo-500/10",
+      text: "text-indigo-500",
+      activeBg: "bg-indigo-500",
+      activeText: "text-white",
+      glow: "shadow-indigo-500/25",
+    },
   };
 
   // Check if a nav item is active
@@ -261,7 +289,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                 className="size-1.5 rounded-full"
                 style={{ backgroundColor: userRole?.color || '#6366f1' }}
               />
-              {userRole?.name || (user?.role === 'ADMIN' ? 'Administrator' : 'User')}
+              {userRole?.name || (user?.role === 'ADMIN' ? t('administrator') : t('user'))}
             </span>
           </div>
         </div>
@@ -271,7 +299,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         <SidebarGroup>
           <div className="flex items-center gap-2 px-3 mb-3">
             <Sparkles className="h-3 w-3 text-gray-400" />
-            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Menu</span>
+            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{t("menu")}</span>
           </div>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
@@ -341,7 +369,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           {/* Theme Switcher */}
           <SidebarMenuItem>
             <div className="flex items-center justify-between px-3 py-2">
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Theme</span>
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{t("theme")}</span>
               {mounted ? (
                 <div className="flex items-center gap-1 p-1 rounded-lg bg-gray-100 dark:bg-gray-800">
                   <button
@@ -352,7 +380,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                         ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-sm"
                         : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/80"
                     )}
-                    title="Light mode"
+                    title={t("lightMode")}
                   >
                     <Sun className="w-3.5 h-3.5" />
                   </button>
@@ -364,7 +392,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                         ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-sm"
                         : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/80"
                     )}
-                    title="Dark mode"
+                    title={t("darkMode")}
                   >
                     <Moon className="w-3.5 h-3.5" />
                   </button>
@@ -376,7 +404,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                         ? "bg-gradient-to-br from-gray-500 to-gray-600 text-white shadow-sm"
                         : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/80"
                     )}
-                    title="System preference"
+                    title={t("systemMode")}
                   >
                     <Monitor className="w-3.5 h-3.5" />
                   </button>
@@ -394,7 +422,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           {/* Language Switcher */}
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip="Language"
+              tooltip={t("language")}
               onClick={() => setShowLanguages(!showLanguages)}
               className={cn(
                 "h-11 rounded-xl transition-all duration-200",
@@ -464,7 +492,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           {/* Logout */}
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip="Logout"
+              tooltip={tAuth("logout")}
               onClick={handleLogout}
               className="h-11 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all duration-200 group"
             >
@@ -472,7 +500,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                 <LogOut className="size-4" />
               </div>
               <span className="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-rose-600 dark:group-hover:text-rose-400">
-                Logout
+                {tAuth("logout")}
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>

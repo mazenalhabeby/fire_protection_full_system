@@ -28,6 +28,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { DatabaseMaintenanceModule } from './modules/database-maintenance/database-maintenance.module';
 import { HealthModule } from './modules/health/health.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { UploadModule } from './modules/upload/upload.module';
 import { JwtAuthGuard } from './modules/auth/guards';
 import { RequestLoggerMiddleware } from './common/middleware';
 
@@ -72,6 +73,7 @@ import { RequestLoggerMiddleware } from './common/middleware';
     DatabaseMaintenanceModule,
     HealthModule,
     RolesModule,
+    UploadModule,
   ],
   providers: [
     {

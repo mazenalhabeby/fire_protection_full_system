@@ -9,48 +9,56 @@ import {
   Loader2,
   CheckCircle2,
   Clock,
+  Shield,
 } from "lucide-react";
 import { useConfirmWithdrawal } from "@/hooks/useWithdrawals";
-import type { WithdrawalRequest } from "@/types/withdrawals";
+import type { WithdrawalRequest, ConfirmationMethod } from "@/types/withdrawals";
 import { PremiumButton } from "@/components/ui/premium-button";
 import { CurrencyIcon } from "./CurrencyIcon";
 
 interface WithdrawalConfirmationModalProps {
   withdrawal: WithdrawalRequest | null;
+  confirmationMethod: ConfirmationMethod;
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
 }
 
-const CODE_LENGTH = 8; // 8-character alphanumeric code
+const EMAIL_CODE_LENGTH = 8; // 8-character alphanumeric code for email
+const TOTP_CODE_LENGTH = 6; // 6-digit code for 2FA
 
 export function WithdrawalConfirmationModal({
   withdrawal,
+  confirmationMethod,
   isOpen,
   onClose,
   onSuccess,
 }: WithdrawalConfirmationModalProps) {
-  const [code, setCode] = useState(Array(CODE_LENGTH).fill(""));
+  const codeLength = confirmationMethod === '2fa' ? TOTP_CODE_LENGTH : EMAIL_CODE_LENGTH;
+  const [code, setCode] = useState(Array(codeLength).fill(""));
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const confirmWithdrawal = useConfirmWithdrawal();
 
-  // Reset state when modal opens
+  // Reset state when modal opens or confirmation method changes
   useEffect(() => {
     if (isOpen) {
-      setCode(Array(CODE_LENGTH).fill(""));
+      const newCodeLength = confirmationMethod === '2fa' ? TOTP_CODE_LENGTH : EMAIL_CODE_LENGTH;
+      setCode(Array(newCodeLength).fill(""));
       setError(null);
       setSuccess(false);
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
     }
-  }, [isOpen]);
+  }, [isOpen, confirmationMethod]);
 
   if (!isOpen || !withdrawal) return null;
 
   const handleChange = (index: number, value: string) => {
-    // Only allow alphanumeric characters, convert to uppercase
-    const char = value.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(-1);
+    // For 2FA: only digits. For email: alphanumeric uppercase
+    const char = confirmationMethod === '2fa'
+      ? value.replace(/[^0-9]/g, "").slice(-1)
+      : value.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(-1);
 
     const newCode = [...code];
     newCode[index] = char;
@@ -58,7 +66,7 @@ export function WithdrawalConfirmationModal({
     setError(null);
 
     // Move to next input
-    if (char && index < CODE_LENGTH - 1) {
+    if (char && index < codeLength - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -71,14 +79,16 @@ export function WithdrawalConfirmationModal({
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, CODE_LENGTH);
+    const pasted = confirmationMethod === '2fa'
+      ? e.clipboardData.getData("text").replace(/[^0-9]/g, "").slice(0, codeLength)
+      : e.clipboardData.getData("text").replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, codeLength);
     if (pasted.length > 0) {
-      const newCode = [...code];
-      for (let i = 0; i < CODE_LENGTH; i++) {
+      const newCode = Array(codeLength).fill("");
+      for (let i = 0; i < codeLength; i++) {
         newCode[i] = pasted[i] || "";
       }
       setCode(newCode);
-      inputRefs.current[Math.min(pasted.length, CODE_LENGTH - 1)]?.focus();
+      inputRefs.current[Math.min(pasted.length, codeLength - 1)]?.focus();
     }
   };
 
@@ -87,8 +97,8 @@ export function WithdrawalConfirmationModal({
     setError(null);
 
     const confirmationCode = code.join("");
-    if (confirmationCode.length !== CODE_LENGTH) {
-      setError(`Please enter the full ${CODE_LENGTH}-character code`);
+    if (confirmationCode.length !== codeLength) {
+      setError(`Please enter the full ${codeLength}-${confirmationMethod === '2fa' ? 'digit' : 'character'} code`);
       return;
     }
 
@@ -104,12 +114,12 @@ export function WithdrawalConfirmationModal({
       }, 2000);
     } catch (err: unknown) {
       const error = err as { message?: string };
-      setError(error.message || "Invalid confirmation code");
+      setError(error.message || `Invalid ${confirmationMethod === '2fa' ? '2FA' : 'confirmation'} code`);
     }
   };
 
-  // Calculate time remaining
-  const expiresAt = withdrawal.confirmationExpiresAt
+  // Calculate time remaining (only for email confirmation)
+  const expiresAt = confirmationMethod === 'email' && withdrawal.confirmationExpiresAt
     ? new Date(withdrawal.confirmationExpiresAt)
     : null;
   const timeRemaining = expiresAt
@@ -189,18 +199,29 @@ export function WithdrawalConfirmationModal({
                 </div>
               </div>
 
-              {/* Email Notice */}
+              {/* Confirmation Notice */}
               <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
-                <Mail className="h-5 w-5 text-blue-500 shrink-0" />
-                <p className="text-sm text-blue-700 dark:text-blue-400">
-                  We've sent an 8-character confirmation code to your email
-                </p>
+                {confirmationMethod === '2fa' ? (
+                  <>
+                    <Shield className="h-5 w-5 text-blue-500 shrink-0" />
+                    <p className="text-sm text-blue-700 dark:text-blue-400">
+                      Enter the 6-digit code from your authenticator app
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-5 w-5 text-blue-500 shrink-0" />
+                    <p className="text-sm text-blue-700 dark:text-blue-400">
+                      We've sent an 8-character confirmation code to your email
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* Code Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 text-center">
-                  Enter Confirmation Code
+                  {confirmationMethod === '2fa' ? 'Enter 2FA Code' : 'Enter Confirmation Code'}
                 </label>
                 <div className="flex justify-center gap-1.5" onPaste={handlePaste}>
                   {code.map((char, index) => (
@@ -210,14 +231,15 @@ export function WithdrawalConfirmationModal({
                         inputRefs.current[index] = el;
                       }}
                       type="text"
-                      inputMode="text"
-                      autoCapitalize="characters"
+                      inputMode={confirmationMethod === '2fa' ? "numeric" : "text"}
+                      autoCapitalize={confirmationMethod === '2fa' ? "off" : "characters"}
                       maxLength={1}
                       value={char}
                       onChange={(e) => handleChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
                       className={cn(
-                        "w-10 h-12 text-center text-xl font-bold rounded-xl border-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-colors uppercase",
+                        "w-10 h-12 text-center text-xl font-bold rounded-xl border-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-colors",
+                        confirmationMethod === 'email' && "uppercase",
                         error
                           ? "border-red-500"
                           : "border-gray-300 dark:border-gray-700 focus:border-brand-500"
@@ -254,7 +276,7 @@ export function WithdrawalConfirmationModal({
                 </button>
                 <PremiumButton
                   type="submit"
-                  disabled={code.join("").length !== CODE_LENGTH || confirmWithdrawal.isPending}
+                  disabled={code.join("").length !== codeLength || confirmWithdrawal.isPending}
                   className="flex-1"
                   icon={confirmWithdrawal.isPending ? Loader2 : CheckCircle2}
                 >

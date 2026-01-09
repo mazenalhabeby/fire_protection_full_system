@@ -57,9 +57,11 @@ export interface WithdrawalListResponse {
 
 export interface WithdrawalStats {
   totalWithdrawals: number;
-  totalAmount: string;
-  totalFees: string;
+  totalAmount: string;        // Only completed withdrawals
+  totalFees: string;          // Only completed withdrawals
+  pendingAmount: string;      // Pending + Processing withdrawals
   pendingCount: number;
+  pendingConfirmationCount: number;
   pendingApprovalCount: number;
   processingCount: number;
   completedCount: number;
@@ -69,9 +71,11 @@ export interface WithdrawalStats {
 export interface HotWalletStatus {
   address: string;
   balance: string;
+  bnbBalance: string;
   pendingWithdrawalsAmount: string;
   availableBalance: string;
   isLow: boolean;
+  isEnabled: boolean;
   warningThreshold: string;
 }
 

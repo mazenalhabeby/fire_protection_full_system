@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useWalletOverview,
@@ -37,6 +38,7 @@ import type { WalletTransaction } from "@/types/api";
 
 export default function WalletPage() {
   const router = useRouter();
+  const t = useTranslations("wallet.main");
   useAuth();
 
   const [hideBalances, setHideBalances] = useState(false);
@@ -111,15 +113,15 @@ export default function WalletPage() {
               <Wallet className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">My Wallet</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Manage your HBCT tokens</p>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t("title")}</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t("subtitle")}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => refetch()}
               className="p-2.5 rounded-xl bg-white dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 hover:bg-gray-50 dark:hover:bg-gray-700/80 transition-all hover:scale-105 active:scale-95 shadow-sm"
-              title="Refresh"
+              title={t("refresh")}
             >
               <RefreshCw className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             </button>
@@ -128,7 +130,7 @@ export default function WalletPage() {
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80 hover:bg-gray-50 dark:hover:bg-gray-700/80 transition-all hover:scale-105 active:scale-95 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm"
             >
               <History className="h-4 w-4" />
-              <span className="hidden sm:inline">History</span>
+              <span className="hidden sm:inline">{t("history")}</span>
             </button>
           </div>
         </div>
@@ -165,7 +167,7 @@ export default function WalletPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="text-gray-400 text-sm font-medium uppercase tracking-wider">Total Balance</span>
+                      <span className="text-gray-400 text-sm font-medium uppercase tracking-wider">{t("totalBalance")}</span>
                       <button
                         onClick={() => setHideBalances(!hideBalances)}
                         className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
@@ -204,8 +206,8 @@ export default function WalletPage() {
                         )}
                         <span>
                           {hideBalances ? "••••" : monthlyChange === 0
-                            ? "No change"
-                            : `${isPositiveChange ? "+" : ""}${monthlyChange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`} this month
+                            ? t("noChange")
+                            : `${isPositiveChange ? "+" : ""}${monthlyChange.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`} {t("thisMonth")}
                         </span>
                       </div>
                     )}
@@ -217,7 +219,7 @@ export default function WalletPage() {
                   <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                      <span className="text-sm text-gray-400">Available</span>
+                      <span className="text-sm text-gray-400">{t("available")}</span>
                     </div>
                     <span className="text-sm font-semibold text-white">{formatBalance(availableBalance)}</span>
                   </div>
@@ -225,7 +227,7 @@ export default function WalletPage() {
                     <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-amber-500/30">
                       <div className="flex items-center gap-2">
                         <Clock className="h-3.5 w-3.5 text-amber-400" />
-                        <span className="text-sm text-gray-400">Reserved</span>
+                        <span className="text-sm text-gray-400">{t("reserved")}</span>
                       </div>
                       <span className="text-sm font-semibold text-amber-400">
                         {formatBalance(pendingBalance)}
@@ -235,7 +237,7 @@ export default function WalletPage() {
                   <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
                     <div className="flex items-center gap-2">
                       <Lock className="h-3.5 w-3.5 text-brand-400" />
-                      <span className="text-sm text-gray-400">Locked</span>
+                      <span className="text-sm text-gray-400">{t("locked")}</span>
                     </div>
                     <span className={cn("text-sm font-semibold", lockedBalance > 0 ? "text-brand-400" : "text-white")}>
                       {formatBalance(lockedBalance)}
@@ -250,31 +252,31 @@ export default function WalletPage() {
           <div className="grid grid-cols-5 gap-3">
             <QuickActionButton
               icon={Send}
-              label="Send"
+              label={t("quickActions.send")}
               onClick={() => router.push('/wallet/send')}
               disabled={availableBalance <= 0}
               variant="primary"
             />
             <QuickActionButton
               icon={QrCode}
-              label="Receive"
+              label={t("quickActions.receive")}
               onClick={() => router.push('/wallet/receive')}
             />
             <QuickActionButton
               icon={Download}
-              label="Deposit"
+              label={t("quickActions.deposit")}
               onClick={() => router.push('/wallet/deposit')}
               variant="success"
             />
             <QuickActionButton
               icon={Upload}
-              label="Withdraw"
+              label={t("quickActions.withdraw")}
               onClick={() => router.push('/wallet/withdraw')}
               disabled={availableBalance <= 0}
             />
             <QuickActionButton
               icon={Coins}
-              label="Buy"
+              label={t("quickActions.buy")}
               onClick={() => router.push('/buy-tokens')}
               variant="brand"
             />
@@ -291,15 +293,15 @@ export default function WalletPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-amber-600 dark:text-amber-400">
-                      {pendingCount} Pending Transfer{pendingCount > 1 ? "s" : ""}
+                      {pendingCount > 1 ? t("pendingTransfers.titlePlural", { count: pendingCount }) : t("pendingTransfers.title", { count: pendingCount })}
                       {pendingBalance > 0 && (
                         <span className="font-normal text-amber-500/80 ml-1">
-                          ({formatBalance(pendingBalance)} HBCT reserved)
+                          {t("pendingTransfers.reserved", { amount: formatBalance(pendingBalance) })}
                         </span>
                       )}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Confirm or cancel to release reserved funds
+                      {t("pendingTransfers.confirmOrCancel")}
                     </p>
                   </div>
                 </div>
@@ -307,7 +309,7 @@ export default function WalletPage() {
                   onClick={() => router.push('/wallet/transfers')}
                   className="flex items-center gap-1 px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-600 dark:text-amber-400 text-sm font-medium transition-colors"
                 >
-                  View
+                  {t("pendingTransfers.view")}
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
@@ -321,22 +323,28 @@ export default function WalletPage() {
               <div className="md:col-span-2 p-5 rounded-2xl bg-white dark:bg-gray-900/80 border border-gray-200/80 dark:border-gray-800/80 shadow-sm backdrop-blur-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <Zap className="h-5 w-5 text-brand-500" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Transfer Limits</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{t("limits.title")}</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                   <LimitBar
-                    label="Daily Limit"
+                    label={t("limits.daily")}
                     used={parseFloat(limits.dailyUsed)}
                     total={parseFloat(limits.dailyLimit)}
                     color="brand"
                     hideValues={hideBalances}
+                    leftText={t("limits.left")}
+                    usedText={t("limits.used")}
+                    maxText={t("limits.max")}
                   />
                   <LimitBar
-                    label="Weekly Limit"
+                    label={t("limits.weekly")}
                     used={parseFloat(limits.weeklyUsed)}
                     total={parseFloat(limits.weeklyLimit)}
                     color="purple"
                     hideValues={hideBalances}
+                    leftText={t("limits.left")}
+                    usedText={t("limits.used")}
+                    maxText={t("limits.max")}
                   />
                 </div>
               </div>
@@ -346,17 +354,17 @@ export default function WalletPage() {
             <div className="p-5 rounded-2xl bg-white dark:bg-gray-900/80 border border-gray-200/80 dark:border-gray-800/80 shadow-sm backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="h-5 w-5 text-purple-500" />
-                <h3 className="font-semibold text-gray-900 dark:text-white">This Month</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white">{t("summary.title")}</h3>
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Transactions</span>
+                  <span className="text-sm text-gray-500">{t("summary.transactions")}</span>
                   <span className="text-sm font-semibold text-gray-900 dark:text-white">
                     {summary ? summary.transactionCount : 0}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Volume</span>
+                  <span className="text-sm text-gray-500">{t("summary.volume")}</span>
                   <span className="text-sm font-semibold text-gray-900 dark:text-white">
                     {hideBalances ? "••••" : summary ? formatBalance(parseFloat(summary.totalIn) + parseFloat(summary.totalOut)) : "0"} HBCT
                   </span>
@@ -370,13 +378,13 @@ export default function WalletPage() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800/80">
               <div className="flex items-center gap-2">
                 <History className="h-5 w-5 text-gray-400" />
-                <h2 className="font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
+                <h2 className="font-semibold text-gray-900 dark:text-white">{t("activity.title")}</h2>
               </div>
               <button
                 onClick={() => router.push('/wallet/transactions')}
                 className="text-sm text-brand-500 hover:text-brand-600 flex items-center gap-1 font-medium transition-colors"
               >
-                View All
+                {t("activity.viewAll")}
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
@@ -386,8 +394,8 @@ export default function WalletPage() {
                 <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
                   <Clock className="h-8 w-8 text-gray-300 dark:text-gray-600" />
                 </div>
-                <p className="text-gray-500 dark:text-gray-400 font-medium">No recent activity</p>
-                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Your transactions will appear here</p>
+                <p className="text-gray-500 dark:text-gray-400 font-medium">{t("activity.empty")}</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{t("activity.emptyDesc")}</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-100 dark:divide-gray-800/80">
@@ -447,12 +455,18 @@ function LimitBar({
   total,
   color,
   hideValues,
+  leftText,
+  usedText,
+  maxText,
 }: {
   label: string;
   used: number;
   total: number;
   color: "brand" | "purple";
   hideValues: boolean;
+  leftText: string;
+  usedText: string;
+  maxText: string;
 }) {
   const percentage = Math.min(100, (used / total) * 100);
   const remaining = total - used;
@@ -467,7 +481,7 @@ function LimitBar({
       <div className="flex justify-between text-sm mb-2">
         <span className="text-gray-500 dark:text-gray-400">{label}</span>
         <span className="text-gray-700 dark:text-gray-300 font-medium">
-          {hideValues ? "••••" : remaining.toLocaleString()} left
+          {hideValues ? "••••" : remaining.toLocaleString()} {leftText}
         </span>
       </div>
       <div className="h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
@@ -477,8 +491,8 @@ function LimitBar({
         />
       </div>
       <div className="flex justify-between text-xs mt-1.5 text-gray-400">
-        <span>{hideValues ? "••••" : used.toLocaleString()} used</span>
-        <span>{total.toLocaleString()} max</span>
+        <span>{hideValues ? "••••" : used.toLocaleString()} {usedText}</span>
+        <span>{total.toLocaleString()} {maxText}</span>
       </div>
     </div>
   );

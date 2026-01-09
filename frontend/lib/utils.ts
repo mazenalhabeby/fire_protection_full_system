@@ -37,8 +37,13 @@ export function formatNumber(
 ): string {
   if (value === null || value === undefined || value === '') return '0';
 
-  const num = typeof value === 'string' ? parseFloat(value) : value;
+  let num = typeof value === 'string' ? parseFloat(value) : value;
   if (isNaN(num)) return '0';
+
+  // Handle -0 and very small numbers close to zero (floating point precision issues)
+  if (Math.abs(num) < 0.000001) {
+    num = 0;
+  }
 
   const { decimals = 2, compact = false } = options;
 
@@ -73,8 +78,13 @@ export function formatTokenBalance(
 ): string {
   if (value === null || value === undefined || value === '') return '0';
 
-  const num = typeof value === 'string' ? parseFloat(value) : value;
+  let num = typeof value === 'string' ? parseFloat(value) : value;
   if (isNaN(num)) return '0';
+
+  // Handle -0 and very small numbers close to zero (floating point precision issues)
+  if (Math.abs(num) < 0.000001) {
+    num = 0;
+  }
 
   // For zero, just return "0"
   if (num === 0) return '0';

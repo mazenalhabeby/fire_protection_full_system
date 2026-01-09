@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { adminApi, purchaseApi } from "@/lib/api";
+import { useTranslations } from "next-intl";
+import { adminApi } from "@/lib/api";
 import {
   Users,
   DollarSign,
@@ -52,6 +53,7 @@ interface LockStats {
 interface AffiliateStats {
   totalAffiliates: number;
   activeAffiliates: number;
+  totalReferrals: number;
   totalCommissions: string;
   pendingCommissions: string;
   paidCommissions: string;
@@ -235,31 +237,36 @@ function StatCard({
 }
 
 // Get transaction icon and type
-function getTransactionDisplay(type: string) {
-  const displays: Record<string, { icon: React.ElementType; label: string; colorType: string }> = {
-    BUY_WEBSITE: { icon: ShoppingCart, label: "Token Purchase", colorType: "success" },
-    BUY_DEX: { icon: ShoppingCart, label: "DEX Purchase", colorType: "success" },
-    TRANSFER: { icon: ArrowUpRight, label: "Transfer Sent", colorType: "warning" },
-    TRANSFER_RECEIVE: { icon: ArrowDownLeft, label: "Transfer Received", colorType: "success" },
-    LOCK: { icon: Lock, label: "Token Lock", colorType: "purple" },
-    UNLOCK: { icon: Lock, label: "Token Unlock", colorType: "info" },
-    REWARD_DISTRIBUTION: { icon: Gift, label: "Reward", colorType: "success" },
-    AIRDROP: { icon: Gift, label: "Airdrop", colorType: "purple" },
-    AFFILIATE_BONUS: { icon: UserPlus, label: "Affiliate Bonus", colorType: "info" },
-    DEPOSIT: { icon: ArrowDownLeft, label: "Deposit", colorType: "success" },
-    WITHDRAWAL: { icon: ArrowUpRight, label: "Withdrawal", colorType: "warning" },
+function getTransactionDisplay(type: string, t: (key: string) => string) {
+  const displays: Record<string, { icon: React.ElementType; labelKey: string; colorType: string }> = {
+    BUY_WEBSITE: { icon: ShoppingCart, labelKey: "transactions.tokenPurchase", colorType: "success" },
+    BUY_DEX: { icon: ShoppingCart, labelKey: "transactions.dexPurchase", colorType: "success" },
+    TRANSFER: { icon: ArrowUpRight, labelKey: "transactions.transferSent", colorType: "warning" },
+    TRANSFER_RECEIVE: { icon: ArrowDownLeft, labelKey: "transactions.transferReceived", colorType: "success" },
+    LOCK: { icon: Lock, labelKey: "transactions.tokenLock", colorType: "purple" },
+    UNLOCK: { icon: Lock, labelKey: "transactions.tokenUnlock", colorType: "info" },
+    REWARD_DISTRIBUTION: { icon: Gift, labelKey: "transactions.reward", colorType: "success" },
+    AIRDROP: { icon: Gift, labelKey: "transactions.airdrop", colorType: "purple" },
+    AFFILIATE_BONUS: { icon: UserPlus, labelKey: "transactions.affiliateBonus", colorType: "info" },
+    DEPOSIT: { icon: ArrowDownLeft, labelKey: "transactions.deposit", colorType: "success" },
+    WITHDRAWAL: { icon: ArrowUpRight, labelKey: "transactions.withdrawal", colorType: "warning" },
   };
-  return displays[type] || { icon: Activity, label: type, colorType: "info" };
+  const display = displays[type];
+  if (display) {
+    return { icon: display.icon, label: t(display.labelKey), colorType: display.colorType };
+  }
+  return { icon: Activity, label: type, colorType: "info" };
 }
 
 export default function AdminDashboardPage() {
+  const t = useTranslations("dashboard");
+  const tc = useTranslations("common");
   const [dashboard, setDashboard] = useState<DashboardStats | null>(null);
   const [purchaseStats, setPurchaseStats] = useState<PurchaseStats | null>(null);
   const [lockStats, setLockStats] = useState<LockStats | null>(null);
   const [affiliateStats, setAffiliateStats] = useState<AffiliateStats | null>(null);
   const [topAffiliates, setTopAffiliates] = useState<TopAffiliate[]>([]);
   const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([]);
-  const [bnbPriceUsd, setBnbPriceUsd] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -267,14 +274,13 @@ export default function AdminDashboardPage() {
     if (showRefresh) setIsRefreshing(true);
     try {
       // Fetch all data in parallel
-      const [dashboardData, purchaseData, lockData, affiliateData, affiliatesData, transactionsData, priceData] = await Promise.all([
+      const [dashboardData, purchaseData, lockData, affiliateData, affiliatesData, transactionsData] = await Promise.all([
         adminApi.getDashboard(),
         adminApi.getPurchaseStats().catch(() => null),
         adminApi.getLockStats().catch(() => null),
         adminApi.getAffiliateStats().catch(() => null),
         adminApi.getAffiliates({ limit: 5 }).catch(() => ({ affiliates: [] })),
         adminApi.getTransactions({ limit: 10 }).catch(() => ({ transactions: [] })),
-        purchaseApi.getPrice().catch(() => null),
       ]);
 
       setDashboard(dashboardData);
@@ -287,9 +293,6 @@ export default function AdminDashboardPage() {
         .slice(0, 5);
       setTopAffiliates(sortedAffiliates);
       setRecentTransactions(transactionsData.transactions || []);
-      if (priceData) {
-        setBnbPriceUsd(parseFloat(priceData.bnbPriceUsd) || 0);
-      }
     } catch (err) {
       console.error("Failed to fetch admin dashboard:", err);
     } finally {
@@ -309,24 +312,8 @@ export default function AdminDashboardPage() {
     return <DashboardSkeleton />;
   }
 
-  // Calculate total revenue from all currency breakdowns
-  const currencyBreakdown = purchaseStats?.currencyBreakdown || {};
-  let totalFromCurrencies = 0;
-
-  Object.entries(currencyBreakdown).forEach(([currency, data]) => {
-    const amount = parseFloat(data.totalUsd || "0");
-    // For BNB, totalUsd is actually the BNB amount - need to convert to USD
-    if (currency.toLowerCase() === "bnb" && bnbPriceUsd > 0) {
-      totalFromCurrencies += amount * bnbPriceUsd;
-    } else if (currency.toLowerCase() === "usdt" || currency.toLowerCase() === "usdc" || currency.toLowerCase() === "usd") {
-      // Stablecoins are already in USD
-      totalFromCurrencies += amount;
-    }
-  });
-
-  // Fallback to dashboard totalSalesUsd if currencyBreakdown is empty
-  const dashboardSalesUsd = parseFloat(dashboard?.totalSalesUsd || "0");
-  const totalRevenue = totalFromCurrencies > 0 ? totalFromCurrencies : dashboardSalesUsd;
+  // Total revenue from completed purchases (in USD)
+  const totalRevenue = parseFloat(purchaseStats?.totalCompletedVolume || dashboard?.totalSalesUsd || "0");
 
   // Use purchaseStats.totalTokensSold as primary, fallback to dashboard
   const tokensSold = parseFloat(purchaseStats?.totalTokensSold || dashboard?.totalTokensSold || "0");
@@ -357,8 +344,8 @@ export default function AdminDashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Real-time platform analytics</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("title")}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{t("subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -367,7 +354,7 @@ export default function AdminDashboardPage() {
             className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-            Refresh
+            {tc("refresh")}
           </button>
         </div>
       </div>
@@ -377,9 +364,9 @@ export default function AdminDashboardPage() {
         {/* Total Users - requires users.view */}
         {dashboard?.totalUsers !== undefined && (
           <StatCard
-            title="Total Users"
+            title={t("stats.totalUsers")}
             value={formatNumber(dashboard.totalUsers)}
-            change={`${dashboard.totalUsers} registered`}
+            change={t("stats.registered", { count: dashboard.totalUsers })}
             changeType="neutral"
             icon={Users}
             iconColor="text-blue-600 dark:text-blue-400"
@@ -390,9 +377,9 @@ export default function AdminDashboardPage() {
         {/* Total Revenue - requires purchases.view */}
         {dashboard?.totalSalesUsd !== undefined && (
           <StatCard
-            title="Total Revenue"
+            title={t("stats.totalRevenue")}
             value={formatCurrency(totalRevenue)}
-            change={`${completedPurchases} purchases`}
+            change={t("stats.purchases", { count: completedPurchases })}
             changeType="up"
             icon={DollarSign}
             iconColor="text-emerald-600 dark:text-emerald-400"
@@ -403,7 +390,7 @@ export default function AdminDashboardPage() {
         {/* Tokens Sold - requires purchases.view */}
         {dashboard?.totalTokensSold !== undefined && (
           <StatCard
-            title="Tokens Sold"
+            title={t("stats.tokensSold")}
             value={formatNumber(tokensSold)}
             change={formatCurrency(totalRevenue)}
             changeType="up"
@@ -416,9 +403,9 @@ export default function AdminDashboardPage() {
         {/* Tokens Locked - requires locks.view */}
         {dashboard?.totalLockedTokens !== undefined && (
           <StatCard
-            title="Tokens Locked"
+            title={t("stats.tokensLocked")}
             value={formatNumber(tokensLocked)}
-            change={`${lockRate}% of sold`}
+            change={t("stats.ofSold", { percent: lockRate })}
             changeType="neutral"
             icon={Lock}
             iconColor="text-violet-600 dark:text-violet-400"
@@ -429,9 +416,9 @@ export default function AdminDashboardPage() {
         {/* Pending Withdrawals - requires withdrawals.view */}
         {(dashboard as any)?.pendingWithdrawals !== undefined && (
           <StatCard
-            title="Pending Withdrawals"
+            title={t("stats.pendingWithdrawals")}
             value={formatNumber((dashboard as any).pendingWithdrawals)}
-            change="Awaiting approval"
+            change={t("stats.awaitingApproval")}
             changeType="neutral"
             icon={ArrowUpRight}
             iconColor="text-rose-600 dark:text-rose-400"
@@ -442,9 +429,9 @@ export default function AdminDashboardPage() {
         {/* Pending Deposits - requires deposits.view */}
         {(dashboard as any)?.pendingDeposits !== undefined && (
           <StatCard
-            title="Pending Deposits"
+            title={t("stats.pendingDeposits")}
             value={formatNumber((dashboard as any).pendingDeposits)}
-            change="Awaiting confirmation"
+            change={t("stats.awaitingConfirmation")}
             changeType="neutral"
             icon={ArrowDownLeft}
             iconColor="text-cyan-600 dark:text-cyan-400"
@@ -455,9 +442,9 @@ export default function AdminDashboardPage() {
         {/* Open Tickets - requires support.view */}
         {(dashboard as any)?.openTickets !== undefined && (
           <StatCard
-            title="Open Tickets"
+            title={t("stats.openTickets")}
             value={formatNumber((dashboard as any).openTickets)}
-            change="Need attention"
+            change={t("stats.needAttention")}
             changeType={(dashboard as any).openTickets > 0 ? "up" : "neutral"}
             icon={Activity}
             iconColor="text-orange-600 dark:text-orange-400"
@@ -468,9 +455,9 @@ export default function AdminDashboardPage() {
         {/* Affiliate Payouts - requires affiliates.view */}
         {dashboard?.affiliatePayouts !== undefined && (
           <StatCard
-            title="Affiliate Payouts"
+            title={t("stats.affiliatePayouts")}
             value={formatNumber(dashboard.affiliatePayouts)}
-            change="Total paid"
+            change={t("stats.totalPaid")}
             changeType="neutral"
             icon={UserPlus}
             iconColor="text-purple-600 dark:text-purple-400"
@@ -487,12 +474,12 @@ export default function AdminDashboardPage() {
           <div className="flex-1 p-6 rounded-2xl bg-white dark:bg-gray-900/80 border border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Lock Status</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Token locks breakdown</p>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t("lockStatus.title")}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t("lockStatus.subtitle")}</p>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(tokensLocked)}</p>
-              <p className="text-xs text-gray-500">HBCT locked</p>
+              <p className="text-xs text-gray-500">{t("lockStatus.hbctLocked")}</p>
             </div>
           </div>
           <div className="h-52">
@@ -519,19 +506,20 @@ export default function AdminDashboardPage() {
                       border: "1px solid #374151",
                       borderRadius: "8px",
                     }}
-                    formatter={(value: number, name: string) => {
-                      if (name === "amount") return [formatNumber(value) + " HBCT", "Amount"];
-                      return [value, "Locks"];
+                    formatter={(value: number | undefined, name?: string) => {
+                      if (value === undefined) return [0, name || ""];
+                      if (name === "amount") return [formatNumber(value) + " HBCT", t("lockStatus.amount")];
+                      return [value, t("lockStatus.locks")];
                     }}
                     labelStyle={{ color: "#9ca3af" }}
                   />
-                  <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="Locks" />
-                  <Bar dataKey="amount" fill="#10b981" radius={[4, 4, 0, 0]} name="Amount" />
+                  <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} name={t("lockStatus.locks")} />
+                  <Bar dataKey="amount" fill="#10b981" radius={[4, 4, 0, 0]} name={t("lockStatus.amount")} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                No lock data available
+                {t("lockStatus.noData")}
               </div>
             )}
           </div>
@@ -545,7 +533,7 @@ export default function AdminDashboardPage() {
                 <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-500/20">
                   <Trophy className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Top Affiliates</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t("topAffiliates.title")}</h2>
               </div>
             </div>
 
@@ -701,7 +689,7 @@ export default function AdminDashboardPage() {
                   ))
                 ) : (
                   <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400 text-sm">
-                    No affiliates yet
+                    {t("topAffiliates.noAffiliates")}
                   </div>
                 )}
               </div>
@@ -713,14 +701,14 @@ export default function AdminDashboardPage() {
         <div className="rounded-2xl bg-white dark:bg-gray-900/80 border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Latest transactions</p>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t("recentActivity")}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t("latestTransactions")}</p>
             </div>
           </div>
           <div className="divide-y divide-gray-100 dark:divide-gray-800 flex-1 overflow-y-auto">
             {recentTransactions.length > 0 ? (
               recentTransactions.map((tx) => {
-                const display = getTransactionDisplay(tx.type);
+                const display = getTransactionDisplay(tx.type, t);
                 const IconComponent = display.icon;
                 return (
                   <div
@@ -757,7 +745,7 @@ export default function AdminDashboardPage() {
               })
             ) : (
               <div className="px-5 py-8 text-center text-gray-500 dark:text-gray-400">
-                No recent transactions
+                {t("noRecentTransactions")}
               </div>
             )}
           </div>

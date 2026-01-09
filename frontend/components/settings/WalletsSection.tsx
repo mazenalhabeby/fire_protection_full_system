@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +48,8 @@ const formatAddress = (address: string, short = false): string => {
 };
 
 export function WalletsSection({ user }: WalletsSectionProps) {
+  const t = useTranslations("settings.wallets");
+
   const {
     address,
     shortAddress,
@@ -180,9 +183,9 @@ export function WalletsSection({ user }: WalletsSectionProps) {
   const handleCopyAddress = async (addr: string) => {
     try {
       await navigator.clipboard.writeText(addr);
-      toast.success("Address copied to clipboard");
+      toast.success(t("addressCopied"));
     } catch {
-      toast.error("Failed to copy address");
+      toast.error(t("copyError"));
     }
   };
 
@@ -200,17 +203,17 @@ export function WalletsSection({ user }: WalletsSectionProps) {
   // Start linking the currently connected wallet
   const startLinkingWallet = async () => {
     if (!isConnected || !address) {
-      toast.error("Please connect a wallet first");
+      toast.error(t("linkWallet.connectFirst"));
       return;
     }
 
     if (isCurrentWalletLinked) {
-      toast.error("This wallet is already linked to your account");
+      toast.error(t("linkWallet.alreadyLinked"));
       return;
     }
 
     if (remainingSlots <= 0) {
-      toast.error(`You can only link up to ${MAX_WALLETS} wallets`);
+      toast.error(t("linkWallet.maxReached", { max: MAX_WALLETS }));
       return;
     }
 
@@ -260,17 +263,17 @@ export function WalletsSection({ user }: WalletsSectionProps) {
 
       setLinkedWallets((prev) => [...prev, response.wallet]);
       setRemainingSlots((prev) => Math.max(0, prev - 1));
-      toast.success("Wallet linked successfully!");
+      toast.success(t("linkWallet.success"));
       setShowLinkModal(false);
       setPendingLink(null);
       setNewLabel("");
     } catch (error: any) {
       if (error.code === 4001 || error.message?.includes("User rejected") || error.message?.includes("User disapproved")) {
-        toast.error("Signature request was cancelled");
+        toast.error(t("linkWallet.signatureCancelled"));
       } else if (error.message?.includes("personal_sign") || error.message?.includes("not supported")) {
-        toast.error("This wallet doesn't support message signing. Please use MetaMask or another compatible wallet.");
+        toast.error(t("linkWallet.signingNotSupported"));
       } else {
-        toast.error(error.message || "Failed to link wallet");
+        toast.error(error.message || t("linkWallet.error"));
       }
     } finally {
       setIsLinking(false);
@@ -288,9 +291,9 @@ export function WalletsSection({ user }: WalletsSectionProps) {
           isPrimary: w.id === walletId,
         }))
       );
-      toast.success("Primary wallet updated");
+      toast.success(t("primaryUpdated"));
     } catch (error: any) {
-      toast.error(error.message || "Failed to set primary wallet");
+      toast.error(error.message || t("primaryError"));
     } finally {
       setSettingPrimaryId(null);
     }
@@ -299,7 +302,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
   // Update wallet label
   const updateLabel = async (walletId: string) => {
     if (!editLabel.trim()) {
-      toast.error("Label cannot be empty");
+      toast.error(t("labelEmpty"));
       return;
     }
 
@@ -312,9 +315,9 @@ export function WalletsSection({ user }: WalletsSectionProps) {
       );
       setEditingWalletId(null);
       setEditLabel("");
-      toast.success("Label updated");
+      toast.success(t("labelUpdated"));
     } catch (error: any) {
-      toast.error(error.message || "Failed to update label");
+      toast.error(error.message || t("labelError"));
     }
   };
 
@@ -325,9 +328,9 @@ export function WalletsSection({ user }: WalletsSectionProps) {
       await authApi.removeWallet(walletId);
       setLinkedWallets((prev) => prev.filter((w) => w.id !== walletId));
       setRemainingSlots((prev) => Math.min(MAX_WALLETS, prev + 1));
-      toast.success("Wallet removed");
+      toast.success(t("removeSuccess"));
     } catch (error: any) {
-      toast.error(error.message || "Failed to remove wallet");
+      toast.error(error.message || t("removeError"));
     } finally {
       setRemovingWalletId(null);
     }
@@ -351,10 +354,10 @@ export function WalletsSection({ user }: WalletsSectionProps) {
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <Wallet className="h-5 w-5 text-brand-500" />
-                Active Wallet
+                {t("activeWallet.title")}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Currently connected Web3 wallet
+                {t("activeWallet.description")}
               </p>
             </div>
             {!isConnected && (
@@ -366,12 +369,12 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                 {isConnecting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Connecting...
+                    {t("connecting")}
                   </>
                 ) : (
                   <>
                     <Wallet className="h-4 w-4 mr-2" />
-                    Connect Wallet
+                    {t("connectWallet")}
                   </>
                 )}
               </Button>
@@ -386,10 +389,10 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                 <Wallet className="h-10 w-10 text-brand-500" />
               </div>
               <p className="text-gray-900 dark:text-white font-semibold text-lg mb-1">
-                No wallet connected
+                {t("noWalletConnected.title")}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
-                Connect your Web3 wallet to interact with the blockchain and manage your HBCT tokens
+                {t("noWalletConnected.description")}
               </p>
               <Button
                 variant="default"
@@ -401,12 +404,12 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                 {isConnecting ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Connecting...
+                    {t("connecting")}
                   </>
                 ) : (
                   <>
                     <Wallet className="h-5 w-5 mr-2" />
-                    Connect Wallet
+                    {t("connectWallet")}
                   </>
                 )}
               </Button>
@@ -443,7 +446,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                         <button
                           onClick={handleCopy}
                           className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                          title="Copy full address"
+                          title={t("copyFullAddress")}
                         >
                           {copied ? (
                             <Check className="h-4 w-4 text-emerald-500" />
@@ -456,14 +459,14 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                          title="View on explorer"
+                          title={t("viewOnExplorer")}
                         >
                           <ExternalLink className="h-4 w-4 text-gray-400" />
                         </a>
                         {isCurrentWalletLinked && (
                           <Badge variant="success" size="sm" className="flex items-center gap-1">
                             <Link2 className="h-3 w-3" />
-                            Linked
+                            {t("linked")}
                           </Badge>
                         )}
                       </div>
@@ -499,7 +502,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                         className="text-brand-600 border-brand-200 hover:bg-brand-50 dark:border-brand-800 dark:hover:bg-brand-900/20"
                       >
                         <Link2 className="h-4 w-4 mr-1.5" />
-                        Link to Account
+                        {t("linkWallet.title")}
                       </Button>
                     )}
                     <Button
@@ -509,7 +512,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                       className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       <Unlink className="h-4 w-4 mr-1.5" />
-                      Disconnect
+                      {t("disconnect")}
                     </Button>
                   </div>
                 </div>
@@ -552,10 +555,10 @@ export function WalletsSection({ user }: WalletsSectionProps) {
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <Shield className="h-5 w-5 text-brand-500" />
-                Linked Wallets
+                {t("linkedWallets.title")}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Wallets permanently linked to your account
+                {t("linkedWallets.description")}
               </p>
             </div>
             <Badge variant="neutral" size="sm">
@@ -607,7 +610,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                         <div className="relative flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md">
                           <Star className="h-3 w-3 text-white fill-white drop-shadow-sm" />
                           <span className="text-[10px] font-bold text-white uppercase tracking-wider drop-shadow-sm">
-                            Primary
+                            {t("primary")}
                           </span>
                         </div>
                       </div>
@@ -737,7 +740,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                           ) : (
                             <>
                               <StarOff className="h-4 w-4 mr-1.5" />
-                              Set Primary
+                              {t("setPrimary")}
                             </>
                           )}
                         </Button>
@@ -806,7 +809,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
             <div className="p-6 border-b border-gray-100 dark:border-gray-800">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Link Wallet to Account
+                  {t("linkWallet.button")}
                 </h3>
                 <button
                   onClick={cancelLinking}
@@ -862,7 +865,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                       onClick={cancelLinking}
                       className="flex-1"
                     >
-                      Cancel
+                      {t("linkWallet.cancel")}
                     </Button>
                     <Button
                       variant="default"
@@ -900,7 +903,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                   <div className="space-y-3">
                     <div>
                       <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                        Name Your Wallet
+                        {t("linkWallet.label")}
                       </label>
                       <div className="relative">
                         <div className="absolute left-3 top-1/2 -translate-y-1/2">
@@ -909,7 +912,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                         <input
                           value={newLabel}
                           onChange={(e) => setNewLabel(e.target.value)}
-                          placeholder="e.g., Main Wallet, Trading, Savings..."
+                          placeholder={t("linkWallet.labelPlaceholder")}
                           maxLength={30}
                           className="w-full h-11 pl-10 pr-14 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
                         />
@@ -921,7 +924,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                     <div className="flex items-start gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
                       <Edit3 className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Give your wallet a memorable name to easily identify it later. You can change this anytime.
+                        {t("linkWallet.labelHint")}
                       </p>
                     </div>
                   </div>
@@ -932,7 +935,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                       onClick={cancelLinking}
                       className="flex-1"
                     >
-                      Cancel
+                      {t("linkWallet.cancel")}
                     </Button>
                     <Button
                       variant="default"
@@ -948,7 +951,7 @@ export function WalletsSection({ user }: WalletsSectionProps) {
                       ) : (
                         <>
                           <Shield className="h-4 w-4 mr-2" />
-                          Sign & Link
+                          {t("linkWallet.confirm")}
                         </>
                       )}
                     </Button>

@@ -11,7 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { ethers } from 'ethers';
 import { Request } from 'express';
 import { createPublicClient, http, type PublicClient, type Chain, hashMessage, recoverMessageAddress, isAddressEqual, getAddress, verifyTypedData, recoverTypedDataAddress } from 'viem';
-import { mainnet, base, polygon, arbitrum, optimism } from 'viem/chains';
+import { mainnet, base, polygon, arbitrum, optimism, bsc } from 'viem/chains';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TokenService, TokenPair } from './token.service';
 import { SessionService, SessionData } from './session.service';
@@ -29,7 +29,7 @@ import {
   WALLET_NONCE_EXPIRY_MINUTES,
   ACCESS_TOKEN_MAX_AGE,
 } from '../../config/cookie.config';
-import { getClientIp } from '../../common/utils';
+import { getClientIp, checkUserStatus, getRemainingLockMinutes } from '../../common/utils';
 
 const BCRYPT_ROUNDS = 13;
 
@@ -47,6 +47,7 @@ export interface AuthResult {
     username: string | null;
     firstName: string | null;
     lastName: string | null;
+    profileImageUrl: string | null;
     walletAddress: string | null;
     role: string;
     roleId: string | null; // RBAC role ID
@@ -72,6 +73,7 @@ export interface MeResponse {
     username: string | null;
     firstName: string | null;
     lastName: string | null;
+    profileImageUrl: string | null;
     walletAddress: string | null;
     role: string;
     roleId: string | null; // RBAC role ID
@@ -131,6 +133,7 @@ export class AuthService {
   ) {
     // Initialize providers for multiple chains (for smart contract wallet verification)
     const chainConfigs: ChainConfig[] = [
+      { name: 'bsc', url: this.configService.get<string>('BSC_RPC_URL') || 'https://bsc-dataseed1.binance.org', chain: bsc },
       { name: 'ethereum', url: this.configService.get<string>('RPC_URL') || 'https://eth.llamarpc.com', chain: mainnet },
       { name: 'base', url: this.configService.get<string>('BASE_RPC_URL') || 'https://mainnet.base.org', chain: base },
       { name: 'polygon', url: this.configService.get<string>('POLYGON_RPC_URL') || 'https://polygon-rpc.com', chain: polygon },
@@ -315,21 +318,14 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Check if user is banned
-    if (user.isBanned) {
-      await this.recordLoginHistory(user.id, 'credentials', false, 'user_banned', req);
-      throw new UnauthorizedException('Your account has been suspended. Please contact support for assistance.');
-    }
-
-    // Check if account is locked
-    if (user.lockedUntil && new Date() < user.lockedUntil) {
-      const remainingMinutes = Math.ceil(
-        (user.lockedUntil.getTime() - Date.now()) / (1000 * 60),
-      );
-      await this.recordLoginHistory(user.id, 'credentials', false, 'account_locked', req);
-      throw new UnauthorizedException(
-        `Account is locked. Try again in ${remainingMinutes} minutes.`,
-      );
+    // Check user status (banned, locked, inactive)
+    const statusCheck = checkUserStatus(user);
+    if (!statusCheck.isValid) {
+      const failureReason = statusCheck.reason === 'banned' ? 'user_banned'
+        : statusCheck.reason === 'locked' ? 'account_locked'
+        : 'account_inactive';
+      await this.recordLoginHistory(user.id, 'credentials', false, failureReason, req);
+      throw new UnauthorizedException(statusCheck.message);
     }
 
     if (!user.passwordHash) {
@@ -337,12 +333,6 @@ export class AuthService {
       throw new UnauthorizedException(
         'This account uses a different login method. Please use wallet or social login.',
       );
-    }
-
-    // Check if account is active
-    if (!user.isActive) {
-      await this.recordLoginHistory(user.id, 'credentials', false, 'account_inactive', req);
-      throw new UnauthorizedException('Account is deactivated. Please contact support.');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
@@ -465,19 +455,18 @@ export class AuthService {
     this.logger.log(`User logged in: ${user.id}`);
 
     // Send new login security alert and in-app notification
-    const userAgent = req.headers['user-agent'] || 'Unknown device';
-    const ipAddress = getClientIp(req);
+    // Use location from session (already resolved from browser or IP geolocation)
     const locationStr =
-      location?.city && location?.country
-        ? `${location.city}, ${location.country}`
+      session.city && session.country
+        ? `${session.city}, ${session.country}`
         : undefined;
 
-    // In-app notification + email (handled by notification preferences)
+    // In-app notification + email with parsed device name (e.g., "Chrome on MacOS")
     await this.notificationsService.notifyNewLogin(
       user.id,
-      userAgent.substring(0, 100),
+      session.deviceName || 'Unknown device',
       locationStr,
-      ipAddress,
+      session.ipAddress,
     );
 
     // Calculate token expiry time
@@ -547,7 +536,7 @@ export class AuthService {
     sessionId: string,
     oldRefreshToken: string,
     req: Request,
-  ): Promise<{ accessToken: string; tokenExpiresAt: number; securityAlert?: any }> {
+  ): Promise<{ accessToken: string; tokenExpiresAt: number; securityAlert?: SecurityAlert }> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -1332,15 +1321,14 @@ export class AuthService {
       throw new UnauthorizedException('Wallet not registered. Please sign up first.');
     }
 
-    if (!user.isActive) {
-      await this.recordLoginHistory(user.id, 'wallet', false, 'account_inactive', req);
-      throw new UnauthorizedException('Account is deactivated');
-    }
-
-    // Check if user is banned
-    if (user.isBanned) {
-      await this.recordLoginHistory(user.id, 'wallet', false, 'user_banned', req);
-      throw new UnauthorizedException('Your account has been suspended. Please contact support for assistance.');
+    // Check user status (banned, locked, inactive)
+    const statusCheck = checkUserStatus(user);
+    if (!statusCheck.isValid) {
+      const failureReason = statusCheck.reason === 'banned' ? 'user_banned'
+        : statusCheck.reason === 'locked' ? 'account_locked'
+        : 'account_inactive';
+      await this.recordLoginHistory(user.id, 'wallet', false, failureReason, req);
+      throw new UnauthorizedException(statusCheck.message);
     }
 
     // Verify signature (supports EOA and smart contract wallets like Coinbase)
@@ -1485,15 +1473,18 @@ export class AuthService {
 
     this.logger.log(`Wallet login: ${user.id}`);
 
-    // In-app notification + email (handled by notification preferences)
-    const userAgent = req.headers['user-agent'] || 'Unknown device';
-    const ipAddress = getClientIp(req);
+    // Send new login security alert and in-app notification
+    // Use location from session (already resolved from browser or IP geolocation)
+    const locationStr =
+      session.city && session.country
+        ? `${session.city}, ${session.country}`
+        : undefined;
 
     await this.notificationsService.notifyNewLogin(
       user.id,
-      `Wallet: ${userAgent.substring(0, 80)}`,
-      undefined,
-      ipAddress,
+      `${session.deviceName || 'Unknown device'} (Wallet)`,
+      locationStr,
+      session.ipAddress,
     );
 
     const tokenExpiresAt = Date.now() + ACCESS_TOKEN_MAX_AGE;
@@ -1701,20 +1692,37 @@ export class AuthService {
   // HELPER METHODS
   // ============================================
 
-  private formatUserResponse(user: any) {
+  private formatUserResponse(user: {
+    id: string;
+    email: string | null;
+    username: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    phoneNumber?: string | null;
+    profileImageUrl?: string | null;
+    walletAddress: string | null;
+    legacyRole: string;
+    roleId?: string | null;
+    isEmailVerified: boolean;
+    authProvider: string | null;
+    passwordHash?: string | null;
+    twoFactorAuth?: { isEnabled: boolean } | null;
+    createdAt: Date;
+  }) {
     return {
       id: user.id,
       email: user.email,
       username: user.username,
       firstName: user.firstName,
       lastName: user.lastName,
-      phoneNumber: user.phoneNumber,
+      phoneNumber: user.phoneNumber ?? null,
+      profileImageUrl: user.profileImageUrl ?? null,
       walletAddress: user.walletAddress,
       role: user.legacyRole,
-      roleId: user.roleId, // RBAC role ID
+      roleId: user.roleId ?? null,
       isEmailVerified: user.isEmailVerified,
       authProvider: user.authProvider?.toUpperCase() || 'CREDENTIALS',
-      hasPassword: !!user.passwordHash, // True if user has a password set
+      hasPassword: !!user.passwordHash,
       twoFactorEnabled: user.twoFactorAuth?.isEnabled ?? false,
       createdAt: user.createdAt,
     };
@@ -1725,7 +1733,9 @@ export class AuthService {
     if (!user) return;
 
     const newAttempts = (user.failedLoginAttempts || 0) + 1;
-    const updateData: any = { failedLoginAttempts: newAttempts };
+    const updateData: { failedLoginAttempts: number; lockedUntil?: Date } = {
+      failedLoginAttempts: newAttempts,
+    };
 
     if (newAttempts >= MAX_FAILED_ATTEMPTS) {
       const lockUntil = new Date();
@@ -1831,7 +1841,7 @@ export class AuthService {
           this.logger.log(`Inner signature is valid, signer: ${recoveredAddress}`);
 
           // Try viem verification on each chain with the original signature
-          const chainOrder = ['base', 'ethereum', 'polygon', 'arbitrum', 'optimism'];
+          const chainOrder = ['bsc', 'base', 'ethereum', 'polygon', 'arbitrum', 'optimism'];
           for (const chainName of chainOrder) {
             const client = this.viemClients.get(chainName);
             if (!client) continue;
@@ -1866,7 +1876,7 @@ export class AuthService {
     }
 
     // Try viem's verifyMessage on each chain
-    const chainOrder = ['base', 'ethereum', 'polygon', 'arbitrum', 'optimism'];
+    const chainOrder = ['bsc', 'base', 'ethereum', 'polygon', 'arbitrum', 'optimism'];
 
     for (const chainName of chainOrder) {
       const client = this.viemClients.get(chainName);
@@ -1971,8 +1981,8 @@ export class AuthService {
   ): Promise<boolean> {
     const messageHash = ethers.hashMessage(message);
 
-    // Try each chain - Coinbase Smart Wallet is often on Base
-    const chainOrder = ['base', 'ethereum', 'polygon', 'arbitrum', 'optimism'];
+    // Try each chain - BSC is primary for this app
+    const chainOrder = ['bsc', 'base', 'ethereum', 'polygon', 'arbitrum', 'optimism'];
 
     for (const chainName of chainOrder) {
       const provider = this.providers.get(chainName);
@@ -2101,8 +2111,8 @@ export class AuthService {
     signature: string,
     walletAddress: string,
   ): Promise<boolean> {
-    // Try on multiple chains
-    const chainOrder = ['ethereum', 'base', 'polygon', 'arbitrum', 'optimism'];
+    // Try on multiple chains - BSC is primary for this app
+    const chainOrder = ['bsc', 'ethereum', 'base', 'polygon', 'arbitrum', 'optimism'];
 
     for (const chainName of chainOrder) {
       const provider = this.providers.get(chainName);

@@ -3,6 +3,7 @@ import {
   createPublicClient,
   createWalletClient,
   http,
+  fallback,
   PublicClient,
   WalletClient,
   parseAbi,
@@ -17,6 +18,11 @@ import {
 import { privateKeyToAccount, Account } from 'viem/accounts';
 import { bsc, bscTestnet } from 'viem/chains';
 import { BlockchainConfigService } from './blockchain.config';
+
+// Rate limiting configuration
+const RATE_LIMIT_DELAY_MS = 1000; // Minimum delay between RPC calls
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 2000; // Base delay for exponential backoff
 
 // ERC20 ABI for Transfer events and basic functions
 const ERC20_ABI = parseAbi([
@@ -53,9 +59,67 @@ export class BlockchainClientService implements OnModuleInit {
   private walletClient: WalletClient | null = null;
   private withdrawalAccount: Account | null = null;
   private chain: Chain;
+  private lastRpcCallTime = 0;
 
   constructor(private readonly config: BlockchainConfigService) {
     this.chain = this.config.chainId === 56 ? bsc : bscTestnet;
+  }
+
+  /**
+   * Rate limit helper - ensures minimum delay between RPC calls
+   */
+  private async rateLimit(): Promise<void> {
+    const now = Date.now();
+    const timeSinceLastCall = now - this.lastRpcCallTime;
+    if (timeSinceLastCall < RATE_LIMIT_DELAY_MS) {
+      await this.sleep(RATE_LIMIT_DELAY_MS - timeSinceLastCall);
+    }
+    this.lastRpcCallTime = Date.now();
+  }
+
+  /**
+   * Sleep helper
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Retry with exponential backoff
+   */
+  private async retryWithBackoff<T>(
+    operation: () => Promise<T>,
+    operationName: string,
+    maxRetries = MAX_RETRIES,
+  ): Promise<T> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        await this.rateLimit();
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+        const isRateLimit =
+          error.message?.includes('limit') ||
+          error.message?.includes('rate') ||
+          error.message?.includes('429') ||
+          error.message?.includes('exceeded');
+
+        if (isRateLimit && attempt < maxRetries - 1) {
+          const delay = RETRY_DELAY_MS * Math.pow(2, attempt); // Exponential backoff
+          this.logger.warn(
+            `${operationName}: Rate limited, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`,
+          );
+          await this.sleep(delay);
+        } else if (!isRateLimit) {
+          // Non-rate-limit error, don't retry
+          throw error;
+        }
+      }
+    }
+
+    throw lastError || new Error(`${operationName} failed after ${maxRetries} attempts`);
   }
 
   async onModuleInit(): Promise<void> {
@@ -63,12 +127,50 @@ export class BlockchainClientService implements OnModuleInit {
   }
 
   private async initializeClients(): Promise<void> {
-    // Create public client for reading blockchain data
+    // Build list of RPC URLs for fallback
+    const rpcUrls = [this.config.rpcUrl];
+    if (this.config.rpcUrlFallback) {
+      rpcUrls.push(this.config.rpcUrlFallback);
+    }
+
+    // Add additional public testnet RPCs for redundancy
+    if (this.config.chainId === 97) {
+      // BSC Testnet additional public RPCs (updated Jan 2026)
+      const additionalTestnetRpcs = [
+        'https://bsc-testnet-rpc.publicnode.com',
+        'https://data-seed-prebsc-1-s2.bnbchain.org:8545',
+        'https://data-seed-prebsc-2-s2.bnbchain.org:8545',
+        'https://data-seed-prebsc-1-s3.bnbchain.org:8545',
+        'https://data-seed-prebsc-2-s3.bnbchain.org:8545',
+      ];
+      rpcUrls.push(...additionalTestnetRpcs);
+    } else {
+      // BSC Mainnet additional public RPCs
+      const additionalMainnetRpcs = [
+        'https://bsc-rpc.publicnode.com',
+        'https://bsc-dataseed1.bnbchain.org',
+        'https://bsc-dataseed2.bnbchain.org',
+        'https://bsc-dataseed3.binance.org',
+        'https://bsc-dataseed4.binance.org',
+      ];
+      rpcUrls.push(...additionalMainnetRpcs);
+    }
+
+    // Create transports with individual configuration
+    const transports = rpcUrls.map((url) =>
+      http(url, {
+        retryCount: 2,
+        retryDelay: 500,
+        timeout: 10000,
+      }),
+    );
+
+    // Create public client with fallback transport
     this.publicClient = createPublicClient({
       chain: this.chain,
-      transport: http(this.config.rpcUrl, {
-        retryCount: 3,
-        retryDelay: 1000,
+      transport: fallback(transports, {
+        rank: true,
+        retryCount: 2,
       }),
     });
 
@@ -78,21 +180,13 @@ export class BlockchainClientService implements OnModuleInit {
       this.logger.log(`========================================`);
       this.logger.log(`BLOCKCHAIN CLIENT INITIALIZED`);
       this.logger.log(`Chain: ${this.chain.name} (ID: ${this.config.chainId})`);
-      this.logger.log(`RPC URL: ${this.config.rpcUrl}`);
+      this.logger.log(`Primary RPC: ${this.config.rpcUrl}`);
+      this.logger.log(`Fallback RPCs: ${rpcUrls.length - 1} configured`);
       this.logger.log(`Current block: ${blockNumber}`);
       this.logger.log(`========================================`);
     } catch (error) {
       this.logger.error(`Failed to connect to blockchain: ${error.message}`);
-      // Try fallback RPC if available
-      if (this.config.rpcUrlFallback) {
-        this.logger.log('Trying fallback RPC...');
-        this.publicClient = createPublicClient({
-          chain: this.chain,
-          transport: http(this.config.rpcUrlFallback),
-        });
-        const blockNumber = await this.publicClient.getBlockNumber();
-        this.logger.log(`Connected to fallback RPC. Current block: ${blockNumber}`);
-      }
+      throw error;
     }
 
     // Create wallet client for withdrawals if private key is configured
@@ -131,63 +225,132 @@ export class BlockchainClientService implements OnModuleInit {
 
   /**
    * Get HBCT transfer events from a specific block range
+   * Uses retry logic with exponential backoff for rate-limited RPCs
    */
   async getTransferEvents(fromBlock: bigint, toBlock: bigint): Promise<TransferEvent[]> {
     const tokenAddress = this.config.hbctTokenAddress as Address;
     const depositAddress = this.config.depositWalletAddress.toLowerCase();
 
-    try {
-      const logs = await this.publicClient.getLogs({
-        address: tokenAddress,
-        event: {
-          type: 'event',
-          name: 'Transfer',
-          inputs: [
-            { type: 'address', indexed: true, name: 'from' },
-            { type: 'address', indexed: true, name: 'to' },
-            { type: 'uint256', indexed: false, name: 'value' },
-          ],
-        },
-        fromBlock,
-        toBlock,
-      });
+    return this.retryWithBackoff(
+      async () => {
+        const logs = await this.publicClient.getLogs({
+          address: tokenAddress,
+          event: {
+            type: 'event',
+            name: 'Transfer',
+            inputs: [
+              { type: 'address', indexed: true, name: 'from' },
+              { type: 'address', indexed: true, name: 'to' },
+              { type: 'uint256', indexed: false, name: 'value' },
+            ],
+          },
+          fromBlock,
+          toBlock,
+        });
 
-      // Filter for transfers TO the deposit address
-      const depositLogs = logs.filter(
-        (log) => log.args.to?.toLowerCase() === depositAddress,
-      );
+        // Filter for transfers TO the deposit address
+        const depositLogs = logs.filter(
+          (log) => log.args.to?.toLowerCase() === depositAddress,
+        );
 
-      const events: TransferEvent[] = [];
+        const events: TransferEvent[] = [];
 
-      for (const log of depositLogs) {
-        let blockTimestamp: Date | undefined;
+        for (const log of depositLogs) {
+          let blockTimestamp: Date | undefined;
+
+          // Get block timestamp with rate limiting
+          try {
+            await this.rateLimit();
+            const block = await this.publicClient.getBlock({
+              blockNumber: log.blockNumber,
+            });
+            blockTimestamp = new Date(Number(block.timestamp) * 1000);
+          } catch {
+            // Continue without timestamp
+          }
+
+          events.push({
+            txHash: log.transactionHash,
+            logIndex: log.logIndex,
+            from: log.args.from as string,
+            to: log.args.to as string,
+            value: log.args.value as bigint,
+            blockNumber: log.blockNumber,
+            blockTimestamp,
+          });
+        }
+
+        return events;
+      },
+      'getTransferEvents',
+    );
+  }
+
+  /**
+   * Get transfer events by transaction hash
+   * More efficient for checking specific deposits
+   */
+  async getTransferEventByTxHash(txHash: string): Promise<TransferEvent | null> {
+    const tokenAddress = this.config.hbctTokenAddress as Address;
+    const depositAddress = this.config.depositWalletAddress.toLowerCase();
+
+    return this.retryWithBackoff(
+      async () => {
+        const receipt = await this.publicClient.getTransactionReceipt({
+          hash: txHash as Hex,
+        });
+
+        if (!receipt || receipt.status !== 'success') {
+          return null;
+        }
+
+        // Find Transfer event in logs
+        const transferLog = receipt.logs.find(
+          (log) =>
+            log.address.toLowerCase() === tokenAddress.toLowerCase() &&
+            log.topics[0] ===
+              '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+        );
+
+        if (!transferLog) {
+          return null;
+        }
+
+        // Decode Transfer event
+        const from = '0x' + transferLog.topics[1]?.slice(26);
+        const to = '0x' + transferLog.topics[2]?.slice(26);
+
+        // Check if it's a deposit to our address
+        if (to.toLowerCase() !== depositAddress) {
+          return null;
+        }
+
+        const value = BigInt(transferLog.data);
 
         // Get block timestamp
+        let blockTimestamp: Date | undefined;
         try {
+          await this.rateLimit();
           const block = await this.publicClient.getBlock({
-            blockNumber: log.blockNumber,
+            blockNumber: receipt.blockNumber,
           });
           blockTimestamp = new Date(Number(block.timestamp) * 1000);
         } catch {
           // Continue without timestamp
         }
 
-        events.push({
-          txHash: log.transactionHash,
-          logIndex: log.logIndex,
-          from: log.args.from as string,
-          to: log.args.to as string,
-          value: log.args.value as bigint,
-          blockNumber: log.blockNumber,
+        return {
+          txHash: receipt.transactionHash,
+          logIndex: transferLog.logIndex,
+          from,
+          to,
+          value,
+          blockNumber: receipt.blockNumber,
           blockTimestamp,
-        });
-      }
-
-      return events;
-    } catch (error) {
-      this.logger.error(`Failed to get transfer events: ${error.message}`);
-      throw error;
-    }
+        };
+      },
+      'getTransferEventByTxHash',
+    );
   }
 
   /**
@@ -492,8 +655,18 @@ export class BlockchainClientService implements OnModuleInit {
       return { success: false, error: 'Withdrawal wallet not configured' };
     }
 
+    this.logger.log(`========================================`);
+    this.logger.log(`SEND HBCT TRANSFER DEBUG`);
+    this.logger.log(`To Address: ${toAddress}`);
+    this.logger.log(`Amount (string): ${amount}`);
+    this.logger.log(`Token Decimals: ${this.config.hbctDecimals}`);
+
     const amountInWei = parseUnits(amount, this.config.hbctDecimals);
     const tokenAddress = this.config.hbctTokenAddress as Address;
+
+    this.logger.log(`Amount in Wei: ${amountInWei.toString()}`);
+    this.logger.log(`Token Address: ${tokenAddress}`);
+    this.logger.log(`========================================`);
 
     try {
       // Check withdrawal wallet balance first

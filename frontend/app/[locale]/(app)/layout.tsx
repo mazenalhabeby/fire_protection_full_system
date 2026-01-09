@@ -15,6 +15,7 @@ const PUBLIC_PATHS = [
   "/about-us",
   "/help",
   "/help/contact",
+  "/help/ticket",
 ];
 
 // Full page loading skeleton for protected routes

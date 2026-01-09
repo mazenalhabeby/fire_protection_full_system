@@ -34,7 +34,31 @@
     "continueWithGoogle": "Continue with Google",
     "continueWithFacebook": "Continue with Facebook",
     "connectWallet": "Connect Wallet",
-    "orContinueWith": "or continue with email"
+    "orContinueWith": "or continue with email",
+    "sessionRevoked": "Your session was ended from another device. Please log in again.",
+    "apiNotConfigured": "API URL not configured. Please contact support.",
+    "walletErrors": {
+      "failedToConnect": "Failed to connect wallet. Please try again.",
+      "signatureCancelled": "Signature request was cancelled",
+      "signingNotSupported": "This wallet doesn't support message signing. Please use MetaMask or another compatible wallet.",
+      "networkError": "Unable to connect to server. Please check your internet connection and try again.",
+      "authFailed": "Failed to authenticate. Please try again."
+    },
+    "twoFactor": {
+      "title": "Two-Factor Authentication",
+      "subtitle": "Enter the 6-digit code from your authenticator app",
+      "verifying": "Verifying...",
+      "verifyButton": "Verify & Continue",
+      "invalidCode": "Please enter a valid 6-digit code or recovery code",
+      "verificationFailed": "Invalid verification code. Please try again.",
+      "recoveryHint": "Lost access to your authenticator? Use a recovery code (format: XXXX-XXXX)"
+    },
+    "legal": {
+      "agreementPrefix": "By continuing, you agree to our",
+      "termsOfService": "Terms of Service",
+      "and": "and",
+      "privacyPolicy": "Privacy Policy"
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -57,6 +81,19 @@
     "inviteFriends": "Invite Friends",
     "viewAirdrops": "View Airdrops",
     "browseProducts": "Browse Products",
+    "greeting": {
+      "morning": "Good Morning",
+      "afternoon": "Good Afternoon",
+      "evening": "Good Evening"
+    },
+    "welcomeNew": "Welcome, {name}!",
+    "welcomeBack": "Welcome back, {name}!",
+    "newUserMessage": "Start your HBCT journey today. Buy tokens to get started!",
+    "returningUserMessage": "Here's what's happening with your HBCT portfolio today.",
+    "purchaseDescription": "Purchase HBCT tokens",
+    "referralDescription": "Earn referral rewards",
+    "lockingDescription": "Earn rewards by locking",
+    "marketplaceDescription": "Shop with HBCT",
     "transactionTypes": {
       "BUY_WEBSITE": "Token Purchase",
       "TRANSFER": "Transfer Sent",
@@ -68,7 +105,8 @@
       "AFFILIATE_BONUS": "Affiliate Bonus",
       "FEE_CASHBACK": "Fee Cashback",
       "MARKETPLACE_PURCHASE": "Marketplace Purchase",
-      "MARKETPLACE_REFUND": "Marketplace Refund"
+      "MARKETPLACE_REFUND": "Marketplace Refund",
+      "ADMIN_ADJUSTMENT": "Admin Adjustment"
     },
     "status": {
       "completed": "Completed",
@@ -117,7 +155,112 @@
     "lockSuccess": "Tokens locked successfully!",
     "unlockSuccess": "Tokens unlocked successfully!",
     "lockError": "Failed to lock tokens",
-    "unlockError": "Failed to unlock tokens"
+    "unlockError": "Failed to unlock tokens",
+    "earlyUnlockSuccess": "Unlocked {unlockedAmount} HBCT with {actualReward} HBCT rewards ({penaltyPercent}% penalty applied)",
+    "earlyUnlockError": "Failed to early unlock",
+    "cancelSuccess": "Lock cancelled. {refundedAmount} HBCT returned to your balance.",
+    "cancelError": "Failed to cancel lock",
+    "stats": {
+      "totalLocked": "Total Locked",
+      "totalRewards": "Total Rewards",
+      "hbctEarned": "HBCT Earned",
+      "activeLocks": "Active Locks",
+      "currentlyStaking": "Currently Staking"
+    },
+    "howItWorks": {
+      "title": "How Locking Works",
+      "subtitle": "Earn rewards by locking tokens",
+      "gracePeriod": "Grace Period",
+      "gracePeriodTime": "0-24h",
+      "fullRefund": "Full refund",
+      "locked": "Locked",
+      "lockedTime": "24h-50%",
+      "noEarlyUnlock": "No early unlock",
+      "earlyUnlock": "Early Unlock",
+      "earlyUnlockTime": "50-99%",
+      "penalty50to70": "50-70%: 25%",
+      "penalty70to90": "70-90%: 15%",
+      "penalty90plus": "90%+: 5%",
+      "fullRewards": "Full Rewards",
+      "fullRewardsTime": "100%",
+      "zeroFees": "Zero fees"
+    },
+    "form": {
+      "lockTokens": "Lock Tokens",
+      "upToBonus": "Up to {max}% Bonus",
+      "selectLockPeriod": "Select Lock Period",
+      "amountToLock": "Amount to Lock",
+      "available": "Available:",
+      "max": "MAX",
+      "lockPeriod": "Lock Period:",
+      "noBalance": "No Balance",
+      "enterAmount": "Enter Amount",
+      "insufficientBalance": "Insufficient Balance",
+      "minAmount": "Min: {amount} HBCT"
+    },
+    "history": {
+      "title": "History",
+      "noHistory": "No lock history yet",
+      "lockedTokens": "Locked Tokens",
+      "unlockedTokens": "Unlocked Tokens",
+      "earlyUnlock": "Early Unlock",
+      "lockCancelled": "Lock Cancelled",
+      "rewardReceived": "Reward Received",
+      "reward": "reward",
+      "penalty": "penalty"
+    },
+    "locks": {
+      "failedToLoad": "Failed to load locks",
+      "retry": "Retry",
+      "lock": "Lock",
+      "daysRemaining": "days remaining",
+      "complete": "complete",
+      "days": "days",
+      "duration": "Duration",
+      "claiming": "Claiming...",
+      "claim": "Claim {amount} HBCT",
+      "cancelLock": "Cancel Lock",
+      "noFee": "No Fee",
+      "fee": "{percent}% Fee",
+      "lockedUntil50": "Locked Until 50%",
+      "moreToUnlockEarly": "more to unlock early",
+      "earlyUnlockAvailable": "Early unlock available",
+      "youWillReceive": "You'll receive {amount} HBCT ({penalty}% penalty on accrued rewards)",
+      "earlyUnlockAt50": "Early unlock available at 50%",
+      "waitMoreDays": "Wait {days} more days",
+      "cancelledOn": "Cancelled on",
+      "completedOn": "Completed on",
+      "claimed": "Claimed",
+      "cancelled": "Cancelled"
+    },
+    "earlyUnlockModal": {
+      "title": "Early Unlock",
+      "lockProgress": "Lock Progress",
+      "howItWorks": "How it works:",
+      "howItWorksDesc": "You earn rewards proportionally to your lock time. At {completed}% completion, you've earned {accrued} HBCT. A {penalty}% penalty applies to this accrued amount.",
+      "lockedAmount": "Locked Amount",
+      "totalRewardIfFull": "Total Reward (if full term)",
+      "accruedReward": "Accrued Reward ({percent}%)",
+      "penaltyOf": "Penalty ({percent}% of accrued)",
+      "forfeited": "Forfeited (unearned + penalty)",
+      "youWillReceive": "You Will Receive",
+      "tip": "Tip:",
+      "tipDesc": "Waiting for full term gets you {total} HBCT in rewards — {more} HBCT more!",
+      "keepLocked": "Keep Locked",
+      "processing": "Processing...",
+      "unlockNow": "Unlock Now"
+    },
+    "cancelModal": {
+      "title": "Cancel Lock",
+      "gracePeriodMessage": "You are within the 24-hour grace period.",
+      "noPenalty": "No penalty will be applied.",
+      "lockedAmount": "Locked Amount",
+      "forfeitedReward": "Forfeited Reward",
+      "refundAmount": "Refund Amount",
+      "keepLock": "Keep Lock",
+      "cancelling": "Cancelling...",
+      "cancelLock": "Cancel Lock"
+    }
   },
   "airdrops": {
     "title": "Airdrops",
@@ -297,6 +440,110 @@
       "subtitle": "Unlock higher rates as you grow",
       "startAt": "Start at",
       "upTo": "Up to"
+    },
+    "toast": {
+      "joinSuccess": "Successfully joined affiliate program!",
+      "joinError": "Failed to register as affiliate",
+      "claimSuccess": "Claimed {amount} HBCT!",
+      "claimError": "Failed to claim commission",
+      "copied": "Copied to clipboard!"
+    },
+    "promo": {
+      "commissionRate": "Commission Rate",
+      "upTo15": "Up to 15%",
+      "perSale": "Per Sale",
+      "tierLevels": "Tier Levels",
+      "fourTiers": "4 Tiers",
+      "starterToPlatinum": "Starter → Platinum",
+      "payouts": "Payouts",
+      "weekly": "Weekly",
+      "noMinimum": "No Minimum",
+      "startHere": "START HERE",
+      "best": "BEST",
+      "noMinReferrals": "No minimum",
+      "minReferrals": "{count}+ referrals"
+    },
+    "cta": {
+      "readyToStart": "Ready to Start",
+      "earning": "Earning?",
+      "description": "Join thousands of successful affiliates already earning passive income with HBCT. Start your journey today.",
+      "joinProgram": "Join Affiliate Program",
+      "freeToJoin": "Free to join",
+      "noMinPayout": "No minimum payout",
+      "weeklyPayouts": "Weekly payouts"
+    },
+    "suspended": {
+      "title": "Affiliate Account Temporarily Suspended",
+      "description": "Your affiliate privileges have been temporarily suspended. During this time:",
+      "codeInactive": "Referral code is inactive",
+      "noNewCommissions": "No new commissions earned",
+      "hiddenFromLeaderboard": "Hidden from leaderboard",
+      "contactSupport": "Contact Support",
+      "preservedNote": "Your existing referrals and earned commissions are preserved and will be available once your account is reactivated."
+    },
+    "dashboard": {
+      "yourCurrentTier": "Your Current Tier",
+      "commission": "Commission",
+      "referrals": "referrals",
+      "progressTo": "Progress to {tier}",
+      "next": "Next:",
+      "maxTierAchieved": "Max Tier Achieved!",
+      "reachedHighest": "You've reached the highest level",
+      "totalReferrals": "Total Referrals",
+      "users": "Users",
+      "totalEarnings": "Total Earnings",
+      "thisMonth": "This Month",
+      "yourReferralLink": "Your Referral Link",
+      "shareAndEarn": "Share & earn {rate}% on every sale",
+      "code": "Code:",
+      "share": "Share",
+      "copy": "Copy",
+      "copied": "Copied!"
+    },
+    "recentCommissions": {
+      "title": "Recent Commissions",
+      "totalEarned": "{amount} HBCT total earned",
+      "history": "Commission history",
+      "transactions": "{count} transactions",
+      "loading": "Loading commissions...",
+      "noCommissions": "No commissions yet",
+      "shareToStart": "Share your referral link to start earning!",
+      "referralCommission": "Referral Commission",
+      "scrollForMore": "Scroll for more"
+    },
+    "leaderboardCard": {
+      "title": "Top Affiliates",
+      "subtitle": "This month's leaders",
+      "noLeaders": "No leaders yet",
+      "beFirst": "Be the first to climb the ranks!",
+      "first": "1st",
+      "second": "2nd",
+      "third": "3rd",
+      "you": "You",
+      "youBadge": "YOU",
+      "notInTop": "Not in top {count}"
+    },
+    "referralsTab": {
+      "title": "Your Referrals",
+      "total": "total",
+      "converted": "converted",
+      "active": "active",
+      "searchPlaceholder": "Search by name or email...",
+      "all": "all",
+      "inactive": "inactive",
+      "loading": "Loading referrals...",
+      "noReferrals": "No referrals found",
+      "adjustFilters": "Try adjusting your search or filters",
+      "shareToStart": "Share your referral link to start earning!",
+      "tableHeaders": {
+        "user": "User",
+        "status": "Status",
+        "joined": "Joined",
+        "purchases": "Purchases",
+        "commission": "Commission"
+      },
+      "show": "Show",
+      "ofEntries": "of {total} entries"
     }
   },
   "navigation": {
@@ -312,11 +559,46 @@
     "login": "Login",
     "register": "Register",
     "logout": "Logout",
-    "profile": "Profile"
+    "profile": "Profile",
+    "comingSoon": "Soon",
+    "comingSoonFull": "Coming Soon"
+  },
+  "navbar": {
+    "myWallet": "My Wallet",
+    "viewProfile": "View Profile",
+    "adminPanel": "Admin Panel",
+    "manageSystem": "Manage system settings",
+    "sendReceiveTokens": "Send, receive & manage tokens",
+    "earnCommissions": "Earn commissions on referrals",
+    "appearance": "Appearance",
+    "chooseTheme": "Choose your theme",
+    "light": "Light",
+    "dark": "Dark",
+    "auto": "Auto",
+    "language": "Language",
+    "settings": "Settings",
+    "helpSupport": "Help & Support",
+    "logOut": "Log Out",
+    "welcomeToHbct": "Welcome to HBCT",
+    "fireProtection": "Fire Protection",
+    "revolutionaryBlockchain": "Revolutionary blockchain technology for fire safety"
+  },
+  "security": {
+    "secureYourAccount": "Secure Your Account",
+    "recommended": "Recommended",
+    "twoFactorDescription": "Enable two-factor authentication to add an extra layer of security to your account and protect your HBCT tokens.",
+    "enable2FANow": "Enable 2FA Now"
   },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your account settings and preferences",
+    "sidebar": {
+      "profile": "Profile",
+      "security": "Security",
+      "notifications": "Notifications",
+      "wallets": "Connected Wallets",
+      "deleteAccount": "Delete Account"
+    },
     "profile": {
       "title": "Profile Information",
       "description": "Update your personal information",
@@ -325,52 +607,339 @@
       "lastName": "Last Name",
       "email": "Email Address",
       "phone": "Phone Number",
+      "phoneHint": "International format (e.g., +1234567890)",
+      "phoneError": "Please enter a valid phone number (e.g., +1234567890)",
       "bio": "Bio",
       "bioPlaceholder": "Tell us a little about yourself...",
       "verified": "Verified",
       "saveChanges": "Save Changes",
       "saving": "Saving...",
       "updateSuccess": "Profile updated successfully",
-      "updateError": "Failed to update profile"
+      "updateError": "Failed to update profile",
+      "uploading": "Uploading...",
+      "changePhoto": "Change photo",
+      "uploadPhoto": "Upload photo",
+      "removePhoto": "Remove",
+      "removing": "Removing...",
+      "avatarUpdated": "Profile picture updated successfully!",
+      "avatarRemoved": "Profile picture removed",
+      "avatarUploadError": "Failed to upload profile picture",
+      "avatarRemoveError": "Failed to remove profile picture",
+      "invalidImageType": "Please select a valid image file (JPEG, PNG, WebP, or GIF)",
+      "imageTooLarge": "Image size must be less than 5MB",
+      "username": {
+        "title": "Username",
+        "description": "Set a unique username to receive HBCT from other users",
+        "currentUsername": "Your current username: @{username}",
+        "shareHint": "Share this with others so they can send you HBCT",
+        "changeUsername": "Change Username",
+        "chooseUsername": "Choose a Username",
+        "placeholder": "johndoe",
+        "available": "Username is available!",
+        "hint": "3-20 characters. Letters, numbers, and underscores only. Must start with a letter.",
+        "updateUsername": "Update Username",
+        "setUsername": "Set Username",
+        "updated": "Username updated successfully!",
+        "updateError": "Failed to update username",
+        "tooShort": "Username must be at least 3 characters",
+        "tooLong": "Username cannot exceed 20 characters",
+        "invalidFormat": "Username must start with a letter and contain only letters, numbers, and underscores",
+        "checkError": "Failed to check username"
+      },
+      "accountType": {
+        "title": "Account Type",
+        "description": "How you signed up for your account",
+        "connected": "Connected",
+        "createdOn": "Your account was created on {date}",
+        "providers": {
+          "credentials": {
+            "label": "Email & Password",
+            "description": "You signed up with your email address and password"
+          },
+          "google": {
+            "label": "Google",
+            "description": "You signed up with your Google account"
+          },
+          "facebook": {
+            "label": "Facebook",
+            "description": "You signed up with your Facebook account"
+          },
+          "wallet": {
+            "label": "Web3 Wallet",
+            "description": "You signed up with your Web3 wallet"
+          }
+        }
+      }
     },
     "security": {
       "title": "Security",
       "changePassword": "Change Password",
+      "setPassword": "Set Password",
+      "changePasswordDescription": "Update your password to keep your account secure",
+      "setPasswordDescription": "Create a password to enable email/password login",
       "currentPassword": "Current Password",
       "newPassword": "New Password",
       "confirmPassword": "Confirm New Password",
       "updatePassword": "Update Password",
       "updating": "Updating...",
+      "settingPassword": "Setting Password...",
       "passwordSuccess": "Password updated successfully",
+      "passwordSetSuccess": "Password set successfully! You can now login with your email and password.",
       "passwordError": "Failed to update password",
+      "passwordSetError": "Failed to set password",
       "passwordMismatch": "Passwords do not match",
-      "twoFactor": "Two-Factor Authentication",
-      "twoFactorDescription": "Add an extra layer of security to your account",
-      "twoFactorEnabled": "2FA is enabled",
-      "twoFactorDisabled": "2FA is disabled",
-      "enable2FA": "Enable 2FA",
-      "disable2FA": "Disable 2FA",
-      "activeSessions": "Active Sessions",
-      "activeSessionsDescription": "Manage your logged-in devices",
-      "currentSession": "Current session",
-      "revokeSession": "Revoke",
-      "revokeSuccess": "Session revoked successfully"
+      "passwordTooShort": "Password must be at least 8 characters",
+      "passwordComplexity": "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      "passwordHint": "Password must be at least 8 characters with one uppercase, one lowercase, and one number.",
+      "passwordNotAvailable": "Password not available",
+      "walletAuthOnly": "Your account uses wallet authentication. To set a password, add an email address to your account first.",
+      "noPasswordSet": "No password set",
+      "noPasswordDescription": "You signed up using {authMethod} authentication. Set a password to enable login with your email ({email}).",
+      "twoFactor": {
+        "title": "Two-Factor Authentication",
+        "description": "Add an extra layer of security to your account",
+        "enabled": "2FA is enabled",
+        "disabled": "2FA is disabled",
+        "enableHint": "Enable 2FA for extra security",
+        "recoveryCodesRemaining": "{count} recovery codes remaining",
+        "enable": "Enable 2FA",
+        "disable": "Disable 2FA",
+        "disableConfirm": "Enter your 2FA code to disable two-factor authentication:",
+        "disabled": "Two-factor authentication disabled",
+        "disableError": "Failed to disable 2FA",
+        "regenerateCodes": "Regenerate Recovery Codes",
+        "regenerateConfirm": "Enter your 2FA code to generate new recovery codes:",
+        "regenerateWarning": "This will invalidate your current recovery codes.",
+        "regenerateSuccess": "New recovery codes generated and downloaded",
+        "regenerateError": "Failed to regenerate codes",
+        "enterCode": "Please enter a 6-digit code",
+        "confirm": "Confirm",
+        "generate": "Generate",
+        "cancel": "Cancel"
+      },
+      "twoFactorSetup": {
+        "title": "Set Up Two-Factor Authentication",
+        "verifyTitle": "Verify Your Code",
+        "recoveryTitle": "Save Recovery Codes",
+        "scanDescription": "Scan the QR code with your authenticator app",
+        "verifyDescription": "Enter the 6-digit code from your authenticator",
+        "recoveryDescription": "Store these codes safely - they're your backup access",
+        "scanInstruction": "Scan with Google Authenticator, Authy, or similar app",
+        "manualEntry": "Can't scan? Enter this code manually:",
+        "verificationCode": "Verification Code",
+        "continue": "Continue",
+        "back": "Back",
+        "verifying": "Verifying...",
+        "verifyAndEnable": "Verify & Enable",
+        "setupSuccess": "2FA enabled successfully!",
+        "setupError": "Failed to initialize 2FA setup",
+        "invalidCode": "Invalid verification code",
+        "secretCopied": "Secret copied to clipboard",
+        "recoveryWarning": "Save these codes now. They won't be shown again. Each code can only be used once.",
+        "copy": "Copy",
+        "download": "Download",
+        "downloaded": "Downloaded",
+        "completeSetup": "Complete Setup",
+        "downloadToContinue": "Download codes to continue",
+        "codesCopied": "Recovery codes copied to clipboard",
+        "codesDownloaded": "Recovery codes downloaded"
+      }
+    },
+    "sessions": {
+      "title": "Active Sessions",
+      "description": "Manage devices logged into your account",
+      "loading": "Loading sessions...",
+      "loadError": "Failed to load sessions",
+      "currentSession": "This device",
+      "trusted": "Trusted",
+      "vpn": "VPN",
+      "stats": {
+        "active": "Active",
+        "trusted": "Trusted",
+        "other": "Other",
+        "review": "Review"
+      },
+      "revokeAll": "Revoke All Other Sessions",
+      "revokeSession": "Revoke Session",
+      "revokeSuccess": "Session revoked successfully",
+      "revokeError": "Failed to revoke session",
+      "revokedCount": "Revoked {count} session(s)",
+      "trustDevice": "Trust Device",
+      "removeTrust": "Remove Trust",
+      "trustSuccess": "Device marked as trusted",
+      "trustError": "Failed to trust device",
+      "untrustSuccess": "Device trust removed",
+      "untrustError": "Failed to remove trust",
+      "suspicious": {
+        "title": "Suspicious activity detected",
+        "description": "{count} session(s) from different location(s). Review and revoke any you don't recognize."
+      },
+      "time": {
+        "justNow": "Just now",
+        "minutesAgo": "{count}m ago",
+        "hoursAgo": "{count}h ago",
+        "daysAgo": "{count}d ago"
+      },
+      "showFullIp": "Show full IP",
+      "hideFullIp": "Hide full IP"
+    },
+    "activity": {
+      "title": "Security Activity",
+      "description": "Recent account and login activity",
+      "loading": "Loading activity...",
+      "loadError": "Failed to load security activity",
+      "stats": {
+        "total": "Total Events",
+        "logins24h": "24h Logins",
+        "alerts": "Alerts"
+      },
+      "filters": {
+        "all": "All",
+        "security": "Security",
+        "access": "Access",
+        "location": "Location"
+      },
+      "dateGroups": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisWeek": "This Week",
+        "thisMonth": "This Month",
+        "earlier": "Earlier"
+      },
+      "types": {
+        "login": {
+          "label": "Sign In",
+          "description": "Successfully signed into your account"
+        },
+        "logout": {
+          "label": "Sign Out",
+          "description": "Signed out of your account"
+        },
+        "sessionReused": {
+          "label": "Session Resumed",
+          "description": "Continued an existing session"
+        },
+        "tokenRefresh": {
+          "label": "Token Refreshed",
+          "description": "Session token was renewed"
+        },
+        "deviceTrusted": {
+          "label": "Device Trusted",
+          "description": "Marked this device as trusted"
+        },
+        "deviceUntrusted": {
+          "label": "Trust Removed",
+          "description": "Removed trust from this device"
+        },
+        "ipCountryChange": {
+          "label": "Location Changed",
+          "description": "Access from a different country detected"
+        },
+        "continentChange": {
+          "label": "Region Changed",
+          "description": "Access from a different continent detected"
+        },
+        "impossibleTravel": {
+          "label": "Suspicious Location",
+          "description": "Impossible travel detected - potential security risk"
+        },
+        "newLocation": {
+          "label": "New Location",
+          "description": "First access from this location"
+        },
+        "refreshFailure": {
+          "label": "Refresh Failed",
+          "description": "Token refresh attempt failed"
+        },
+        "sessionRevoked": {
+          "label": "Session Revoked",
+          "description": "Session was terminated for security"
+        },
+        "fingerprintMismatch": {
+          "label": "Device Mismatch",
+          "description": "Device fingerprint didn't match"
+        },
+        "vpnDetected": {
+          "label": "VPN Detected",
+          "description": "VPN or proxy connection detected"
+        }
+      },
+      "defaultDescription": "Activity recorded",
+      "eventCount": "{count, plural, =1 {1 event} other {# events}}",
+      "severity": {
+        "success": "Success",
+        "warning": "Warning",
+        "alert": "Alert"
+      },
+      "details": {
+        "time": "Time",
+        "ipAddress": "IP Address",
+        "location": "Location",
+        "device": "Device",
+        "userAgent": "User Agent"
+      },
+      "noActivity": {
+        "title": "No Activity Yet",
+        "titleFiltered": "No {filter} Activity",
+        "description": "Activity will appear here as you use your account",
+        "descriptionFiltered": "Try selecting a different filter to see more activity"
+      },
+      "legend": {
+        "title": "Activity Types",
+        "info": "Info",
+        "success": "Success",
+        "warning": "Warning",
+        "danger": "Danger"
+      }
     },
     "notifications": {
-      "title": "Notifications",
-      "description": "Choose what notifications you want to receive",
-      "email": "Email Notifications",
-      "transactions": "Transaction updates",
-      "transactionsDescription": "Get notified about deposits, withdrawals, and purchases",
-      "security": "Security alerts",
-      "securityDescription": "Important security notifications about your account",
-      "marketing": "Marketing emails",
-      "marketingDescription": "News, updates, and promotional content",
-      "updates": "Product updates",
-      "updatesDescription": "New features and platform improvements",
-      "push": "Push Notifications",
-      "pushEnabled": "Enable push notifications",
-      "pushDescription": "Receive notifications in your browser"
+      "title": "Notification Types",
+      "description": "Choose how you want to be notified for each type",
+      "preferenceSaved": "Preference saved",
+      "preferenceError": "Failed to save preference",
+      "channels": {
+        "all": "All",
+        "inApp": "In-app",
+        "email": "Email",
+        "off": "Off"
+      },
+      "types": {
+        "transactions": {
+          "label": "Transactions",
+          "description": "Deposits, withdrawals, purchases"
+        },
+        "security": {
+          "label": "Security",
+          "description": "Login alerts, password changes"
+        },
+        "locking": {
+          "label": "Locking",
+          "description": "Lock created, matured, rewards"
+        },
+        "system": {
+          "label": "System",
+          "description": "Maintenance, announcements"
+        },
+        "marketing": {
+          "label": "Marketing",
+          "description": "Promotions, new features"
+        }
+      },
+      "emailSettings": {
+        "title": "Email Settings",
+        "enableEmail": "Enable Email Notifications",
+        "enableEmailDescription": "Receive notifications via email",
+        "dailyDigest": "Daily Digest",
+        "dailyDigestDescription": "Get a summary instead of instant emails"
+      },
+      "quietHours": {
+        "title": "Quiet Hours",
+        "description": "Pause notifications during specific hours",
+        "enable": "Enable Quiet Hours",
+        "enableDescription": "No push notifications during this time",
+        "from": "From",
+        "to": "To"
+      }
     },
     "preferences": {
       "title": "Preferences",
@@ -388,27 +957,139 @@
     "wallets": {
       "title": "Connected Wallets",
       "description": "Manage your connected Web3 wallets",
-      "noWallets": "No wallets connected",
+      "activeWallet": {
+        "title": "Active Wallet",
+        "description": "Currently connected Web3 wallet"
+      },
+      "noWalletConnected": {
+        "title": "No wallet connected",
+        "description": "Connect your Web3 wallet to interact with the blockchain and manage your HBCT tokens"
+      },
       "connectWallet": "Connect Wallet",
+      "connecting": "Connecting...",
       "disconnect": "Disconnect",
+      "linked": "Linked",
+      "copyFullAddress": "Copy full address",
+      "viewOnExplorer": "View on explorer",
+      "addressCopied": "Address copied to clipboard",
+      "copyError": "Failed to copy address",
+      "linkedWallets": {
+        "title": "Linked Wallets",
+        "description": "Wallets permanently linked to your account",
+        "remainingSlots": "{count}/{max} slots available",
+        "noWallets": "No linked wallets",
+        "noWalletsDescription": "Link a wallet to your account for permanent access"
+      },
+      "linkWallet": {
+        "title": "Link to Account",
+        "button": "Link Wallet",
+        "alreadyLinked": "This wallet is already linked to your account",
+        "maxReached": "You can only link up to {max} wallets",
+        "connectFirst": "Please connect a wallet first",
+        "label": "Wallet Label (Optional)",
+        "labelPlaceholder": "e.g., Hardware Wallet",
+        "labelHint": "Give this wallet a recognizable name",
+        "confirmTitle": "Link Wallet to Account",
+        "confirmDescription": "This will permanently link your connected wallet to your account. You'll be able to use this wallet to log in.",
+        "signMessage": "Sign to Link",
+        "signDescription": "Please sign the message in your wallet to verify ownership",
+        "signing": "Requesting signature...",
+        "success": "Wallet linked successfully!",
+        "error": "Failed to link wallet",
+        "signatureCancelled": "Signature request was cancelled",
+        "signingNotSupported": "This wallet doesn't support message signing. Please use MetaMask or another compatible wallet.",
+        "cancel": "Cancel",
+        "confirm": "Confirm & Sign"
+      },
       "primary": "Primary",
       "setPrimary": "Set as Primary",
-      "connectedAt": "Connected",
-      "copyAddress": "Copy address",
-      "copied": "Copied!"
+      "primaryUpdated": "Primary wallet updated",
+      "primaryError": "Failed to set primary wallet",
+      "editLabel": "Edit Label",
+      "labelUpdated": "Label updated",
+      "labelError": "Failed to update label",
+      "labelEmpty": "Label cannot be empty",
+      "removeWallet": "Remove Wallet",
+      "removeSuccess": "Wallet removed",
+      "removeError": "Failed to remove wallet",
+      "wrongNetwork": {
+        "title": "Wrong Network Detected",
+        "description": "Please switch to {network} to continue",
+        "switchNetwork": "Switch Network"
+      },
+      "securityTips": {
+        "title": "Multi-Wallet Security",
+        "tip1": "Link multiple wallets for backup access",
+        "tip2": "Set your most secure wallet as primary",
+        "tip3": "Remove wallets you no longer use"
+      }
     },
     "deleteAccount": {
       "title": "Delete Account",
       "dangerZone": "Danger Zone",
-      "warning": "Once you delete your account, there is no going back. Please be certain.",
-      "description": "This will permanently delete your account and all associated data. This action cannot be undone.",
+      "deleteYourAccount": "Delete Your Account",
+      "deleteDescription": "Request account deletion. You'll have 30 days to recover your account.",
       "deleteButton": "Delete My Account",
-      "confirmTitle": "Are you absolutely sure?",
-      "confirmDescription": "This action cannot be undone. All your data will be permanently deleted.",
-      "typeEmail": "Type your email to confirm:",
-      "cancel": "Cancel",
-      "confirmDelete": "Delete Forever",
-      "deleting": "Deleting..."
+      "recoveryPolicy": {
+        "title": "Account Recovery Policy",
+        "gracePeriod": "30-day grace period: You can recover your account within 30 days",
+        "dataRetention": "1-year data retention: Your data is kept for 1 year for compliance",
+        "contactSupport": "Contact support: To recover, contact support with your original email",
+        "permanentDeletion": "Permanent deletion: After 1 year, all data is permanently purged"
+      },
+      "whatHappens": {
+        "title": "What happens when you delete your account?",
+        "emailAnonymized": "Your email will be anonymized immediately",
+        "sessionsLoggedOut": "All sessions will be logged out",
+        "cannotLogin": "You cannot login until the account is recovered",
+        "tokensForfeited": "After 30 days, your tokens and earnings will be forfeited"
+      },
+      "eligibility": {
+        "title": "Checking Eligibility",
+        "description": "Verifying your account can be deleted",
+        "checking": "Checking your account status...",
+        "eligible": "Your account is eligible for deletion.",
+        "eligibleContinue": "Click Continue to proceed.",
+        "notEligible": "Your account cannot be deleted yet. Please resolve:",
+        "recheck": "Recheck"
+      },
+      "steps": {
+        "continue": "Continue",
+        "cancel": "Cancel",
+        "back": "Back"
+      },
+      "step1": {
+        "title": "Delete Your Account?",
+        "description": "This will schedule your account for deletion. You'll have 30 days to recover it.",
+        "gracePeriod": "Grace Period: 30 days to recover",
+        "dataRetention": "Data Retention: 1 year for compliance",
+        "stepsWarning": "This process requires {steps} steps to complete to ensure this is not a mistake."
+      },
+      "step2": {
+        "title": "Confirm Understanding",
+        "description": "Please acknowledge that you understand the consequences",
+        "confirmations": {
+          "loseTokens": "I understand all my tokens and balances will be permanently lost after the grace period",
+          "loseLockedTokens": "I understand my locked tokens cannot be recovered after the grace period",
+          "loseAffiliateEarnings": "I understand my affiliate earnings will be forfeited",
+          "canRecover": "I understand I have 30 days to recover my account by contacting support"
+        }
+      },
+      "step3": {
+        "title": "Type DELETE to Continue",
+        "description": "Type DELETE in the box below to confirm",
+        "placeholder": "Type DELETE"
+      },
+      "step4": {
+        "title": "Final Confirmation",
+        "description": "Enter your email address to confirm deletion",
+        "emailLabel": "Email Address",
+        "emailPlaceholder": "Enter your email",
+        "deleteForever": "Delete Forever",
+        "deleting": "Deleting...",
+        "emailMismatch": "Email doesn't match"
+      },
+      "success": "Account deleted successfully. You can recover it until {date}."
     }
   },
   "common": {
@@ -1329,6 +2010,507 @@
       "terms": "Terms of Service",
       "audit": "Audit Report",
       "home": "Home"
+    }
+  },
+  "wallet": {
+    "deposit": {
+      "title": "Deposit HBCT",
+      "subtitle": "Send HBCT tokens from your external wallet",
+      "tabs": {
+        "deposit": "Deposit",
+        "history": "History"
+      },
+      "backToWallet": "Back to Wallet",
+      "notConfigured": {
+        "title": "Deposits Not Available",
+        "description": "The deposit system is not configured yet. Please contact support."
+      },
+      "qrSection": {
+        "title": "HBCT Deposit",
+        "network": "BNB Smart Chain (BSC)",
+        "status": "Active",
+        "scanInstruction": "Scan QR code or copy address below",
+        "addressLabel": "Deposit Address",
+        "bscNetwork": "BSC Network",
+        "copy": "Copy",
+        "copied": "Copied!",
+        "viewOnBscscan": "View on BSCScan"
+      },
+      "howTo": {
+        "title": "How to Deposit",
+        "step1": {
+          "title": "Copy the deposit address",
+          "description": "Click the copy button above or scan the QR code"
+        },
+        "step2": {
+          "title": "Send HBCT from your wallet",
+          "description": "Use MetaMask, Trust Wallet, or any BSC-compatible wallet"
+        },
+        "step3": {
+          "title": "Wait for confirmation",
+          "description": "{confirmations} block confirmations (~1-2 minutes)"
+        },
+        "step4": {
+          "title": "Click \"Check for Deposits\"",
+          "description": "Use the button below to check for your deposit"
+        }
+      },
+      "checkDeposits": {
+        "button": "Check for Deposits",
+        "linkWalletFirst": "Link a wallet first to check for deposits",
+        "noWalletError": "Please link a wallet first to check for deposits"
+      },
+      "linkedWallets": {
+        "title": "Your Linked Wallets",
+        "manage": "Manage",
+        "creditInfo": "Deposits from these wallets will be automatically credited to your account:",
+        "primary": "PRIMARY",
+        "noWallets": {
+          "title": "No Wallets Linked",
+          "description": "Link a wallet so deposits are automatically matched to your account"
+        },
+        "linkWallet": "Link Wallet"
+      },
+      "warning": {
+        "title": "Important",
+        "onlyHbct": "Only send HBCT tokens to this address",
+        "onlyBsc": "Only use BNB Smart Chain (BSC) network",
+        "permanentLoss": "Sending other tokens may result in permanent loss"
+      }
+    },
+    "withdraw": {
+      "title": "Withdraw HBCT",
+      "subtitle": "Send HBCT tokens to your external wallet",
+      "tabs": {
+        "newWithdrawal": "New Withdrawal",
+        "history": "History"
+      },
+      "backToWallet": "Back to Wallet",
+      "successMessage": "Withdrawal request submitted! Check your email for the confirmation code."
+    },
+    "main": {
+      "title": "My Wallet",
+      "subtitle": "Manage your HBCT tokens",
+      "refresh": "Refresh",
+      "history": "History",
+      "totalBalance": "Total Balance",
+      "available": "Available",
+      "reserved": "Reserved",
+      "locked": "Locked",
+      "noChange": "No change",
+      "thisMonth": "this month",
+      "quickActions": {
+        "send": "Send",
+        "receive": "Receive",
+        "deposit": "Deposit",
+        "withdraw": "Withdraw",
+        "buy": "Buy"
+      },
+      "pendingTransfers": {
+        "title": "{count} Pending Transfer",
+        "titlePlural": "{count} Pending Transfers",
+        "reserved": "({amount} HBCT reserved)",
+        "confirmOrCancel": "Confirm or cancel to release reserved funds",
+        "view": "View"
+      },
+      "limits": {
+        "title": "Transfer Limits",
+        "daily": "Daily Limit",
+        "weekly": "Weekly Limit",
+        "left": "left",
+        "used": "used",
+        "max": "max"
+      },
+      "summary": {
+        "title": "This Month",
+        "transactions": "Transactions",
+        "volume": "Volume"
+      },
+      "activity": {
+        "title": "Recent Activity",
+        "viewAll": "View All",
+        "empty": "No recent activity",
+        "emptyDesc": "Your transactions will appear here",
+        "justNow": "Just now",
+        "mAgo": "{mins}m ago",
+        "hAgo": "{hours}h ago",
+        "dAgo": "{days}d ago"
+      },
+      "types": {
+        "deposit": "Deposit",
+        "withdrawal": "Withdrawal",
+        "sent": "Sent",
+        "received": "Received",
+        "purchase": "Purchase",
+        "sale": "Sale",
+        "locked": "Locked",
+        "unlocked": "Unlocked",
+        "reward": "Reward",
+        "airdrop": "Airdrop",
+        "commission": "Commission",
+        "fee": "Fee",
+        "refund": "Refund"
+      },
+      "status": {
+        "completed": "Completed",
+        "pending": "Pending",
+        "cancelled": "Cancelled",
+        "expired": "Expired",
+        "failed": "Failed",
+        "processing": "Processing"
+      }
+    },
+    "send": {
+      "title": "Send HBCT",
+      "subtitle": "Transfer tokens to another user",
+      "success": {
+        "title": "Transfer Successful!",
+        "sentTo": "Sent to",
+        "amount": "Amount",
+        "sendAnother": "Send Another",
+        "done": "Done"
+      },
+      "error": {
+        "title": "Transfer Failed",
+        "tryAgain": "Try Again",
+        "backToWallet": "Back to Wallet"
+      },
+      "failedToInitiate": "Failed to initiate transfer",
+      "invalidCode": "Invalid confirmation code",
+      "completed": "Transfer completed successfully!"
+    },
+    "receive": {
+      "title": "Receive HBCT",
+      "subtitle": "Share to get paid instantly",
+      "backToWallet": "Back to Wallet",
+      "yourUsername": "Your Username",
+      "yourEmail": "Your Email",
+      "setUsername": "Set username →",
+      "shareMyDetails": "Share My Details",
+      "copied": "Copied!",
+      "copy": "Copy",
+      "allMethods": {
+        "title": "All Receive Methods",
+        "subtitle": "Sender can use any of these to find you",
+        "username": "Username",
+        "email": "Email"
+      },
+      "howItWorks": {
+        "title": "How it works",
+        "step1": "Share your username or email with the sender",
+        "step2": "They search for you in the Send page",
+        "step3": "Instant transfer — HBCT arrives in seconds"
+      }
+    },
+    "transactions": {
+      "title": "HBCT Transaction History",
+      "transactionCount": "{count} transaction",
+      "transactionCountPlural": "{count} transactions",
+      "filters": "Filters",
+      "clearAll": "Clear all",
+      "export": "Export",
+      "status": "Status",
+      "type": "Type",
+      "allStatuses": "All statuses",
+      "allTypes": "All types",
+      "summary": {
+        "totalIn": "Total In",
+        "totalOut": "Total Out",
+        "thisMonth": "This Month",
+        "tx": "tx"
+      },
+      "empty": "No transactions found",
+      "emptyWithFilters": "Try adjusting your filters",
+      "emptyDesc": "Your HBCT transaction history will appear here",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "connecting": "Connecting...",
+    "connectWeb3": "Connect Web3",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "copyAddress": "Copy address",
+    "onChainBalance": "On-chain Balance",
+    "onChain": "On-chain",
+    "myWallet": "My Wallet",
+    "switchToBSC": "Switch to BNB Smart Chain",
+    "switchedToBSC": "Switched to BNB Smart Chain",
+    "failedToSwitchBSC": "Failed to switch to BNB Smart Chain",
+    "switchedTo": "Switched to {network}",
+    "failedToSwitchNetwork": "Failed to switch network",
+    "addressCopied": "Address copied to clipboard",
+    "walletConnected": "Wallet connected!",
+    "walletDisconnected": "Wallet disconnected",
+    "connectionCancelled": "Connection cancelled",
+    "failedToConnect": "Failed to connect wallet. Please try again.",
+    "connectorNotFound": "Connector not found",
+    "modal": {
+      "title": "Connect Wallet",
+      "initializing": "Initializing...",
+      "scanWithWallet": "Scan with your wallet app",
+      "orConnectDirectly": "or connect directly",
+      "walletsFound": "{count} wallet found · Click to connect",
+      "walletsFoundPlural": "{count} wallets found · Click to connect",
+      "noWalletsDetected": "No wallets detected · Install one to continue",
+      "opening": "Opening {wallet}...",
+      "preparingConnection": "Preparing connection...",
+      "connectionTimeout": "Connection timeout. Please try again.",
+      "dontHaveWallet": "Don't have a wallet?",
+      "getStartedMetaMask": "Get started with MetaMask",
+      "get": "Get",
+      "securedByWalletConnect": "Secured by WalletConnect",
+      "securedWithWalletConnect": "Secured with WalletConnect"
+    },
+    "conflict": {
+      "title": "Wallet Connection Blocked",
+      "description": "This wallet belongs to another account",
+      "blockedWallet": "Blocked Wallet",
+      "defaultMessage": "This wallet address is already linked to another user account.",
+      "disconnectedMessage": "The wallet has been disconnected for security. Please connect a different wallet.",
+      "whyBlocked": "Why was this blocked?",
+      "oneAccountRule": "Each wallet can only be linked to one account",
+      "protectsUsers": "This protects users from unauthorized transactions",
+      "connectOwnWallet": "Connect a wallet that you own to continue",
+      "connectDifferent": "Connect Different Wallet",
+      "close": "Close",
+      "contactSupport": "Think this is a mistake? Contact support",
+      "toastTitle": "Wallet Blocked",
+      "toastMessage": "This wallet is already linked to another account. Please use a different wallet."
+    },
+    "signature": {
+      "required": "Signature Required",
+      "checkWallet": "Check Your Wallet",
+      "signing": "Signing...",
+      "verified": "Verified!",
+      "failed": "Signature Failed",
+      "verifyOwnership": "To verify ownership of your wallet, please sign the message in {wallet}.",
+      "openMobileApp": "Open your mobile wallet app",
+      "requestWaiting": "A signature request is waiting",
+      "confirmInExtension": "Please confirm the signature request in your wallet extension.",
+      "verifiedSuccess": "Your wallet has been verified successfully. Logging you in...",
+      "rejectedOrFailed": "The signature was rejected or failed. Please try again.",
+      "connected": "Connected",
+      "signMessage": "Sign Message",
+      "closingAutomatically": "Closing automatically..."
+    }
+  },
+  "help": {
+    "badge": "Help Center",
+    "title": "How can we",
+    "titleHighlight": "help you?",
+    "subtitle": "Find answers to common questions, browse our knowledge base, or get in touch with our support team.",
+    "quickActions": {
+      "searchFaq": {
+        "title": "Search FAQ",
+        "description": "Find answers to common questions"
+      },
+      "contactSupport": {
+        "title": "Contact Support",
+        "description": "Send us a message"
+      },
+      "myTickets": {
+        "title": "My Tickets",
+        "description": "View your support history"
+      },
+      "newTicket": {
+        "title": "New Ticket",
+        "description": "Create a support request"
+      },
+      "loginRequired": "Login required"
+    },
+    "faq": {
+      "badge": "Frequently Asked Questions",
+      "title": "Common Questions",
+      "categories": {
+        "gettingStarted": "Getting Started",
+        "gettingStartedDesc": "New to HBCT? Start here",
+        "tokens": "Token & Purchases",
+        "tokensDesc": "Buying and managing tokens",
+        "locking": "Token Locking",
+        "lockingDesc": "Lock tokens and earn rewards",
+        "marketplace": "Marketplace",
+        "marketplaceDesc": "Shopping with HBCT",
+        "affiliates": "Affiliate Program",
+        "affiliatesDesc": "Earn by referring others"
+      }
+    },
+    "cta": {
+      "title": "Still need help?",
+      "subtitle": "Our support team is here to assist you 24/7",
+      "contactUs": "Contact Us",
+      "openTicket": "Open Ticket"
+    }
+  },
+  "buyTokens": {
+    "pageTitle": "Buy HBCT Tokens",
+    "pageSubtitle": "Buy HBCT tokens using your connected Web3 wallet",
+    "walletNotConnected": {
+      "title": "Wallet Not Connected",
+      "description": "Please connect your Web3 wallet to buy HBCT tokens",
+      "connectButton": "Connect Wallet"
+    },
+    "wrongNetwork": {
+      "title": "Wrong Network",
+      "description": "Please switch to BSC Mainnet to buy HBCT tokens",
+      "switchButton": "Switch to Mainnet"
+    },
+    "walletConnectWarning": {
+      "title": "WalletConnect May Have Limited Support",
+      "description": "Some mobile wallets don't support transactions on BSC via WalletConnect. If you see \"Unknown method\" errors, please use one of these options:",
+      "options": {
+        "metamask": "MetaMask or Coinbase Wallet browser extension (recommended)",
+        "trustWallet": "Trust Wallet mobile app (best WalletConnect + BSC support)",
+        "metamaskMobile": "MetaMask Mobile app"
+      }
+    },
+    "deliveryMethod": {
+      "internalBalance": "Internal Balance",
+      "sendToWallet": "Send to Wallet"
+    },
+    "form": {
+      "title": "Buy HBCT",
+      "youPay": "You Pay",
+      "youReceive": "You Receive",
+      "balance": "Balance",
+      "destinationWallet": "Destination Wallet",
+      "noLinkedWallets": "No linked wallets",
+      "linkWalletHint": "Link a wallet in settings to use on-chain delivery",
+      "linkWallet": "Link Wallet →",
+      "linkNewWallet": "Link New Wallet"
+    },
+    "quote": {
+      "tokenAmount": "Token Amount",
+      "platformFee": "Platform Fee",
+      "networkFee": "Network Fee",
+      "totalCost": "Total Cost"
+    },
+    "currencies": {
+      "bnb": "Binance Coin",
+      "usdt": "Tether USD",
+      "usdc": "USD Coin"
+    },
+    "button": {
+      "confirmInWallet": "Confirm in Wallet...",
+      "confirmingOnChain": "Confirming on Chain...",
+      "processingPurchase": "Processing Purchase...",
+      "purchaseComplete": "Purchase Complete!",
+      "noBalance": "No {currency} Balance",
+      "insufficientBalance": "Insufficient Balance",
+      "buyAddToBalance": "Buy & Add to Balance",
+      "buySendToWallet": "Buy & Send to Wallet"
+    },
+    "info": {
+      "internalBalance": {
+        "title": "Internal Balance",
+        "instant": "Instant",
+        "instantDesc": "Tokens added immediately",
+        "secureStorage": "Secure Storage",
+        "secureStorageDesc": "Stored in platform wallet",
+        "easyTransfers": "Easy Transfers",
+        "easyTransfersDesc": "Send to other users instantly"
+      },
+      "externalWallet": {
+        "title": "External Wallet",
+        "onChain": "On-Chain",
+        "onChainDesc": "Tokens sent to your wallet",
+        "fullControl": "Full Control",
+        "fullControlDesc": "Your keys, your tokens",
+        "networkFee": "Network Fee",
+        "networkFeeDesc": "Small fee for blockchain tx"
+      }
+    },
+    "price": {
+      "title": "Current Price",
+      "perToken": "/ HBCT"
+    },
+    "limits": {
+      "title": "Your Limits",
+      "perTransaction": "Per Transaction",
+      "upTo": "Up to",
+      "dailyRemaining": "Daily Remaining",
+      "monthlyRemaining": "Monthly Remaining"
+    },
+    "paymentMethods": {
+      "title": "Pay With",
+      "subtitle": "From Connected Wallet"
+    },
+    "usdValue": "USD Value",
+    "lowSlippage": "Low slippage",
+    "toast": {
+      "enterAmount": "Please enter an amount",
+      "connectWallet": "Please connect your wallet first",
+      "depositNotConfigured": "Deposit wallet not configured",
+      "walletNotConnected": "Wallet not properly connected. Please reconnect.",
+      "safeWalletNotSupported": "Safe (multisig) wallets are not supported for token purchases. Please use a regular wallet.",
+      "walletNotReady": "Wallet connection not ready. Please wait a moment or reconnect your wallet.",
+      "walletNotReadyHint": "Make sure your wallet app is open and connected.",
+      "unableToConnect": "Unable to connect to your wallet. Please try reconnecting.",
+      "switchingNetwork": "Switching to BSC Mainnet...",
+      "switchNetworkToContinue": "Please switch to BSC network to continue",
+      "failedToSwitchNetwork": "Failed to switch network. Please manually switch to BSC.",
+      "maxPurchaseExceeded": "Maximum purchase per transaction is ${max}",
+      "checkWalletApp": "Check your wallet app for the transaction request...",
+      "confirmTransaction": "Please confirm the transaction in {wallet}...",
+      "transactionSent": "Transaction sent!",
+      "waitingForConfirmations": "Waiting for blockchain confirmations...",
+      "selectDestinationWallet": "Please select a destination wallet"
+    },
+    "errors": {
+      "cancelled": {
+        "title": "Transaction Cancelled",
+        "message": "You cancelled the transaction",
+        "details": "The transaction was not completed because it was cancelled in your wallet.",
+        "suggestion": "You can try again when you're ready to proceed."
+      },
+      "walletIncompatibility": {
+        "title": "Wallet Incompatibility",
+        "messageWalletConnect": "Your wallet doesn't support BSC transactions via WalletConnect",
+        "detailsWalletConnect": "Some mobile wallets have limited support for BSC network transactions when connected via WalletConnect.",
+        "suggestionWalletConnect": "Please use MetaMask or Coinbase Wallet browser extension, or try Trust Wallet mobile app for better compatibility.",
+        "messageGeneric": "Your wallet doesn't support this transaction type",
+        "detailsGeneric": "The connected wallet may not fully support all required transaction methods.",
+        "suggestionGeneric": "Try using MetaMask or Coinbase Wallet browser extension instead."
+      },
+      "insufficientFunds": {
+        "title": "Insufficient Balance",
+        "message": "You don't have enough balance for this transaction",
+        "details": "Your {currency} balance is not sufficient to cover the transaction amount plus network fees.",
+        "suggestion": "Please add more funds to your wallet or reduce the transaction amount."
+      },
+      "networkError": {
+        "title": "Network Error",
+        "message": "Please connect to the correct network",
+        "details": "Your wallet may be connected to a different blockchain network than required.",
+        "suggestion": "Switch to BNB Smart Chain (BSC) network in your wallet and try again."
+      },
+      "timeout": {
+        "title": "Transaction Timeout",
+        "message": "The transaction took too long to process",
+        "details": "The blockchain network may be congested or your wallet connection was interrupted.",
+        "suggestion": "Please check your wallet for any pending transactions and try again."
+      },
+      "connectionLost": {
+        "title": "Connection Lost",
+        "message": "Your wallet connection was lost",
+        "details": "The connection between your wallet and the app has been interrupted.",
+        "suggestion": "Please reconnect your wallet and try again."
+      },
+      "txPending": {
+        "title": "Transaction Pending",
+        "message": "A transaction is already in progress",
+        "details": "You have another transaction that hasn't been confirmed yet.",
+        "suggestion": "Please wait for the pending transaction to complete or check your wallet app."
+      },
+      "unknown": {
+        "suggestion": "Please try again. If the problem persists, contact support."
+      }
+    },
+    "result": {
+      "success": {
+        "title": "Purchase Successful!",
+        "messageOffChain": "Your HBCT tokens have been added to your balance",
+        "messageOnChain": "Your HBCT tokens have been sent to your wallet"
+      }
     }
   },
   "audit": {

@@ -19,9 +19,10 @@ import { useRequestWithdrawal } from "@/hooks/useWithdrawals";
 import { authApi, type LinkedWallet } from "@/lib/api/auth";
 import { CurrencyIcon } from "./CurrencyIcon";
 import { PremiumButton } from "@/components/ui/premium-button";
+import type { WithdrawalResponse } from "@/types/withdrawals";
 
 interface WithdrawalFormProps {
-  onSuccess?: (withdrawalId: string) => void;
+  onSuccess?: (withdrawal: WithdrawalResponse) => void;
   onCancel?: () => void;
 }
 
@@ -39,9 +40,11 @@ export function WithdrawalForm({ onSuccess, onCancel }: WithdrawalFormProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get HBCT balance
+  // Get HBCT balance - round to avoid floating point precision issues
   const hbctBalance = balancesData?.balances.find((b) => b.currency === "HBCT");
-  const availableBalance = parseFloat(hbctBalance?.availableBalance || "0");
+  const rawBalance = parseFloat(hbctBalance?.availableBalance || "0");
+  // Consider balances less than 0.0001 as effectively 0 (floating point dust)
+  const availableBalance = rawBalance < 0.0001 ? 0 : Math.floor(rawBalance * 10000) / 10000;
 
   // Fee calculation (0.1%)
   const withdrawAmount = parseFloat(amount) || 0;
@@ -96,7 +99,14 @@ export function WithdrawalForm({ onSuccess, onCancel }: WithdrawalFormProps) {
   };
 
   const handleMaxClick = () => {
-    setAmount(availableBalance.toString());
+    if (availableBalance <= 0) {
+      setError("Insufficient balance");
+      return;
+    }
+    // Format without scientific notation, max 4 decimal places
+    const formattedAmount = availableBalance.toFixed(4).replace(/\.?0+$/, '');
+    setAmount(formattedAmount);
+    setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,7 +120,7 @@ export function WithdrawalForm({ onSuccess, onCancel }: WithdrawalFormProps) {
         amount: amount,
         walletId: selectedWalletId,
       });
-      onSuccess?.(result.withdrawal.id);
+      onSuccess?.(result);
     } catch (err: unknown) {
       const error = err as { message?: string };
       setError(error.message || "Failed to request withdrawal");
@@ -306,7 +316,13 @@ export function WithdrawalForm({ onSuccess, onCancel }: WithdrawalFormProps) {
           <button
             type="button"
             onClick={handleMaxClick}
-            className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-500/10 rounded-lg transition-colors"
+            disabled={availableBalance <= 0}
+            className={cn(
+              "absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors",
+              availableBalance > 0
+                ? "text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-500/10"
+                : "text-gray-400 dark:text-gray-600 cursor-not-allowed"
+            )}
           >
             MAX
           </button>

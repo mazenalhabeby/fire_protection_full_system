@@ -123,6 +123,7 @@ export class TokenPurchaseController {
       destinationWalletId: dto.destinationWalletId,
       referralCode: dto.referralCode,
       ipAddress,
+      txHash: dto.txHash,
     });
 
     return result;

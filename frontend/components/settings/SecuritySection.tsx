@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { SettingsCard } from "@/components/ui/settings-card";
 import { FormPasswordInput } from "@/components/ui/password-input";
@@ -23,6 +24,8 @@ import { SessionActivitySection } from "./SessionActivitySection";
 import { TwoFactorSetupModal } from "./TwoFactorSetupModal";
 
 export function SecuritySection() {
+  const t = useTranslations("settings.security");
+  const t2FA = useTranslations("settings.security.twoFactor");
   const { user, changePassword, setPassword } = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -68,14 +71,14 @@ export function SecuritySection() {
 
   const handleDisable2FA = async () => {
     if (disableCode.length !== 6) {
-      toast.error("Please enter a 6-digit code");
+      toast.error(t2FA("enterCode"));
       return;
     }
 
     setDisableLoading(true);
     try {
       await authApi.disableTwoFactor(disableCode);
-      toast.success("Two-factor authentication disabled");
+      toast.success(t2FA("disabled"));
       setShowDisableConfirm(false);
       setDisableCode("");
       fetchTwoFactorStatus();
@@ -83,7 +86,7 @@ export function SecuritySection() {
       if (err instanceof ApiError) {
         toast.error(err.message);
       } else {
-        toast.error("Failed to disable 2FA");
+        toast.error(t2FA("disableError"));
       }
     } finally {
       setDisableLoading(false);
@@ -92,7 +95,7 @@ export function SecuritySection() {
 
   const handleRegenerateCodes = async () => {
     if (regenerateCode.length !== 6) {
-      toast.error("Please enter a 6-digit code");
+      toast.error(t2FA("enterCode"));
       return;
     }
 
@@ -117,7 +120,7 @@ Generated: ${new Date().toISOString()}
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast.success("New recovery codes generated and downloaded");
+      toast.success(t2FA("regenerateSuccess"));
       setShowRegenerateConfirm(false);
       setRegenerateCode("");
       fetchTwoFactorStatus();
@@ -125,7 +128,7 @@ Generated: ${new Date().toISOString()}
       if (err instanceof ApiError) {
         toast.error(err.message);
       } else {
-        toast.error("Failed to regenerate codes");
+        toast.error(t2FA("regenerateError"));
       }
     } finally {
       setRegenerateLoading(false);
@@ -134,12 +137,12 @@ Generated: ${new Date().toISOString()}
 
   const handlePasswordChange = async () => {
     if (passwords.new !== passwords.confirm) {
-      toast.error("Passwords do not match");
+      toast.error(t("passwordMismatch"));
       return;
     }
 
     if (passwords.new.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      toast.error(t("passwordTooShort"));
       return;
     }
 
@@ -149,14 +152,14 @@ Generated: ${new Date().toISOString()}
     const hasNumber = /\d/.test(passwords.new);
 
     if (!hasUppercase || !hasLowercase || !hasNumber) {
-      toast.error("Password must contain at least one uppercase letter, one lowercase letter, and one number");
+      toast.error(t("passwordComplexity"));
       return;
     }
 
     setIsUpdating(true);
     try {
       await changePassword(passwords.current, passwords.new);
-      toast.success("Password updated successfully");
+      toast.success(t("passwordSuccess"));
       setPasswords({ current: "", new: "", confirm: "" });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to update password";
@@ -168,12 +171,12 @@ Generated: ${new Date().toISOString()}
 
   const handleSetPassword = async () => {
     if (passwords.new !== passwords.confirm) {
-      toast.error("Passwords do not match");
+      toast.error(t("passwordMismatch"));
       return;
     }
 
     if (passwords.new.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      toast.error(t("passwordTooShort"));
       return;
     }
 
@@ -183,14 +186,14 @@ Generated: ${new Date().toISOString()}
     const hasNumber = /\d/.test(passwords.new);
 
     if (!hasUppercase || !hasLowercase || !hasNumber) {
-      toast.error("Password must contain at least one uppercase letter, one lowercase letter, and one number");
+      toast.error(t("passwordComplexity"));
       return;
     }
 
     setIsUpdating(true);
     try {
       await setPassword(passwords.new, passwords.confirm);
-      toast.success("Password set successfully! You can now login with your email and password.");
+      toast.success(t("passwordSetSuccess"));
       setPasswords({ current: "", new: "", confirm: "" });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Failed to set password";
@@ -205,10 +208,10 @@ Generated: ${new Date().toISOString()}
       {/* Password Management - Set or Change based on hasPassword */}
       <SettingsCard
         icon={hasPassword ? Lock : KeyRound}
-        title={hasPassword ? "Change Password" : "Set Password"}
+        title={hasPassword ? t("changePassword") : t("setPassword")}
         description={hasPassword
-          ? "Update your password to keep your account secure"
-          : "Create a password to enable email/password login"
+          ? t("changePasswordDescription")
+          : t("setPasswordDescription")
         }
       >
         {!canManagePassword ? (
@@ -217,10 +220,10 @@ Generated: ${new Date().toISOString()}
             <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-medium text-amber-800 dark:text-amber-200">
-                Password not available
+                {t("passwordNotAvailable")}
               </p>
               <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                Your account uses wallet authentication. To set a password, add an email address to your account first.
+                {t("walletAuthOnly")}
               </p>
             </div>
           </div>
@@ -231,7 +234,7 @@ Generated: ${new Date().toISOString()}
               <KeyRound className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-medium text-blue-800 dark:text-blue-200">
-                  No password set
+                  {t("noPasswordSet")}
                 </p>
                 <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
                   You signed up using {user?.authProvider === 'wallet' ? 'wallet' : 'social'} authentication.
@@ -241,21 +244,21 @@ Generated: ${new Date().toISOString()}
             </div>
 
             <FormPasswordInput
-              label="New Password"
+              label={t("newPassword")}
               value={passwords.new}
               onChange={(value) => setPasswords((prev) => ({ ...prev, new: value }))}
               placeholder="••••••••"
             />
 
             <FormPasswordInput
-              label="Confirm Password"
+              label={t("confirmPassword")}
               value={passwords.confirm}
               onChange={(value) => setPasswords((prev) => ({ ...prev, confirm: value }))}
               placeholder="••••••••"
             />
 
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Password must be at least 8 characters with one uppercase, one lowercase, and one number.
+              {t("passwordHint")}
             </p>
 
             <div className="pt-2">
@@ -271,10 +274,10 @@ Generated: ${new Date().toISOString()}
                 {isUpdating ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Setting Password...
+                    {t("settingPassword")}
                   </>
                 ) : (
-                  "Set Password"
+                  t("setPassword")
                 )}
               </Button>
             </div>
@@ -283,28 +286,28 @@ Generated: ${new Date().toISOString()}
           // User has password - show Change Password form
           <div className="space-y-4">
             <FormPasswordInput
-              label="Current Password"
+              label={t("currentPassword")}
               value={passwords.current}
               onChange={(value) => setPasswords((prev) => ({ ...prev, current: value }))}
               placeholder="••••••••"
             />
 
             <FormPasswordInput
-              label="New Password"
+              label={t("newPassword")}
               value={passwords.new}
               onChange={(value) => setPasswords((prev) => ({ ...prev, new: value }))}
               placeholder="••••••••"
             />
 
             <FormPasswordInput
-              label="Confirm New Password"
+              label={t("confirmPassword")}
               value={passwords.confirm}
               onChange={(value) => setPasswords((prev) => ({ ...prev, confirm: value }))}
               placeholder="••••••••"
             />
 
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Password must be at least 8 characters with one uppercase, one lowercase, and one number.
+              {t("passwordHint")}
             </p>
 
             <div className="pt-2">
@@ -321,10 +324,10 @@ Generated: ${new Date().toISOString()}
                 {isUpdating ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Updating...
+                    {t("updating")}
                   </>
                 ) : (
-                  "Update Password"
+                  t("updatePassword")
                 )}
               </Button>
             </div>
@@ -335,8 +338,8 @@ Generated: ${new Date().toISOString()}
       {/* Two-Factor Authentication */}
       <SettingsCard
         icon={Shield}
-        title="Two-Factor Authentication"
-        description="Add an extra layer of security to your account"
+        title={t2FA("title")}
+        description={t2FA("description")}
       >
         {twoFactorLoading ? (
           <div className="flex items-center justify-center py-4">
@@ -352,10 +355,10 @@ Generated: ${new Date().toISOString()}
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    2FA is enabled
+                    {t2FA("enabled")}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {twoFactorStatus.recoveryCodesRemaining} recovery codes remaining
+                    {t2FA("recoveryCodesRemaining", { count: twoFactorStatus.recoveryCodesRemaining })}
                   </p>
                 </div>
               </div>
@@ -369,7 +372,7 @@ Generated: ${new Date().toISOString()}
                 onClick={() => setShowRegenerateConfirm(true)}
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Regenerate Recovery Codes
+                {t2FA("regenerateCodes")}
               </Button>
               <Button
                 variant="outline"
@@ -377,7 +380,7 @@ Generated: ${new Date().toISOString()}
                 onClick={() => setShowDisableConfirm(true)}
                 className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
               >
-                Disable 2FA
+                {t2FA("disable")}
               </Button>
             </div>
 
@@ -385,7 +388,7 @@ Generated: ${new Date().toISOString()}
             {showDisableConfirm && (
               <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 space-y-3">
                 <p className="text-sm text-red-800 dark:text-red-200 font-medium">
-                  Enter your 2FA code to disable two-factor authentication:
+                  {t2FA("disableConfirm")}
                 </p>
                 <div className="flex gap-2">
                   <Input
@@ -407,7 +410,7 @@ Generated: ${new Date().toISOString()}
                     {disableLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      "Confirm"
+                      t2FA("confirm")
                     )}
                   </Button>
                   <Button
@@ -417,7 +420,7 @@ Generated: ${new Date().toISOString()}
                       setDisableCode("");
                     }}
                   >
-                    Cancel
+                    {t2FA("cancel")}
                   </Button>
                 </div>
               </div>
@@ -427,10 +430,10 @@ Generated: ${new Date().toISOString()}
             {showRegenerateConfirm && (
               <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 space-y-3">
                 <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
-                  Enter your 2FA code to generate new recovery codes:
+                  {t2FA("regenerateConfirm")}
                 </p>
                 <p className="text-xs text-amber-700 dark:text-amber-300">
-                  This will invalidate your current recovery codes.
+                  {t2FA("regenerateWarning")}
                 </p>
                 <div className="flex gap-2">
                   <Input
@@ -452,7 +455,7 @@ Generated: ${new Date().toISOString()}
                     {regenerateLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      "Generate"
+                      t2FA("generate")
                     )}
                   </Button>
                   <Button
@@ -462,7 +465,7 @@ Generated: ${new Date().toISOString()}
                       setRegenerateCode("");
                     }}
                   >
-                    Cancel
+                    {t2FA("cancel")}
                   </Button>
                 </div>
               </div>
@@ -476,15 +479,15 @@ Generated: ${new Date().toISOString()}
               </div>
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">
-                  2FA is disabled
+                  {t2FA("disabled")}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Enable 2FA for extra security
+                  {t2FA("enableHint")}
                 </p>
               </div>
             </div>
             <Button variant="default" onClick={() => setShowSetupModal(true)}>
-              Enable 2FA
+              {t2FA("enable")}
             </Button>
           </div>
         )}

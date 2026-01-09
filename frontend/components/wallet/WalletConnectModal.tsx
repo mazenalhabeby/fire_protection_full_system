@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, X, Scan, ExternalLink, Smartphone } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useConnect as useWagmiConnect, useConnectors as useWagmiConnectors } from "wagmi";
 import { QRCodeSVG } from "qrcode.react";
@@ -347,6 +348,8 @@ const MOBILE_WALLETS: MobileWalletConfig[] = [
 ];
 
 export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps) {
+  const t = useTranslations("wallet");
+  const tModal = useTranslations("wallet.modal");
   const wagmiConnectors = useWagmiConnectors();
   const { connect: wagmiConnect, reset: resetWagmiConnect } = useWagmiConnect();
 
@@ -509,13 +512,13 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
       if (walletMatches[wallet.id]) {
         wagmiConnect({ connector: wc }, {
           onSuccess: () => {
-            toast.success("Wallet connected!");
+            toast.success(t("walletConnected"));
             setConnectingWallet(null);
             onCloseRef.current();
           },
           onError: (e) => {
             setConnectingWallet(null);
-            if (!e.message?.toLowerCase().includes("rejected")) toast.error("Failed to connect");
+            if (!e.message?.toLowerCase().includes("rejected")) toast.error(t("failedToConnect"));
           },
         });
         return true;
@@ -527,14 +530,14 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
     if (injectedConnector && wallet.detectInstalled?.()) {
       wagmiConnect({ connector: injectedConnector }, {
         onSuccess: () => {
-          toast.success("Wallet connected!");
+          toast.success(t("walletConnected"));
           setConnectingWallet(null);
           onCloseRef.current();
         },
         onError: (e) => {
           setConnectingWallet(null);
           if (!e.message?.toLowerCase().includes("rejected")) {
-            toast.error("Failed to connect");
+            toast.error(t("failedToConnect"));
           }
         },
       });
@@ -547,7 +550,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
       try {
         const accounts = await provider.request({ method: "eth_requestAccounts" });
         if (accounts?.length) {
-          toast.success("Wallet connected!");
+          toast.success(t("walletConnected"));
           setConnectingWallet(null);
           onCloseRef.current();
           // Sync with wagmi by connecting the injected connector
@@ -558,7 +561,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
         }
       } catch (e: any) {
         setConnectingWallet(null);
-        if (!e.message?.toLowerCase().includes("rejected")) toast.error("Failed to connect");
+        if (!e.message?.toLowerCase().includes("rejected")) toast.error(t("failedToConnect"));
         return true;
       }
     }
@@ -583,7 +586,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
       // Use universal link - works on both iOS and Android
       const link = wallet.universalLink(uri);
 
-      toast.success(`Opening ${wallet.name}...`, { duration: 2000 });
+      toast.success(tModal("opening", { wallet: wallet.name }), { duration: 2000 });
 
       // Small delay to show toast, then navigate
       setTimeout(() => {
@@ -604,7 +607,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
       openWallet(currentUri);
     } else {
       // No URI yet - show loading and poll for it
-      toast.loading("Preparing connection...", { id: "wallet-connecting" });
+      toast.loading(tModal("preparingConnection"), { id: "wallet-connecting" });
 
       let attempts = 0;
       const maxAttempts = 40;
@@ -619,7 +622,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
         } else if (attempts >= maxAttempts) {
           clearInterval(checkUri);
           toast.dismiss("wallet-connecting");
-          toast.error("Connection timeout. Please try again.");
+          toast.error(tModal("connectionTimeout"));
           setConnectingWallet(null);
         }
       }, 200);
@@ -769,7 +772,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
             {/* Header */}
             <div className="flex items-center justify-between px-6 pb-4">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Connect Wallet
+                {tModal("title")}
               </h2>
               <button
                 onClick={handleAnimatedClose}
@@ -826,10 +829,10 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    Don&apos;t have a wallet?
+                    {tModal("dontHaveWallet")}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-white/50 mt-0.5">
-                    Get started with MetaMask
+                    {tModal("getStartedMetaMask")}
                   </p>
                 </div>
                 <a
@@ -842,7 +845,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
                     "transition-colors"
                   )}
                 >
-                  Get
+                  {tModal("get")}
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -852,7 +855,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
             <div className="px-6 pb-8 pt-2">
               <div className="flex items-center justify-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <span className="text-xs text-gray-400 dark:text-white/40">Secured by WalletConnect</span>
+                <span className="text-xs text-gray-400 dark:text-white/40">{tModal("securedByWalletConnect")}</span>
               </div>
             </div>
           </div>
@@ -882,7 +885,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
           {/* Header */}
           <div className="relative flex items-center justify-between px-5 py-4">
             <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-              Connect Wallet
+              {tModal("title")}
             </DialogTitle>
             <button
               onClick={onClose}
@@ -923,7 +926,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
                   ) : (
                     <div className="w-[252px] h-[252px] flex flex-col items-center justify-center gap-3">
                       <Loader2 className="w-8 h-8 animate-spin text-gray-300" />
-                      <span className="text-sm text-gray-400">Initializing...</span>
+                      <span className="text-sm text-gray-400">{tModal("initializing")}</span>
                     </div>
                   )}
                 </div>
@@ -933,7 +936,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
             {/* Scan Text */}
             <div className="flex items-center justify-center gap-2 mt-4">
               <Scan className="w-4 h-4 text-gray-400 dark:text-white/40" />
-              <span className="text-sm text-gray-500 dark:text-white/60">Scan with your wallet app</span>
+              <span className="text-sm text-gray-500 dark:text-white/60">{tModal("scanWithWallet")}</span>
             </div>
           </div>
 
@@ -941,7 +944,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
           <div className="relative px-5">
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-white/20 to-transparent" />
-              <span className="text-xs text-gray-400 dark:text-white/40 font-medium">or connect directly</span>
+              <span className="text-xs text-gray-400 dark:text-white/40 font-medium">{tModal("orConnectDirectly")}</span>
               <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-white/20 to-transparent" />
             </div>
           </div>
@@ -952,8 +955,10 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
             <div className="flex justify-center mb-3">
               <span className="text-[11px] text-gray-400 dark:text-white/40">
                 {installedWallets.length > 0
-                  ? `${installedWallets.length} wallet${installedWallets.length !== 1 ? 's' : ''} found · Click to connect`
-                  : 'No wallets detected · Install one to continue'
+                  ? installedWallets.length === 1
+                    ? tModal("walletsFound", { count: installedWallets.length })
+                    : tModal("walletsFoundPlural", { count: installedWallets.length })
+                  : tModal("noWalletsDetected")
                 }
               </span>
             </div>
@@ -1021,7 +1026,7 @@ export function WalletConnectModal({ isOpen, onClose }: WalletConnectModalProps)
           <div className="relative px-5 pb-4">
             <div className="flex items-center justify-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs text-gray-400 dark:text-white/40">Secured with WalletConnect</span>
+              <span className="text-xs text-gray-400 dark:text-white/40">{tModal("securedWithWalletConnect")}</span>
             </div>
           </div>
         </div>

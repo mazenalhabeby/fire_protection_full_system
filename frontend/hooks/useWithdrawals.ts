@@ -14,125 +14,290 @@ import type {
   WithdrawalProcessorStatus,
   WithdrawalFilterParams,
   RequestWithdrawalParams,
+  WithdrawalRequestStatus,
 } from "@/types/withdrawals";
 
 // ============================================
-// QUERY KEYS
+// QUERY KEY FACTORY (Best Practice)
 // ============================================
 
+export const withdrawalKeys = {
+  all: ["withdrawals"] as const,
+  // User withdrawals
+  user: () => [...withdrawalKeys.all, "user"] as const,
+  userList: (params?: { page?: number; limit?: number }) =>
+    [...withdrawalKeys.user(), "list", params] as const,
+  // Admin withdrawals
+  admin: () => [...withdrawalKeys.all, "admin"] as const,
+  adminList: (params?: WithdrawalFilterParams) =>
+    [...withdrawalKeys.admin(), "list", params] as const,
+  adminStats: () => [...withdrawalKeys.admin(), "stats"] as const,
+  // System status
+  hotWallet: () => [...withdrawalKeys.all, "hotWallet"] as const,
+  processor: () => [...withdrawalKeys.all, "processor"] as const,
+};
+
+// Legacy keys for backward compatibility
 export const withdrawalQueryKeys = {
   myWithdrawals: (params?: { page?: number; limit?: number }) =>
-    ["myWithdrawals", params] as const,
+    withdrawalKeys.userList(params),
   adminWithdrawals: (params?: WithdrawalFilterParams) =>
-    ["adminWithdrawals", params] as const,
-  withdrawalStats: ["withdrawalStats"] as const,
-  hotWalletStatus: ["hotWalletStatus"] as const,
-  processorStatus: ["withdrawalProcessorStatus"] as const,
+    withdrawalKeys.adminList(params),
+  withdrawalStats: withdrawalKeys.adminStats(),
+  hotWalletStatus: withdrawalKeys.hotWallet(),
+  processorStatus: withdrawalKeys.processor(),
 };
+
+// ============================================
+// CACHE UPDATE UTILITIES
+// ============================================
+
+type WithdrawalCacheUpdater = (
+  old: WithdrawalListResponse | undefined
+) => WithdrawalListResponse | undefined;
+
+/**
+ * Updates a withdrawal in the cache by ID
+ */
+function updateWithdrawalInCache(
+  withdrawalId: string,
+  updater: (withdrawal: WithdrawalRequest) => WithdrawalRequest
+): WithdrawalCacheUpdater {
+  return (old) => {
+    if (!old) return old;
+    return {
+      ...old,
+      withdrawals: old.withdrawals.map((w) =>
+        w.id === withdrawalId ? updater(w) : w
+      ),
+    };
+  };
+}
+
+/**
+ * Adds a new withdrawal to the cache
+ */
+function addWithdrawalToCache(
+  withdrawal: WithdrawalRequest
+): WithdrawalCacheUpdater {
+  return (old) => {
+    if (!old) return old;
+    return {
+      ...old,
+      withdrawals: [withdrawal, ...old.withdrawals],
+      total: old.total + 1,
+    };
+  };
+}
+
+/**
+ * Removes a withdrawal from the cache
+ */
+function removeWithdrawalFromCache(
+  withdrawalId: string
+): WithdrawalCacheUpdater {
+  return (old) => {
+    if (!old) return old;
+    return {
+      ...old,
+      withdrawals: old.withdrawals.filter((w) => w.id !== withdrawalId),
+      total: Math.max(0, old.total - 1),
+    };
+  };
+}
+
+// ============================================
+// SHARED HOOKS
+// ============================================
+
+/**
+ * Hook to invalidate all withdrawal-related caches
+ */
+export function useInvalidateWithdrawals() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return {
+    // Invalidate user withdrawals only
+    invalidateUserWithdrawals: () => {
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.user() });
+    },
+    // Invalidate admin withdrawals only
+    invalidateAdminWithdrawals: () => {
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.admin() });
+    },
+    // Invalidate all withdrawal data
+    invalidateAll: () => {
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.all });
+    },
+    // Invalidate user's balance-related queries
+    invalidateBalances: () => {
+      const userId = user?.id ?? null;
+      const userKeys = createUserQueryKeys(userId);
+      const walletKeys = createWalletQueryKeys(userId);
+      queryClient.invalidateQueries({ queryKey: userKeys.balance });
+      queryClient.invalidateQueries({ queryKey: walletKeys.balances });
+      queryClient.invalidateQueries({ queryKey: walletKeys.recentTransactions });
+    },
+  };
+}
 
 // ============================================
 // USER HOOKS
 // ============================================
 
 /**
- * Fetch user's withdrawals
+ * Fetch user's withdrawals with smart caching
  */
 export function useMyWithdrawals(params?: { page?: number; limit?: number }) {
   const { isAuthenticated } = useAuth();
 
   return useQuery({
-    queryKey: withdrawalQueryKeys.myWithdrawals(params),
-    queryFn: async (): Promise<WithdrawalListResponse> => {
-      return withdrawalsApi.getMyWithdrawals(params);
-    },
+    queryKey: withdrawalKeys.userList(params),
+    queryFn: () => withdrawalsApi.getMyWithdrawals(params),
     enabled: isAuthenticated,
-    staleTime: 30 * 1000,
-    refetchInterval: 60 * 1000, // Auto-refresh every minute
+    staleTime: 30 * 1000, // Fresh for 30s
+    gcTime: 5 * 60 * 1000, // Cache for 5min
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
 }
 
 /**
- * Request a new withdrawal
+ * Request a new withdrawal with optimistic update
  */
 export function useRequestWithdrawal() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { invalidateBalances } = useInvalidateWithdrawals();
 
   return useMutation({
-    mutationFn: async (data: RequestWithdrawalParams): Promise<WithdrawalResponse> => {
-      return withdrawalsApi.requestWithdrawal(data);
+    mutationFn: (data: RequestWithdrawalParams) =>
+      withdrawalsApi.requestWithdrawal(data),
+
+    onSuccess: (newWithdrawal) => {
+      // Update cache with new withdrawal
+      queryClient.setQueriesData<WithdrawalListResponse>(
+        { queryKey: withdrawalKeys.user() },
+        addWithdrawalToCache(newWithdrawal)
+      );
+      // Invalidate balances (amount is now locked)
+      invalidateBalances();
     },
-    onSuccess: () => {
-      const userId = user?.id ?? null;
-      const userKeys = createUserQueryKeys(userId);
-      const walletKeys = createWalletQueryKeys(userId);
 
-      queryClient.invalidateQueries({ queryKey: ["myWithdrawals"] });
-
-      // Force instant refetch of all balance-related queries (user-scoped)
-      queryClient.refetchQueries({ queryKey: userKeys.balance });
-      queryClient.refetchQueries({ queryKey: walletKeys.balances });
-      queryClient.refetchQueries({ queryKey: walletKeys.recentTransactions });
+    onError: () => {
+      // Refetch to ensure consistency on error
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.user() });
     },
   });
 }
 
 /**
- * Confirm a withdrawal with email code
+ * Confirm a withdrawal with optimistic status update
  */
 export function useConfirmWithdrawal() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { invalidateBalances } = useInvalidateWithdrawals();
 
   return useMutation({
-    mutationFn: async ({
-      withdrawalId,
-      confirmationCode,
-    }: {
+    mutationFn: ({ withdrawalId, confirmationCode }: {
       withdrawalId: string;
       confirmationCode: string;
-    }): Promise<WithdrawalResponse> => {
-      return withdrawalsApi.confirmWithdrawal(withdrawalId, confirmationCode);
+    }) => withdrawalsApi.confirmWithdrawal(withdrawalId, confirmationCode),
+
+    // Optimistic update - show pending approval immediately
+    onMutate: async ({ withdrawalId }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: withdrawalKeys.user() });
+
+      // Snapshot current data for rollback
+      const previousData = queryClient.getQueriesData<WithdrawalListResponse>({
+        queryKey: withdrawalKeys.user(),
+      });
+
+      // Optimistically update status
+      queryClient.setQueriesData<WithdrawalListResponse>(
+        { queryKey: withdrawalKeys.user() },
+        updateWithdrawalInCache(withdrawalId, (w) => ({
+          ...w,
+          status: "PENDING_APPROVAL" as WithdrawalRequestStatus,
+        }))
+      );
+
+      return { previousData };
     },
-    onSuccess: () => {
-      const userId = user?.id ?? null;
-      const userKeys = createUserQueryKeys(userId);
-      const walletKeys = createWalletQueryKeys(userId);
 
-      queryClient.invalidateQueries({ queryKey: ["myWithdrawals"] });
+    onSuccess: (updatedWithdrawal) => {
+      // Replace with actual server response
+      queryClient.setQueriesData<WithdrawalListResponse>(
+        { queryKey: withdrawalKeys.user() },
+        updateWithdrawalInCache(updatedWithdrawal.id, () => updatedWithdrawal)
+      );
+      invalidateBalances();
+    },
 
-      // Force instant refetch of all balance-related queries (user-scoped)
-      queryClient.refetchQueries({ queryKey: userKeys.balance });
-      queryClient.refetchQueries({ queryKey: walletKeys.balances });
-      queryClient.refetchQueries({ queryKey: walletKeys.recentTransactions });
+    onError: (_err, _vars, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+
+    onSettled: () => {
+      // Always refetch to ensure consistency
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.user() });
     },
   });
 }
 
 /**
- * Cancel a pending withdrawal
+ * Cancel a withdrawal with optimistic removal
  */
 export function useCancelWithdrawal() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { invalidateBalances } = useInvalidateWithdrawals();
 
   return useMutation({
-    mutationFn: async (withdrawalId: string) => {
-      return withdrawalsApi.cancelWithdrawal(withdrawalId);
+    mutationFn: (withdrawalId: string) =>
+      withdrawalsApi.cancelWithdrawal(withdrawalId),
+
+    // Optimistic update - remove from list immediately
+    onMutate: async (withdrawalId) => {
+      await queryClient.cancelQueries({ queryKey: withdrawalKeys.user() });
+
+      const previousData = queryClient.getQueriesData<WithdrawalListResponse>({
+        queryKey: withdrawalKeys.user(),
+      });
+
+      // Optimistically update status to cancelled
+      queryClient.setQueriesData<WithdrawalListResponse>(
+        { queryKey: withdrawalKeys.user() },
+        updateWithdrawalInCache(withdrawalId, (w) => ({
+          ...w,
+          status: "CANCELLED" as WithdrawalRequestStatus,
+        }))
+      );
+
+      return { previousData };
     },
+
     onSuccess: () => {
-      const userId = user?.id ?? null;
-      const userKeys = createUserQueryKeys(userId);
-      const walletKeys = createWalletQueryKeys(userId);
+      // Balance is restored after cancellation
+      invalidateBalances();
+    },
 
-      queryClient.invalidateQueries({ queryKey: ["myWithdrawals"] });
+    onError: (_err, _vars, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
 
-      // Force instant refetch of all balance-related queries (user-scoped)
-      queryClient.refetchQueries({ queryKey: userKeys.balance });
-      queryClient.refetchQueries({ queryKey: walletKeys.balances });
-      queryClient.refetchQueries({ queryKey: walletKeys.recentTransactions });
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.user() });
     },
   });
 }
@@ -149,51 +314,98 @@ export function useAdminWithdrawals(params?: WithdrawalFilterParams) {
   const isAdmin = user?.role === "ADMIN";
 
   return useQuery({
-    queryKey: withdrawalQueryKeys.adminWithdrawals(params),
-    queryFn: async (): Promise<WithdrawalListResponse> => {
-      return withdrawalsApi.getWithdrawals(params);
-    },
+    queryKey: withdrawalKeys.adminList(params),
+    queryFn: () => withdrawalsApi.getWithdrawals(params),
     enabled: isAuthenticated && isAdmin,
     staleTime: 15 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }
 
 /**
- * Admin: Approve a withdrawal
+ * Admin: Approve a withdrawal with optimistic update
  */
 export function useApproveWithdrawal() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (withdrawalId: string): Promise<WithdrawalResponse> => {
-      return withdrawalsApi.approveWithdrawal(withdrawalId);
+    mutationFn: (withdrawalId: string) =>
+      withdrawalsApi.approveWithdrawal(withdrawalId),
+
+    onMutate: async (withdrawalId) => {
+      await queryClient.cancelQueries({ queryKey: withdrawalKeys.admin() });
+
+      const previousData = queryClient.getQueriesData<WithdrawalListResponse>({
+        queryKey: withdrawalKeys.admin(),
+      });
+
+      queryClient.setQueriesData<WithdrawalListResponse>(
+        { queryKey: withdrawalKeys.admin() },
+        updateWithdrawalInCache(withdrawalId, (w) => ({
+          ...w,
+          status: "APPROVED" as WithdrawalRequestStatus,
+        }))
+      );
+
+      return { previousData };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminWithdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["withdrawalStats"] });
+
+    onError: (_err, _vars, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.admin() });
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.adminStats() });
     },
   });
 }
 
 /**
- * Admin: Reject a withdrawal
+ * Admin: Reject a withdrawal with optimistic update
  */
 export function useRejectWithdrawal() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      withdrawalId,
-      reason,
-    }: {
-      withdrawalId: string;
-      reason: string;
-    }): Promise<WithdrawalResponse> => {
-      return withdrawalsApi.rejectWithdrawal(withdrawalId, reason);
+    mutationFn: ({ withdrawalId, reason }: { withdrawalId: string; reason: string }) =>
+      withdrawalsApi.rejectWithdrawal(withdrawalId, reason),
+
+    onMutate: async ({ withdrawalId, reason }) => {
+      await queryClient.cancelQueries({ queryKey: withdrawalKeys.admin() });
+
+      const previousData = queryClient.getQueriesData<WithdrawalListResponse>({
+        queryKey: withdrawalKeys.admin(),
+      });
+
+      queryClient.setQueriesData<WithdrawalListResponse>(
+        { queryKey: withdrawalKeys.admin() },
+        updateWithdrawalInCache(withdrawalId, (w) => ({
+          ...w,
+          status: "REJECTED" as WithdrawalRequestStatus,
+          rejectionReason: reason,
+        }))
+      );
+
+      return { previousData };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminWithdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["withdrawalStats"] });
+
+    onError: (_err, _vars, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.admin() });
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.adminStats() });
     },
   });
 }
@@ -206,12 +418,12 @@ export function useWithdrawalStats() {
   const isAdmin = user?.role === "ADMIN";
 
   return useQuery({
-    queryKey: withdrawalQueryKeys.withdrawalStats,
-    queryFn: async (): Promise<WithdrawalStats> => {
-      return withdrawalsApi.getStats();
-    },
+    queryKey: withdrawalKeys.adminStats(),
+    queryFn: () => withdrawalsApi.getStats(),
     enabled: isAuthenticated && isAdmin,
     staleTime: 30 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -223,13 +435,12 @@ export function useHotWalletStatus() {
   const isAdmin = user?.role === "ADMIN";
 
   return useQuery({
-    queryKey: withdrawalQueryKeys.hotWalletStatus,
-    queryFn: async (): Promise<HotWalletStatus> => {
-      return withdrawalsApi.getHotWalletStatus();
-    },
+    queryKey: withdrawalKeys.hotWallet(),
+    queryFn: () => withdrawalsApi.getHotWalletStatus(),
     enabled: isAuthenticated && isAdmin,
     staleTime: 30 * 1000,
-    refetchInterval: 60 * 1000, // Check every minute
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -241,13 +452,12 @@ export function useWithdrawalProcessorStatus() {
   const isAdmin = user?.role === "ADMIN";
 
   return useQuery({
-    queryKey: withdrawalQueryKeys.processorStatus,
-    queryFn: async (): Promise<WithdrawalProcessorStatus> => {
-      return withdrawalsApi.getProcessorStatus();
-    },
+    queryKey: withdrawalKeys.processor(),
+    queryFn: () => withdrawalsApi.getProcessorStatus(),
     enabled: isAuthenticated && isAdmin,
     staleTime: 10 * 1000,
-    refetchInterval: 30 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -258,11 +468,9 @@ export function useStartWithdrawalProcessor() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      return withdrawalsApi.startProcessor();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: withdrawalQueryKeys.processorStatus });
+    mutationFn: () => withdrawalsApi.startProcessor(),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.processor() });
     },
   });
 }
@@ -274,11 +482,9 @@ export function useStopWithdrawalProcessor() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      return withdrawalsApi.stopProcessor();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: withdrawalQueryKeys.processorStatus });
+    mutationFn: () => withdrawalsApi.stopProcessor(),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.processor() });
     },
   });
 }
@@ -290,12 +496,10 @@ export function useTriggerWithdrawalProcessing() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      return withdrawalsApi.triggerProcessing();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminWithdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["withdrawalStats"] });
+    mutationFn: () => withdrawalsApi.triggerProcessing(),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.admin() });
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.adminStats() });
     },
   });
 }
@@ -307,28 +511,39 @@ export function useProcessWithdrawal() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (withdrawalId: string): Promise<WithdrawalResponse> => {
-      return withdrawalsApi.processWithdrawal(withdrawalId);
+    mutationFn: (withdrawalId: string) =>
+      withdrawalsApi.processWithdrawal(withdrawalId),
+
+    onMutate: async (withdrawalId) => {
+      await queryClient.cancelQueries({ queryKey: withdrawalKeys.admin() });
+
+      const previousData = queryClient.getQueriesData<WithdrawalListResponse>({
+        queryKey: withdrawalKeys.admin(),
+      });
+
+      queryClient.setQueriesData<WithdrawalListResponse>(
+        { queryKey: withdrawalKeys.admin() },
+        updateWithdrawalInCache(withdrawalId, (w) => ({
+          ...w,
+          status: "PROCESSING" as WithdrawalRequestStatus,
+        }))
+      );
+
+      return { previousData };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminWithdrawals"] });
-      queryClient.invalidateQueries({ queryKey: ["withdrawalStats"] });
-      queryClient.invalidateQueries({ queryKey: ["hotWalletStatus"] });
+
+    onError: (_err, _vars, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.admin() });
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.adminStats() });
+      queryClient.invalidateQueries({ queryKey: withdrawalKeys.hotWallet() });
     },
   });
-}
-
-// ============================================
-// CACHE INVALIDATION
-// ============================================
-
-export function useInvalidateWithdrawals() {
-  const queryClient = useQueryClient();
-
-  return () => {
-    queryClient.invalidateQueries({ queryKey: ["myWithdrawals"] });
-    queryClient.invalidateQueries({ queryKey: ["adminWithdrawals"] });
-    queryClient.invalidateQueries({ queryKey: ["withdrawalStats"] });
-    queryClient.invalidateQueries({ queryKey: ["hotWalletStatus"] });
-  };
 }

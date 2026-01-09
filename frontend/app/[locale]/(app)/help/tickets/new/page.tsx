@@ -92,7 +92,7 @@ export default function NewTicketPage() {
         {/* Back Link */}
         <div className="mb-8 animate-in fade-in slide-in-from-left-4 duration-300">
           <Link
-            href={`/${locale}/help/tickets`}
+            href="/help/tickets"
             className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />

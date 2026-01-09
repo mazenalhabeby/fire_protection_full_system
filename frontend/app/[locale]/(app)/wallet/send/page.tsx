@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useWalletBalances,
@@ -28,6 +29,7 @@ type Step = "form" | "confirm" | "success" | "error";
 export default function SendPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("wallet.send");
   searchParams.get("currency"); // Check for preselected currency (may be used in future)
 
   useAuth();
@@ -137,10 +139,10 @@ export default function SendPage() {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Send HBCT
+              {t("title")}
             </h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm">
-              Transfer tokens to another user
+              {t("subtitle")}
             </p>
           </div>
         </div>
@@ -175,7 +177,7 @@ export default function SendPage() {
               <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
             </div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Transfer Successful!
+              {t("success.title")}
             </h2>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
               {finalMessage}
@@ -183,13 +185,13 @@ export default function SendPage() {
             {pendingTransfer && (
               <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-500 dark:text-gray-400">Sent to</span>
+                  <span className="text-gray-500 dark:text-gray-400">{t("success.sentTo")}</span>
                   <span className="font-medium text-gray-900 dark:text-white">
                     {pendingTransfer.recipient.displayName}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 dark:text-gray-400">Amount</span>
+                  <span className="text-gray-500 dark:text-gray-400">{t("success.amount")}</span>
                   <span className="font-medium text-gray-900 dark:text-white">
                     {pendingTransfer.netAmount} {pendingTransfer.currency}
                   </span>
@@ -205,14 +207,14 @@ export default function SendPage() {
                   "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
                 )}
               >
-                Send Another
+                {t("success.sendAnother")}
               </button>
               <PremiumButton
                 onClick={() => router.push('/wallet')}
                 variant="brand"
                 className="flex-1"
               >
-                Done
+                {t("success.done")}
               </PremiumButton>
             </div>
           </div>
@@ -225,7 +227,7 @@ export default function SendPage() {
               <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
             </div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Transfer Failed
+              {t("error.title")}
             </h2>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
               {finalMessage}
@@ -236,7 +238,7 @@ export default function SendPage() {
                 variant="brand"
                 className="flex-1"
               >
-                Try Again
+                {t("error.tryAgain")}
               </PremiumButton>
               <button
                 onClick={() => router.push('/wallet')}
@@ -246,7 +248,7 @@ export default function SendPage() {
                   "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
                 )}
               >
-                Back to Wallet
+                {t("error.backToWallet")}
               </button>
             </div>
           </div>

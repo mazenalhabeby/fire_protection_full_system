@@ -90,7 +90,9 @@ export const notificationsApi = {
    * Note: This should be used with EventSource, not a regular fetch
    */
   getStreamUrl: (): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    // Remove /api suffix to get base backend URL
+    const baseUrl = apiUrl.replace(/\/api\/?$/, '');
     return `${baseUrl}/notifications/stream`;
   },
 };

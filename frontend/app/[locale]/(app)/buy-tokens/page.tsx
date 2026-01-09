@@ -37,15 +37,11 @@ import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
 import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, usePublicClient, useSendTransaction, useWalletClient } from "wagmi";
 import { parseEther, parseUnits } from "viem";
 import { TransactionResultModal, TransactionResultData } from "@/components/ui/transaction-result-modal";
-import { bscTestnet } from "wagmi/chains";
+import { bsc } from "wagmi/chains";
 
-// BSC Testnet token addresses (these are test tokens - you may need to deploy your own or use faucet tokens)
-const BSC_USDT_ADDRESS = "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd" as `0x${string}`; // Testnet USDT
-const BSC_USDC_ADDRESS = "0x64544969ed7EBf5f083679233325356EbE738930" as `0x${string}`; // Testnet USDC
-
-// For production, use these mainnet addresses:
-// const BSC_USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955" as `0x${string}`;
-// const BSC_USDC_ADDRESS = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d" as `0x${string}`;
+// BSC Mainnet token addresses
+const BSC_USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955" as `0x${string}`; // BSC-USD (USDT)
+const BSC_USDC_ADDRESS = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d" as `0x${string}`; // USD Coin (USDC)
 
 // Deposit wallet address from env
 const DEPOSIT_WALLET_ADDRESS = (process.env.NEXT_PUBLIC_DEPOSIT_WALLET_ADDRESS || "") as `0x${string}`;
@@ -68,6 +64,7 @@ type PaymentCurrency = "BNB" | "USDT" | "USDC";
 
 export default function BuyTokensPage() {
   const t = useTranslations("tokenSales");
+  const tBuy = useTranslations("buyTokens");
   const locale = useLocale();
   const router = useRouter();
   const { isLoading: authLoading, isAuthenticated } = useRequireAuth(`/${locale}/login`);
@@ -103,8 +100,8 @@ export default function BuyTokensPage() {
   // Get wallet client for additional verification
   const { data: walletClient, isError: walletClientError } = useWalletClient();
 
-  // Check if on BSC Testnet
-  const isOnBsc = chainId === bscTestnet.id;
+  // Check if on BSC Mainnet
+  const isOnBsc = chainId === bsc.id;
 
   // Check if connected via WalletConnect (includes AppKit WalletConnect)
   const isWalletConnect = connector?.id === 'walletConnect' ||
@@ -299,8 +296,8 @@ export default function BuyTokensPage() {
     // Ensure user is on BSC network
     if (!isOnBsc) {
       try {
-        toast.info("Switching to BSC Testnet...");
-        await switchChainAsync({ chainId: bscTestnet.id });
+        toast.info("Switching to BSC Mainnet...");
+        await switchChainAsync({ chainId: bsc.id });
         // Wait a moment for the chain switch to complete
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (switchError) {
@@ -345,7 +342,7 @@ export default function BuyTokensPage() {
         txHash = await sendTransactionAsync({
           to: DEPOSIT_WALLET_ADDRESS,
           value: parseEther(paymentAmount),
-          chainId: bscTestnet.id,
+          chainId: bsc.id,
         });
       } else {
         // Send ERC-20 token (USDT/USDC)
@@ -358,7 +355,7 @@ export default function BuyTokensPage() {
           abi: ERC20_ABI,
           functionName: "transfer",
           args: [DEPOSIT_WALLET_ADDRESS, amount],
-          chainId: bscTestnet.id,
+          chainId: bsc.id,
         });
       }
 
@@ -531,17 +528,17 @@ export default function BuyTokensPage() {
   const getButtonText = () => {
     switch (txState) {
       case 'sending':
-        return 'Confirm in Wallet...';
+        return tBuy("button.confirmInWallet");
       case 'confirming':
-        return 'Confirming on Chain...';
+        return tBuy("button.confirmingOnChain");
       case 'processing':
-        return 'Processing Purchase...';
+        return tBuy("button.processingPurchase");
       case 'success':
-        return 'Purchase Complete!';
+        return tBuy("button.purchaseComplete");
       default:
-        if (hasNoBalance) return `No ${paymentCurrency} Balance`;
-        if (exceedsBalance) return 'Insufficient Balance';
-        return deliveryMethod === 'OFF_CHAIN' ? 'Buy & Add to Balance' : 'Buy & Send to Wallet';
+        if (hasNoBalance) return tBuy("button.noBalance", { currency: paymentCurrency });
+        if (exceedsBalance) return tBuy("button.insufficientBalance");
+        return deliveryMethod === 'OFF_CHAIN' ? tBuy("button.buyAddToBalance") : tBuy("button.buySendToWallet");
     }
   };
   const showSkeleton = authLoading || !isAuthenticated || isDataLoading || isMinLoading;
@@ -574,7 +571,7 @@ export default function BuyTokensPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <PageHeader title={t("title")} subtitle="Buy HBCT tokens using your connected Web3 wallet" />
+        <PageHeader title={t("title")} subtitle={tBuy("pageSubtitle")} />
 
         {/* Connect Wallet Prompt */}
         {!isWalletConnected && (
@@ -584,15 +581,15 @@ export default function BuyTokensPage() {
                 <AlertCircle className="h-6 w-6 text-amber-500" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 dark:text-white">Wallet Not Connected</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Please connect your Web3 wallet to buy HBCT tokens</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white">{tBuy("walletNotConnected.title")}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{tBuy("walletNotConnected.description")}</p>
               </div>
               <button
                 onClick={openWalletModal}
                 className="px-4 py-2 rounded-lg bg-brand-500 text-white font-medium hover:bg-brand-600 transition-colors flex items-center gap-2"
               >
                 <Wallet className="h-4 w-4" />
-                Connect Wallet
+                {tBuy("walletNotConnected.connectButton")}
               </button>
             </div>
           </div>
@@ -606,20 +603,20 @@ export default function BuyTokensPage() {
                 <AlertCircle className="h-6 w-6 text-red-500" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 dark:text-white">Wrong Network</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Please switch to BSC Testnet to buy HBCT tokens</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white">{tBuy("wrongNetwork.title")}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{tBuy("wrongNetwork.description")}</p>
               </div>
               <button
                 onClick={async () => {
                   try {
-                    await switchChainAsync({ chainId: bscTestnet.id });
+                    await switchChainAsync({ chainId: bsc.id });
                   } catch {
-                    toast.error("Failed to switch network");
+                    toast.error(tBuy("toast.failedToSwitchNetwork"));
                   }
                 }}
                 className="px-4 py-2 rounded-lg bg-red-500 text-white font-medium hover:bg-red-600 transition-colors"
               >
-                Switch to Testnet
+                {tBuy("wrongNetwork.switchButton")}
               </button>
             </div>
           </div>
@@ -632,16 +629,15 @@ export default function BuyTokensPage() {
               <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                  WalletConnect May Have Limited Support
+                  {tBuy("walletConnectWarning.title")}
                 </p>
                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                  Some mobile wallets don&apos;t support transactions on BSC via WalletConnect.
-                  If you see &quot;Unknown method&quot; errors, please use one of these options:
+                  {tBuy("walletConnectWarning.description")}
                 </p>
                 <ul className="text-xs text-gray-600 dark:text-gray-400 list-disc list-inside mt-1 space-y-0.5">
-                  <li><strong>MetaMask</strong> or <strong>Coinbase Wallet</strong> browser extension (recommended)</li>
-                  <li><strong>Trust Wallet</strong> mobile app (best WalletConnect + BSC support)</li>
-                  <li><strong>MetaMask Mobile</strong> app</li>
+                  <li>{tBuy("walletConnectWarning.options.metamask")}</li>
+                  <li>{tBuy("walletConnectWarning.options.trustWallet")}</li>
+                  <li>{tBuy("walletConnectWarning.options.metamaskMobile")}</li>
                 </ul>
               </div>
             </div>
@@ -663,7 +659,7 @@ export default function BuyTokensPage() {
                 )}
               >
                 <Wallet className="h-4 w-4" />
-                Internal Balance
+                {tBuy("deliveryMethod.internalBalance")}
               </button>
               <button
                 onClick={() => setDeliveryMethod("ON_CHAIN")}
@@ -675,14 +671,14 @@ export default function BuyTokensPage() {
                 )}
               >
                 <ExternalLink className="h-4 w-4" />
-                Send to Wallet
+                {tBuy("deliveryMethod.sendToWallet")}
               </button>
             </div>
 
             {/* Buy Form Card */}
             <div className="relative rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
               <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Buy HBCT</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{tBuy("form.title")}</h2>
               </div>
 
               <div className="p-6 space-y-4">
@@ -696,12 +692,12 @@ export default function BuyTokensPage() {
                       : "bg-gray-50 dark:bg-gray-800/80 border-gray-100 dark:border-gray-700/50"
                 )}>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">You Pay</span>
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{tBuy("form.youPay")}</span>
                     <span className={cn(
                       "text-xs",
                       exceedsBalance ? "text-red-500 font-medium" : hasNoBalance ? "text-amber-500 font-medium" : "text-gray-400"
                     )}>
-                      Balance: {getBalance(paymentCurrency)} {paymentCurrency}
+                      {tBuy("form.balance")}: {getBalance(paymentCurrency)} {paymentCurrency}
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
@@ -778,13 +774,23 @@ export default function BuyTokensPage() {
                       </button>
                     ))}
                   </div>
-                  {/* Current price display for selected currency */}
+                  {/* USD equivalent and BNB price display */}
                   {paymentCurrency === "BNB" && priceData?.bnbPriceUsd && (
-                    <div className="flex items-center justify-between mt-3 px-1">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Current BNB Price</span>
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                        ${parseFloat(priceData.bnbPriceUsd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
-                      </span>
+                    <div className="mt-3 px-1 space-y-1">
+                      {paymentAmount && parseFloat(paymentAmount) > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">{tBuy("usdValue")}</span>
+                          <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                            ~${(parseFloat(paymentAmount) * parseFloat(priceData.bnbPriceUsd)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">1 BNB</span>
+                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                          ${parseFloat(priceData.bnbPriceUsd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -799,7 +805,7 @@ export default function BuyTokensPage() {
                 {/* You Receive Section */}
                 <div className="relative p-5 rounded-2xl bg-gradient-to-br from-brand-500/5 via-brand-500/5 to-brand-600/10 dark:from-brand-500/10 dark:via-brand-500/5 dark:to-brand-600/15 border border-brand-500/20">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">You Receive</span>
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{tBuy("form.youReceive")}</span>
                     {quoteLoading && <Loader2 className="h-4 w-4 animate-spin text-brand-500" />}
                   </div>
                   <div className="flex items-center gap-4">
@@ -819,7 +825,7 @@ export default function BuyTokensPage() {
                     <span>1 HBCT = ${tokenPrice.toFixed(4)}</span>
                     <span className="text-gray-300 dark:text-gray-600">•</span>
                     <span className="text-emerald-500 flex items-center gap-1">
-                      <TrendingUp className="w-3 h-3" /> Low slippage
+                      <TrendingUp className="w-3 h-3" /> {tBuy("lowSlippage")}
                     </span>
                   </div>
                 </div>
@@ -828,7 +834,7 @@ export default function BuyTokensPage() {
                 {deliveryMethod === "ON_CHAIN" && (
                   <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Destination Wallet</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{tBuy("form.destinationWallet")}</span>
                     </div>
                     {walletsData?.wallets && walletsData.wallets.length > 0 ? (
                       <div className="relative">
@@ -893,7 +899,7 @@ export default function BuyTokensPage() {
                                 <div className="w-8 h-8 rounded-full bg-brand-500/10 flex items-center justify-center">
                                   <ExternalLink className="h-4 w-4 text-brand-500" />
                                 </div>
-                                <span className="font-medium text-sm">Link New Wallet</span>
+                                <span className="font-medium text-sm">{tBuy("form.linkNewWallet")}</span>
                               </button>
                             </div>
                           </div>
@@ -903,14 +909,14 @@ export default function BuyTokensPage() {
                       <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
                         <AlertCircle className="h-5 w-5 text-amber-500 shrink-0" />
                         <div className="flex-1">
-                          <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">No linked wallets</p>
-                          <p className="text-xs text-amber-500/80">Link a wallet in settings to use on-chain delivery</p>
+                          <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">{tBuy("form.noLinkedWallets")}</p>
+                          <p className="text-xs text-amber-500/80">{tBuy("form.linkWalletHint")}</p>
                         </div>
                         <button
                           onClick={() => router.push('/settings?tab=wallets')}
                           className="text-xs font-medium text-brand-500 hover:text-brand-600"
                         >
-                          Link Wallet →
+                          {tBuy("form.linkWallet")}
                         </button>
                       </div>
                     )}
@@ -921,28 +927,28 @@ export default function BuyTokensPage() {
                 {quoteData && paymentAmount && (
                   <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Token Amount</span>
+                      <span className="text-gray-500">{tBuy("quote.tokenAmount")}</span>
                       <span className="font-medium text-gray-900 dark:text-white">
                         {quoteData.paymentAmount} {paymentCurrency}
                       </span>
                     </div>
                     {parseFloat(quoteData.platformFee) > 0 && (
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-500">Platform Fee</span>
+                        <span className="text-gray-500">{tBuy("quote.platformFee")}</span>
                         <span className="text-gray-600 dark:text-gray-400">
                           {quoteData.platformFee} {paymentCurrency}
                         </span>
                       </div>
                     )}
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Network Fee</span>
+                      <span className="text-gray-500">{tBuy("quote.networkFee")}</span>
                       <span className="text-gray-600 dark:text-gray-400">
                         {quoteData.networkFee} {paymentCurrency}
                       </span>
                     </div>
                     <div className="border-t border-gray-200 dark:border-gray-600 pt-2 mt-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-700 dark:text-gray-300 font-medium">Total Cost</span>
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">{tBuy("quote.totalCost")}</span>
                         <span className="font-semibold text-gray-900 dark:text-white">
                           {quoteData.totalCost} {paymentCurrency}
                         </span>
@@ -990,7 +996,7 @@ export default function BuyTokensPage() {
             {/* Delivery Info */}
             <div className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
-                {deliveryMethod === "OFF_CHAIN" ? "Internal Balance" : "External Wallet"}
+                {deliveryMethod === "OFF_CHAIN" ? tBuy("info.internalBalance.title") : tBuy("info.externalWallet.title")}
               </h3>
               <div className="space-y-4">
                 {deliveryMethod === "OFF_CHAIN" ? (
@@ -1000,8 +1006,8 @@ export default function BuyTokensPage() {
                         <Zap className="h-4 w-4 text-emerald-500" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white text-sm">Instant</p>
-                        <p className="text-xs text-gray-500">Tokens added immediately</p>
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">{tBuy("info.internalBalance.instant")}</p>
+                        <p className="text-xs text-gray-500">{tBuy("info.internalBalance.instantDesc")}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
@@ -1009,8 +1015,8 @@ export default function BuyTokensPage() {
                         <Shield className="h-4 w-4 text-brand-500" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white text-sm">Secure Storage</p>
-                        <p className="text-xs text-gray-500">Stored in platform wallet</p>
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">{tBuy("info.internalBalance.secureStorage")}</p>
+                        <p className="text-xs text-gray-500">{tBuy("info.internalBalance.secureStorageDesc")}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
@@ -1018,8 +1024,8 @@ export default function BuyTokensPage() {
                         <Wallet className="h-4 w-4 text-blue-500" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white text-sm">Easy Transfers</p>
-                        <p className="text-xs text-gray-500">Send to other users instantly</p>
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">{tBuy("info.internalBalance.easyTransfers")}</p>
+                        <p className="text-xs text-gray-500">{tBuy("info.internalBalance.easyTransfersDesc")}</p>
                       </div>
                     </div>
                   </>
@@ -1030,8 +1036,8 @@ export default function BuyTokensPage() {
                         <ExternalLink className="h-4 w-4 text-brand-500" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white text-sm">On-Chain</p>
-                        <p className="text-xs text-gray-500">Tokens sent to your wallet</p>
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">{tBuy("info.externalWallet.onChain")}</p>
+                        <p className="text-xs text-gray-500">{tBuy("info.externalWallet.onChainDesc")}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
@@ -1039,8 +1045,8 @@ export default function BuyTokensPage() {
                         <Shield className="h-4 w-4 text-emerald-500" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white text-sm">Full Control</p>
-                        <p className="text-xs text-gray-500">Your keys, your tokens</p>
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">{tBuy("info.externalWallet.fullControl")}</p>
+                        <p className="text-xs text-gray-500">{tBuy("info.externalWallet.fullControlDesc")}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
@@ -1048,8 +1054,8 @@ export default function BuyTokensPage() {
                         <Info className="h-4 w-4 text-amber-500" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white text-sm">Network Fee</p>
-                        <p className="text-xs text-gray-500">Small fee for blockchain tx</p>
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">{tBuy("info.externalWallet.networkFee")}</p>
+                        <p className="text-xs text-gray-500">{tBuy("info.externalWallet.networkFeeDesc")}</p>
                       </div>
                     </div>
                   </>
@@ -1063,10 +1069,10 @@ export default function BuyTokensPage() {
                 <Image src="/images/token/token3.png" alt="HBCT" width={80} height={80} className="object-contain" />
               </div>
               <div className="relative z-10">
-                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-2">Current Price</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-2">{tBuy("price.title")}</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-bold text-gray-900 dark:text-white">${tokenPrice.toFixed(4)}</span>
-                  <span className="text-gray-500 dark:text-gray-400">/ HBCT</span>
+                  <span className="text-gray-500 dark:text-gray-400">{tBuy("price.perToken")}</span>
                 </div>
               </div>
             </div>
@@ -1074,20 +1080,20 @@ export default function BuyTokensPage() {
             {/* Limits Card */}
             {limitsData && (
               <div className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Your Limits</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{tBuy("limits.title")}</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Per Transaction</span>
+                    <span className="text-gray-500">{tBuy("limits.perTransaction")}</span>
                     <span className="font-medium text-gray-900 dark:text-white">
-                      Up to ${limitsData.maxPurchaseUsd}
+                      {tBuy("limits.upTo")} ${limitsData.maxPurchaseUsd}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Daily Remaining</span>
+                    <span className="text-gray-500">{tBuy("limits.dailyRemaining")}</span>
                     <span className="font-medium text-gray-900 dark:text-white">${limitsData.dailyRemainingUsd}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Monthly Remaining</span>
+                    <span className="text-gray-500">{tBuy("limits.monthlyRemaining")}</span>
                     <span className="font-medium text-gray-900 dark:text-white">${limitsData.monthlyRemainingUsd}</span>
                   </div>
                 </div>
@@ -1097,8 +1103,8 @@ export default function BuyTokensPage() {
             {/* Payment Methods */}
             <div className="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pay With</h3>
-                <span className="text-xs text-gray-400">From Connected Wallet</span>
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{tBuy("paymentMethods.title")}</h3>
+                <span className="text-xs text-gray-400">{tBuy("paymentMethods.subtitle")}</span>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 {currencies.map((currency) => (

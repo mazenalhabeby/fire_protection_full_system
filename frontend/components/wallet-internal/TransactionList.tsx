@@ -129,6 +129,13 @@ const typeConfig: Record<WalletTransactionType, {
     iconBg: "bg-emerald-100 dark:bg-emerald-500/20",
     iconColor: "text-emerald-600 dark:text-emerald-400"
   },
+  ADMIN_ADJUSTMENT: {
+    label: "Admin Adjustment",
+    icon: RefreshCcw,
+    isIncoming: false,
+    iconBg: "bg-red-100 dark:bg-red-500/20",
+    iconColor: "text-red-600 dark:text-red-400"
+  },
 };
 
 const statusConfig: Record<WalletTransactionStatus, {

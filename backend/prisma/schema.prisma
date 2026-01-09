@@ -112,6 +112,7 @@ enum SenderType {
   USER
   ADMIN
   SYSTEM
+  GUEST
 }
 
 // Auth Provider Enum
@@ -147,6 +148,7 @@ enum WalletTransactionType {
   AFFILIATE_COMMISSION
   FEE
   REFUND
+  ADMIN_ADJUSTMENT // Admin balance adjustment (can be debit or credit)
 }
 
 enum WalletTransactionStatus {
@@ -275,6 +277,7 @@ model User {
   firstName     String?
   lastName      String?
   phoneNumber   String?      // User's phone number
+  profileImageUrl String?    // URL to user's profile image
   walletAddress String?      @unique
   walletNonce   String?      // Nonce for wallet signature verification
   authProvider  AuthProvider @default(CREDENTIALS)
@@ -367,6 +370,8 @@ model User {
 
   // On-chain deposit/withdrawal system
   onchainDeposits           OnchainDeposit[]
+  depositsLockedByMe        OnchainDeposit[]  @relation("DepositLockedBy")
+  depositsReleasedByMe      OnchainDeposit[]  @relation("DepositReleasedBy")
   withdrawals               Withdrawal[]
 
   // Token purchase system
@@ -1193,7 +1198,7 @@ model FAQItem {
 model SupportTicket {
   id           String         @id @default(cuid())
   ticketNumber String         @unique
-  userId       String
+  userId       String?
   assignedTo   String?
   subject      String
   category     TicketCategory @default(GENERAL)
@@ -1204,13 +1209,20 @@ model SupportTicket {
   resolvedAt   DateTime?
   closedAt     DateTime?
 
-  user     User            @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
+  // Guest ticket fields (for users without account)
+  guestEmail   String?
+  guestName    String?
+  accessToken  String?        @unique // Token for guest to access their ticket
+
+  user     User?           @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
   assignee User?           @relation("AssignedTickets", fields: [assignedTo], references: [id], onDelete: SetNull)
   messages TicketMessage[]
 
   @@index([userId, status])
   @@index([status, priority])
   @@index([ticketNumber])
+  @@index([guestEmail])
+  @@index([accessToken])
   @@map("support_tickets")
 }
 
@@ -1447,6 +1459,7 @@ enum OnchainDepositStatus {
   PENDING          // Transaction detected, awaiting confirmations
   CONFIRMED        // Sufficient confirmations, ready to credit
   CREDITED         // Balance credited to user
+  LOCKED           // Mapped by admin but locked for 24h (unverified wallet)
   FAILED           // Failed to process
   UNMAPPED         // No user found for wallet address
 }
@@ -1471,13 +1484,25 @@ model OnchainDeposit {
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
 
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  // Lock system fields (for manual mappings from unverified wallets)
+  lockedUntil      DateTime?          // When the deposit auto-releases (null = not locked)
+  lockedAt         DateTime?          // When the deposit was locked
+  lockedByAdminId  String?            // Admin who mapped/locked it
+  lockReason       String?            // Why it was locked
+  releasedAt       DateTime?          // When it was released (if early)
+  releasedByAdminId String?           // Admin who released it early
+  walletVerified   Boolean            @default(false) // True if fromAddress matches user's wallet
+
+  user           User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  lockedByAdmin  User? @relation("DepositLockedBy", fields: [lockedByAdminId], references: [id], onDelete: SetNull)
+  releasedByAdmin User? @relation("DepositReleasedBy", fields: [releasedByAdminId], references: [id], onDelete: SetNull)
 
   @@unique([txHash, logIndex])
   @@index([userId, status])
   @@index([fromAddress])
   @@index([status, createdAt])
   @@index([blockNumber])
+  @@index([lockedUntil, status]) // For auto-release job
   @@map("onchain_deposits")
 }
 
@@ -1756,4 +1781,83 @@ model AccountDeletionLog {
   @@index([gracePeriodEndsAt])
   @@index([retentionExpiresAt])
   @@map("account_deletion_logs")
+}
+
+// ============================================
+// BUYBACK & LIQUIDITY TRACKING
+// ============================================
+
+enum BuybackStatus {
+  PENDING     // Allocated but not yet executed
+  PROCESSING  // Currently executing on-chain
+  COMPLETED   // Successfully executed
+  FAILED      // Execution failed (can retry)
+}
+
+model BuybackAllocation {
+  id              String         @id @default(cuid())
+  purchaseId      String?        // Related token purchase (if applicable)
+  userId          String?        // User whose purchase triggered this
+
+  // Allocation details
+  amount          Decimal        @db.Decimal(36, 18)
+  currency        String         // BNB, USDT, USDC
+  usdValue        Decimal        @db.Decimal(36, 18)
+
+  // Execution status
+  status          BuybackStatus  @default(PENDING)
+  executedAt      DateTime?
+  completedAt     DateTime?
+  errorMessage    String?        @db.Text
+
+  // Link to batch execution
+  executionId     String?
+  execution       BuybackExecution? @relation(fields: [executionId], references: [id])
+
+  // Results (HBCT proportionally assigned from execution)
+  swapTxHash      String?        // Same as execution txHash
+  liquidityTxHash String?
+  hbctBought      Decimal?       @db.Decimal(36, 18)  // Proportional share of HBCT
+  liquidityAdded  Decimal?       @db.Decimal(36, 18)
+
+  // Audit
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status, createdAt])
+  @@index([purchaseId])
+  @@index([userId])
+  @@index([currency, status])
+  @@index([executionId])
+  @@map("buyback_allocations")
+}
+
+// Batch execution - ONE BNB swap for multiple allocations
+model BuybackExecution {
+  id              String         @id @default(cuid())
+
+  // Execution details
+  totalBnbSwapped Decimal        @db.Decimal(36, 18)  // Total BNB sent to swap
+  totalUsdValue   Decimal        @db.Decimal(36, 18)  // Total USD value of allocations
+  totalHbctBought Decimal?       @db.Decimal(36, 18)  // Total HBCT received from swap
+  bnbPriceUsd     Decimal        @db.Decimal(18, 8)   // BNB price at execution time
+
+  // Status
+  status          BuybackStatus  @default(PENDING)
+  swapTxHash      String?        // The single BNB→HBCT transaction
+  errorMessage    String?        @db.Text
+
+  // Counts
+  allocationCount Int            // Number of allocations in this batch
+
+  // Timestamps
+  createdAt       DateTime       @default(now())
+  executedAt      DateTime?
+  completedAt     DateTime?
+
+  // Related allocations
+  allocations     BuybackAllocation[]
+
+  @@index([status, createdAt])
+  @@map("buyback_executions")
 }

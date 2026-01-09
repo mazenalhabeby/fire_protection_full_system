@@ -101,7 +101,7 @@ export class BalanceService {
    * Credit balance (add funds) - used for deposits, transfers received, rewards, etc.
    */
   async creditBalance(params: BalanceCreditDebitParams): Promise<BalanceOperationResult> {
-    const { userId, currency, amount, type, description, metadata, ipAddress, relatedTransferId } =
+    const { userId, currency, amount, type, description, metadata, ipAddress, relatedTransferId, externalTxHash } =
       params;
 
     if (amount.lessThanOrEqualTo(0)) {
@@ -146,6 +146,7 @@ export class BalanceService {
             metadata: metadata as Prisma.InputJsonValue,
             ipAddress,
             relatedTransferId,
+            externalTxHash,
             completedAt: new Date(),
           },
         });
@@ -187,7 +188,7 @@ export class BalanceService {
    * Debit balance (remove funds) - used for transfers sent, purchases, etc.
    */
   async debitBalance(params: BalanceCreditDebitParams): Promise<BalanceOperationResult> {
-    const { userId, currency, amount, type, description, metadata, ipAddress, relatedTransferId } =
+    const { userId, currency, amount, type, description, metadata, ipAddress, relatedTransferId, externalTxHash } =
       params;
 
     if (amount.lessThanOrEqualTo(0)) {
@@ -238,6 +239,7 @@ export class BalanceService {
             metadata: metadata as Prisma.InputJsonValue,
             ipAddress,
             relatedTransferId,
+            externalTxHash,
             completedAt: new Date(),
           },
         });
@@ -413,6 +415,107 @@ export class BalanceService {
       return {
         success: true,
         newBalance: result.availableBalance.toString(),
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        return { success: false, newBalance: '0', error: error.message };
+      }
+      return {
+        success: false,
+        newBalance: '0',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Consume locked balance (permanently remove from locked balance)
+   * Used when a withdrawal is completed - the locked funds are sent on-chain
+   * and should be removed from the user's balance entirely.
+   */
+  async consumeLockedBalance(params: {
+    userId: string;
+    currency: Currency;
+    amount: Decimal;
+    type: WalletTransactionType;
+    description?: string;
+    metadata?: Record<string, unknown>;
+    ipAddress?: string;
+    externalTxHash?: string;
+  }): Promise<BalanceOperationResult> {
+    const { userId, currency, amount, type, description, metadata, ipAddress, externalTxHash } = params;
+
+    if (amount.lessThanOrEqualTo(0)) {
+      return { success: false, newBalance: '0', error: 'Amount must be positive' };
+    }
+
+    try {
+      const result = await this.prisma.$transaction(async (tx) => {
+        const balance = await tx.walletBalance.findUnique({
+          where: { userId_currency: { userId, currency } },
+        });
+
+        if (!balance) {
+          throw new NotFoundException(`Balance not found for currency ${currency}`);
+        }
+
+        if (balance.lockedBalance.lessThan(amount)) {
+          throw new BadRequestException('Insufficient locked balance');
+        }
+
+        const lockedBefore = balance.lockedBalance;
+        const lockedAfter = lockedBefore.sub(amount);
+
+        // Reduce locked balance (tokens are gone - sent on-chain)
+        const updatedBalance = await tx.walletBalance.update({
+          where: { userId_currency: { userId, currency } },
+          data: {
+            lockedBalance: lockedAfter,
+            lastActivityAt: new Date(),
+          },
+        });
+
+        // Create transaction record for audit trail
+        await tx.walletTransaction.create({
+          data: {
+            userId,
+            currency,
+            type,
+            amount,
+            netAmount: amount,
+            balanceBefore: lockedBefore,
+            balanceAfter: lockedAfter,
+            status: WalletTransactionStatus.COMPLETED,
+            description,
+            metadata: metadata as Prisma.InputJsonValue,
+            ipAddress,
+            externalTxHash,
+          },
+        });
+
+        // Audit log
+        await tx.walletAuditLog.create({
+          data: {
+            userId,
+            action: 'CONSUME_LOCKED_BALANCE',
+            entityType: 'WalletBalance',
+            entityId: balance.id,
+            oldValue: {
+              lockedBalance: lockedBefore.toString(),
+            },
+            newValue: {
+              lockedBalance: lockedAfter.toString(),
+            },
+            ipAddress,
+          },
+        });
+
+        return updatedBalance;
+      });
+
+      return {
+        success: true,
+        newBalance: result.lockedBalance.toString(),
       };
     } catch (error) {
       if (error instanceof BadRequestException) {

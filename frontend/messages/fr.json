@@ -1,16 +1,16 @@
 {
   "auth": {
     "loginTitle": "Bon Retour",
-    "loginSubtitle": "Connectez-vous pour acceder a votre tableau de bord HBCT",
-    "registerTitle": "Creer un Compte",
-    "registerSubtitle": "Rejoignez l'ecosysteme HBCT aujourd'hui",
+    "loginSubtitle": "Connectez-vous pour accéder à votre tableau de bord HBCT",
+    "registerTitle": "Créer un Compte",
+    "registerSubtitle": "Rejoignez l'écosystème HBCT aujourd'hui",
     "email": "E-mail",
     "emailPlaceholder": "Entrez votre e-mail",
     "password": "Mot de passe",
     "passwordPlaceholder": "Entrez votre mot de passe",
     "confirmPassword": "Confirmer le mot de passe",
     "confirmPasswordPlaceholder": "Confirmez votre mot de passe",
-    "firstName": "Prenom",
+    "firstName": "Prénom",
     "firstNamePlaceholder": "Jean",
     "lastName": "Nom",
     "lastNamePlaceholder": "Dupont",
@@ -18,87 +18,249 @@
     "referralCodePlaceholder": "Entrez le code de parrainage",
     "login": "Se Connecter",
     "loggingIn": "Connexion...",
-    "register": "Creer un Compte",
-    "registering": "Creation du compte...",
-    "noAccount": "Pas encore de compte?",
+    "register": "Créer un Compte",
+    "registering": "Création du compte...",
+    "noAccount": "Pas encore de compte ?",
     "registerLink": "S'inscrire",
-    "hasAccount": "Deja un compte?",
+    "hasAccount": "Déjà un compte ?",
     "loginLink": "Se connecter",
     "loginError": "E-mail ou mot de passe invalide",
-    "loginSuccess": "Connexion reussie!",
-    "registerError": "Echec de la creation du compte",
-    "registerSuccess": "Compte cree avec succes!",
+    "loginSuccess": "Connexion réussie !",
+    "registerError": "Échec de la création du compte",
+    "registerSuccess": "Compte créé avec succès !",
     "passwordMismatch": "Les mots de passe ne correspondent pas",
-    "passwordTooShort": "Le mot de passe doit avoir au moins 8 caracteres",
-    "forgotPassword": "Mot de passe oublié?",
+    "passwordTooShort": "Le mot de passe doit avoir au moins 8 caractères",
+    "forgotPassword": "Mot de passe oublié ?",
     "continueWithGoogle": "Continuer avec Google",
     "continueWithFacebook": "Continuer avec Facebook",
     "connectWallet": "Connecter le portefeuille",
-    "orContinueWith": "ou continuer avec e-mail"
+    "orContinueWith": "ou continuer avec e-mail",
+    "sessionRevoked": "Votre session a été fermée depuis un autre appareil. Veuillez vous reconnecter.",
+    "apiNotConfigured": "URL de l'API non configurée. Veuillez contacter le support.",
+    "walletErrors": {
+      "failedToConnect": "Échec de la connexion au portefeuille. Veuillez réessayer.",
+      "signatureCancelled": "La demande de signature a été annulée",
+      "signingNotSupported": "Ce portefeuille ne prend pas en charge la signature de messages. Veuillez utiliser MetaMask ou un autre portefeuille compatible.",
+      "networkError": "Impossible de se connecter au serveur. Veuillez vérifier votre connexion Internet et réessayer.",
+      "authFailed": "Échec de l'authentification. Veuillez réessayer."
+    },
+    "twoFactor": {
+      "title": "Authentification à deux facteurs",
+      "subtitle": "Entrez le code à 6 chiffres de votre application d'authentification",
+      "verifying": "Vérification...",
+      "verifyButton": "Vérifier et Continuer",
+      "invalidCode": "Veuillez entrer un code à 6 chiffres valide ou un code de récupération",
+      "verificationFailed": "Code de vérification invalide. Veuillez réessayer.",
+      "recoveryHint": "Vous n'avez plus accès à votre authentificateur ? Utilisez un code de récupération (format: XXXX-XXXX)"
+    },
+    "legal": {
+      "agreementPrefix": "En continuant, vous acceptez nos",
+      "termsOfService": "Conditions d'utilisation",
+      "and": "et",
+      "privacyPolicy": "Politique de confidentialité"
+    }
   },
   "dashboard": {
     "title": "Tableau de Bord",
     "welcome": "Bon retour",
-    "overview": "Apercu",
+    "overview": "Aperçu",
     "tokenBalance": "Solde de Tokens",
     "availableBalance": "Disponible",
-    "lockedBalance": "Verrouille",
+    "lockedBalance": "Verrouillé",
     "totalBalance": "Total",
     "referrals": "Parrainages",
-    "friends": "Amis invites",
-    "recentTransactions": "Transactions Recentes",
-    "recentActivity": "Activite Recente",
+    "friends": "Amis invités",
+    "recentTransactions": "Transactions Récentes",
+    "recentActivity": "Activité Récente",
     "viewAll": "Voir Tout",
     "noTransactions": "Aucune transaction pour le moment",
-    "noTransactionsDescription": "Votre historique de transactions apparaitra ici une fois que vous commencerez a utiliser la plateforme.",
+    "noTransactionsDescription": "Votre historique de transactions apparaîtra ici une fois que vous commencerez à utiliser la plateforme.",
     "quickActions": "Actions Rapides",
     "buyTokens": "Acheter des Tokens",
     "lockTokens": "Verrouiller des Tokens",
     "inviteFriends": "Inviter des Amis",
     "viewAirdrops": "Voir les Airdrops",
-    "browseProducts": "Parcourir les Produits"
+    "browseProducts": "Parcourir les Produits",
+    "greeting": {
+      "morning": "Bonjour",
+      "afternoon": "Bon après-midi",
+      "evening": "Bonsoir"
+    },
+    "welcomeNew": "Bienvenue, {name} !",
+    "welcomeBack": "Bon retour, {name} !",
+    "newUserMessage": "Commencez votre aventure HBCT aujourd'hui. Achetez des tokens pour démarrer !",
+    "returningUserMessage": "Voici ce qui se passe avec votre portefeuille HBCT aujourd'hui.",
+    "purchaseDescription": "Acheter des tokens HBCT",
+    "referralDescription": "Gagnez des récompenses de parrainage",
+    "lockingDescription": "Gagnez des récompenses en verrouillant",
+    "marketplaceDescription": "Achetez avec HBCT",
+    "transactionTypes": {
+      "BUY_WEBSITE": "Achat de Token",
+      "TRANSFER": "Transfert Envoyé",
+      "TRANSFER_RECEIVE": "Transfert Reçu",
+      "LOCK": "Verrouillage de Token",
+      "UNLOCK": "Déverrouillage de Token",
+      "REWARD_DISTRIBUTION": "Récompense",
+      "AIRDROP": "Airdrop",
+      "AFFILIATE_BONUS": "Bonus d'Affiliation",
+      "FEE_CASHBACK": "Remboursement de Frais",
+      "MARKETPLACE_PURCHASE": "Achat Marketplace",
+      "MARKETPLACE_REFUND": "Remboursement Marketplace",
+      "ADMIN_ADJUSTMENT": "Ajustement Administrateur"
+    },
+    "status": {
+      "completed": "Terminé",
+      "pending": "En Attente",
+      "failed": "Échoué",
+      "cancelled": "Annulé"
+    }
   },
   "tokenSales": {
     "title": "Acheter des Tokens HBCT",
-    "subtitle": "Achetez des tokens au prix du marche actuel",
+    "subtitle": "Achetez des tokens au prix du marché actuel",
     "currentPrice": "Prix Actuel",
-    "amountToBuy": "Montant a Acheter (USD)",
+    "amountToBuy": "Montant à Acheter (USD)",
     "youWillReceive": "Vous Recevrez",
     "tokens": "tokens",
     "getQuote": "Obtenir un Devis",
     "buyNow": "Acheter Maintenant",
     "processing": "Traitement...",
-    "purchaseSuccess": "Achat reussi!",
-    "purchaseError": "Echec de l'achat. Veuillez reessayer.",
-    "minPurchase": "Achat minimum: 10$",
-    "maxPurchase": "Achat maximum: 100 000$"
+    "purchaseSuccess": "Achat réussi !",
+    "purchaseError": "Échec de l'achat. Veuillez réessayer.",
+    "minPurchase": "Achat minimum : 10 $",
+    "maxPurchase": "Achat maximum : 100 000 $"
   },
   "locking": {
     "title": "Verrouillage de Tokens",
-    "subtitle": "Verrouillez vos tokens pour gagner des recompenses bonus",
+    "subtitle": "Verrouillez vos tokens pour gagner des récompenses bonus",
     "availableTiers": "Niveaux Disponibles",
     "months": "mois",
     "bonus": "Bonus",
     "minAmount": "Montant Min",
     "lockTokens": "Verrouiller des Tokens",
-    "amountToLock": "Montant a Verrouiller",
-    "selectTier": "Selectionner le Niveau",
-    "estimatedReward": "Recompense Estimee",
+    "amountToLock": "Montant à Verrouiller",
+    "selectTier": "Sélectionner le Niveau",
+    "estimatedReward": "Récompense Estimée",
     "lockNow": "Verrouiller Maintenant",
     "locking": "Verrouillage...",
     "myLocks": "Mes Verrouillages",
     "noLocks": "Vous n'avez aucun verrouillage actif",
     "status": "Statut",
     "active": "Actif",
-    "completed": "Termine",
-    "unlockDate": "Date de Deverrouillage",
-    "reward": "Recompense",
-    "unlock": "Deverrouiller",
-    "unlocking": "Deverrouillage...",
-    "lockSuccess": "Tokens verrouilles avec succes!",
-    "unlockSuccess": "Tokens deverrouilles avec succes!",
-    "lockError": "Echec du verrouillage",
-    "unlockError": "Echec du deverrouillage"
+    "completed": "Terminé",
+    "unlockDate": "Date de Déverrouillage",
+    "reward": "Récompense",
+    "unlock": "Déverrouiller",
+    "unlocking": "Déverrouillage...",
+    "lockSuccess": "Tokens verrouillés avec succès !",
+    "unlockSuccess": "Tokens déverrouillés avec succès !",
+    "lockError": "Échec du verrouillage",
+    "unlockError": "Échec du déverrouillage",
+    "earlyUnlockSuccess": "{unlockedAmount} HBCT déverrouillés avec {actualReward} HBCT de récompenses ({penaltyPercent}% de pénalité appliquée)",
+    "earlyUnlockError": "Échec du déverrouillage anticipé",
+    "cancelSuccess": "Verrouillage annulé. {refundedAmount} HBCT ont été recrédités sur votre solde.",
+    "cancelError": "Échec de l'annulation du verrouillage",
+    "stats": {
+      "totalLocked": "Total Verrouillé",
+      "totalRewards": "Récompenses Totales",
+      "hbctEarned": "HBCT Gagnés",
+      "activeLocks": "Verrouillages Actifs",
+      "currentlyStaking": "Actuellement en Staking"
+    },
+    "howItWorks": {
+      "title": "Comment Fonctionne le Verrouillage",
+      "subtitle": "Gagnez des récompenses en verrouillant des tokens",
+      "gracePeriod": "Période de Grâce",
+      "gracePeriodTime": "0-24h",
+      "fullRefund": "Remboursement complet",
+      "locked": "Verrouillé",
+      "lockedTime": "24h-50%",
+      "noEarlyUnlock": "Pas de déverrouillage anticipé",
+      "earlyUnlock": "Déverrouillage Anticipé",
+      "earlyUnlockTime": "50-99%",
+      "penalty50to70": "50-70%: 25%",
+      "penalty70to90": "70-90%: 15%",
+      "penalty90plus": "90%+: 5%",
+      "fullRewards": "Récompenses Complètes",
+      "fullRewardsTime": "100%",
+      "zeroFees": "Zéro frais"
+    },
+    "form": {
+      "lockTokens": "Verrouiller des Tokens",
+      "upToBonus": "Jusqu'à {max}% de Bonus",
+      "selectLockPeriod": "Sélectionner la Période de Verrouillage",
+      "amountToLock": "Montant à Verrouiller",
+      "available": "Disponible :",
+      "max": "MAX",
+      "lockPeriod": "Période de Verrouillage :",
+      "noBalance": "Pas de Solde",
+      "enterAmount": "Entrer le Montant",
+      "insufficientBalance": "Solde Insuffisant",
+      "minAmount": "Min : {amount} HBCT"
+    },
+    "history": {
+      "title": "Historique",
+      "noHistory": "Aucun historique de verrouillage",
+      "lockedTokens": "Tokens Verrouillés",
+      "unlockedTokens": "Tokens Déverrouillés",
+      "earlyUnlock": "Déverrouillage Anticipé",
+      "lockCancelled": "Verrouillage Annulé",
+      "rewardReceived": "Récompense Reçue",
+      "reward": "récompense",
+      "penalty": "pénalité"
+    },
+    "locks": {
+      "failedToLoad": "Échec du chargement des verrouillages",
+      "retry": "Réessayer",
+      "lock": "Verrouillage",
+      "daysRemaining": "jours restants",
+      "complete": "terminé",
+      "days": "jours",
+      "duration": "Durée",
+      "claiming": "Réclamation...",
+      "claim": "Réclamer {amount} HBCT",
+      "cancelLock": "Annuler le Verrouillage",
+      "noFee": "Sans Frais",
+      "fee": "{percent}% de Frais",
+      "lockedUntil50": "Verrouillé Jusqu'à 50%",
+      "moreToUnlockEarly": "de plus pour déverrouiller tôt",
+      "earlyUnlockAvailable": "Déverrouillage anticipé disponible",
+      "youWillReceive": "Vous recevrez {amount} HBCT ({penalty}% de pénalité sur les récompenses accumulées)",
+      "earlyUnlockAt50": "Déverrouillage anticipé disponible à 50%",
+      "waitMoreDays": "Attendre {days} jours de plus",
+      "cancelledOn": "Annulé le",
+      "completedOn": "Terminé le",
+      "claimed": "Réclamé",
+      "cancelled": "Annulé"
+    },
+    "earlyUnlockModal": {
+      "title": "Déverrouillage Anticipé",
+      "lockProgress": "Progression du Verrouillage",
+      "howItWorks": "Comment ça marche :",
+      "howItWorksDesc": "Vous gagnez des récompenses proportionnellement à votre durée de verrouillage. À {completed}% d'achèvement, vous avez gagné {accrued} HBCT. Une pénalité de {penalty}% s'applique à ce montant accumulé.",
+      "lockedAmount": "Montant Verrouillé",
+      "totalRewardIfFull": "Récompense Totale (si terme complet)",
+      "accruedReward": "Récompense Accumulée ({percent}%)",
+      "penaltyOf": "Pénalité ({percent}% du accumulé)",
+      "forfeited": "Perdu (non gagné + pénalité)",
+      "youWillReceive": "Vous Recevrez",
+      "tip": "Conseil :",
+      "tipDesc": "Attendre le terme complet vous rapporte {total} HBCT de récompenses — {more} HBCT de plus !",
+      "keepLocked": "Garder Verrouillé",
+      "processing": "Traitement...",
+      "unlockNow": "Déverrouiller Maintenant"
+    },
+    "cancelModal": {
+      "title": "Annuler le Verrouillage",
+      "gracePeriodMessage": "Vous êtes dans la période de grâce de 24 heures.",
+      "noPenalty": "Aucune pénalité ne sera appliquée.",
+      "lockedAmount": "Montant Verrouillé",
+      "forfeitedReward": "Récompense Perdue",
+      "refundAmount": "Montant Remboursé",
+      "keepLock": "Garder le Verrouillage",
+      "cancelling": "Annulation...",
+      "cancelLock": "Annuler le Verrouillage"
+    }
   },
   "airdrops": {
     "title": "Airdrops",
@@ -108,23 +270,23 @@
     "allocation": "Allocation",
     "participants": "Participants",
     "endsIn": "Se Termine Dans",
-    "tasks": "Taches",
+    "tasks": "Tâches",
     "participate": "Participer",
     "participating": "Participation...",
-    "completeTask": "Completer",
-    "completed": "Termine",
+    "completeTask": "Compléter",
+    "completed": "Terminé",
     "myEntries": "Mes Participations",
     "noEntries": "Vous n'avez rejoint aucune campagne",
-    "eligibility": "Eligibilite",
-    "eligible": "Eligible",
-    "notEligible": "Non Eligible",
+    "eligibility": "Éligibilité",
+    "eligible": "Éligible",
+    "notEligible": "Non Éligible",
     "pendingDistribution": "Distribution en Attente",
-    "distributed": "Distribue"
+    "distributed": "Distribué"
   },
   "marketplace": {
     "title": "Marketplace",
     "subtitle": "Achetez des produits de protection incendie avec HBCT",
-    "categories": "Categories",
+    "categories": "Catégories",
     "allProducts": "Tous les Produits",
     "searchProducts": "Rechercher des produits...",
     "noProducts": "Aucun produit disponible",
@@ -132,7 +294,7 @@
     "inStock": "En Stock",
     "outOfStock": "Rupture de Stock",
     "addToCart": "Ajouter au Panier",
-    "viewDetails": "Voir les Details",
+    "viewDetails": "Voir les Détails",
     "cart": "Panier",
     "emptyCart": "Votre panier est vide",
     "checkout": "Commander",
@@ -142,23 +304,23 @@
     "country": "Pays",
     "postalCode": "Code Postal",
     "placeOrder": "Passer la Commande",
-    "orderSuccess": "Commande passee avec succes!",
+    "orderSuccess": "Commande passée avec succès !",
     "myOrders": "Mes Commandes",
     "noOrders": "Vous n'avez aucune commande",
     "orderStatus": "Statut de Commande",
     "pending": "En Attente",
-    "paid": "Paye",
-    "shipped": "Expedie",
-    "delivered": "Livre"
+    "paid": "Payé",
+    "shipped": "Expédié",
+    "delivered": "Livré"
   },
   "affiliates": {
     "title": "Programme d'Affiliation",
     "subtitle": "Gagnez des commissions en parrainant de nouveaux utilisateurs",
     "joinProgram": "Rejoindre le Programme d'Affiliation",
     "joinCta": "Rejoindre & Commencer à Gagner",
-    "alreadyAffiliate": "Vous êtes déjà affilié!",
+    "alreadyAffiliate": "Vous êtes déjà affilié !",
     "viewDashboard": "Voir le Tableau de Bord",
-    "whyJoin": "Pourquoi Rejoindre Notre Programme d'Affiliation?",
+    "whyJoin": "Pourquoi Rejoindre Notre Programme d'Affiliation ?",
     "benefits": {
       "passiveIncome": "Revenu Passif",
       "passiveIncomeDesc": "Gagnez des commissions sur chaque achat de vos filleuls",
@@ -180,12 +342,12 @@
       "yourCode": "Votre Code de Parrainage",
       "copyLink": "Copier le Lien",
       "copyCode": "Copier le Code",
-      "copied": "Copié!",
+      "copied": "Copié !",
       "showQr": "Afficher le QR Code",
       "hideQr": "Masquer le QR Code",
       "shareOn": "Partager sur",
       "customCampaign": "Campagne Personnalisée",
-      "campaignPlaceholder": "ex: twitter_bio",
+      "campaignPlaceholder": "ex : twitter_bio",
       "utmSource": "Source UTM",
       "generateLink": "Générer le Lien"
     },
@@ -224,7 +386,7 @@
       "title": "Vos Parrainages",
       "searchPlaceholder": "Rechercher des parrainages...",
       "noReferrals": "Aucun parrainage trouvé",
-      "shareToStart": "Partagez votre lien de parrainage pour commencer à gagner!",
+      "shareToStart": "Partagez votre lien de parrainage pour commencer à gagner !",
       "status": {
         "all": "Tous",
         "pending": "En Attente",
@@ -278,27 +440,661 @@
       "subtitle": "Débloquez des taux plus élevés en grandissant",
       "startAt": "Commencer à",
       "upTo": "Jusqu'à"
+    },
+    "toast": {
+      "joinSuccess": "Inscription au programme d'affiliation réussie !",
+      "joinError": "Échec de l'inscription en tant qu'affilié",
+      "claimSuccess": "{amount} HBCT réclamés !",
+      "claimError": "Échec de la réclamation de commission",
+      "copied": "Copié dans le presse-papiers !"
+    },
+    "promo": {
+      "commissionRate": "Taux de Commission",
+      "upTo15": "Jusqu'à 15%",
+      "perSale": "Par Vente",
+      "tierLevels": "Niveaux",
+      "fourTiers": "4 Niveaux",
+      "starterToPlatinum": "Starter → Platine",
+      "payouts": "Paiements",
+      "weekly": "Hebdomadaire",
+      "noMinimum": "Pas de Minimum",
+      "startHere": "COMMENCER ICI",
+      "best": "MEILLEUR",
+      "noMinReferrals": "Pas de minimum",
+      "minReferrals": "{count}+ parrainages"
+    },
+    "cta": {
+      "readyToStart": "Prêt à Commencer à",
+      "earning": "Gagner ?",
+      "description": "Rejoignez des milliers d'affiliés qui gagnent déjà un revenu passif avec HBCT. Commencez votre parcours aujourd'hui.",
+      "joinProgram": "Rejoindre le Programme",
+      "freeToJoin": "Gratuit",
+      "noMinPayout": "Pas de paiement minimum",
+      "weeklyPayouts": "Paiements hebdomadaires"
+    },
+    "suspended": {
+      "title": "Compte Affilié Temporairement Suspendu",
+      "description": "Vos privilèges d'affilié ont été temporairement suspendus. Pendant cette période :",
+      "codeInactive": "Code de parrainage inactif",
+      "noNewCommissions": "Pas de nouvelles commissions",
+      "hiddenFromLeaderboard": "Caché du classement",
+      "contactSupport": "Contacter le Support",
+      "preservedNote": "Vos parrainages existants et commissions gagnées sont préservés et seront disponibles une fois votre compte réactivé."
+    },
+    "dashboard": {
+      "yourCurrentTier": "Votre Niveau Actuel",
+      "commission": "Commission",
+      "referrals": "parrainages",
+      "progressTo": "Progression vers {tier}",
+      "next": "Suivant :",
+      "maxTierAchieved": "Niveau Maximum Atteint !",
+      "reachedHighest": "Vous avez atteint le plus haut niveau",
+      "totalReferrals": "Total des Parrainages",
+      "users": "Utilisateurs",
+      "totalEarnings": "Gains Totaux",
+      "thisMonth": "Ce Mois",
+      "yourReferralLink": "Votre Lien de Parrainage",
+      "shareAndEarn": "Partagez & gagnez {rate}% par vente",
+      "code": "Code :",
+      "share": "Partager",
+      "copy": "Copier",
+      "copied": "Copié !"
+    },
+    "recentCommissions": {
+      "title": "Commissions Récentes",
+      "totalEarned": "{amount} HBCT gagnés au total",
+      "history": "Historique des commissions",
+      "transactions": "{count} transactions",
+      "loading": "Chargement des commissions...",
+      "noCommissions": "Pas encore de commissions",
+      "shareToStart": "Partagez votre lien de parrainage !",
+      "referralCommission": "Commission de Parrainage",
+      "scrollForMore": "Défiler pour plus"
+    },
+    "leaderboardCard": {
+      "title": "Top Affiliés",
+      "subtitle": "Leaders du mois",
+      "noLeaders": "Pas encore de leaders",
+      "beFirst": "Soyez le premier !",
+      "first": "1er",
+      "second": "2ème",
+      "third": "3ème",
+      "you": "Vous",
+      "youBadge": "VOUS",
+      "notInTop": "Pas dans le top {count}"
+    },
+    "referralsTab": {
+      "title": "Vos Parrainages",
+      "total": "total",
+      "converted": "convertis",
+      "active": "actifs",
+      "searchPlaceholder": "Rechercher par nom ou email...",
+      "all": "tous",
+      "inactive": "inactifs",
+      "loading": "Chargement des parrainages...",
+      "noReferrals": "Aucun parrainage trouvé",
+      "adjustFilters": "Essayez d'ajuster votre recherche ou vos filtres",
+      "shareToStart": "Partagez votre lien de parrainage !",
+      "tableHeaders": {
+        "user": "Utilisateur",
+        "status": "Statut",
+        "joined": "Inscrit",
+        "purchases": "Achats",
+        "commission": "Commission"
+      },
+      "show": "Afficher",
+      "ofEntries": "sur {total} entrées"
     }
   },
   "navigation": {
     "home": "Accueil",
-    "about": "A Propos",
+    "about": "À Propos",
     "dashboard": "Tableau de Bord",
     "buyTokens": "Acheter des Tokens",
     "locking": "Verrouillage",
     "airdrops": "Airdrops",
     "marketplace": "Marketplace",
-    "affiliates": "Affilies",
+    "affiliates": "Affiliés",
     "admin": "Admin",
     "login": "Connexion",
     "register": "Inscription",
-    "logout": "Deconnexion",
-    "profile": "Profil"
+    "logout": "Déconnexion",
+    "profile": "Profil",
+    "comingSoon": "Bientôt",
+    "comingSoonFull": "Prochainement"
+  },
+  "navbar": {
+    "myWallet": "Mon Portefeuille",
+    "viewProfile": "Voir le Profil",
+    "adminPanel": "Panneau Admin",
+    "manageSystem": "Gérer les paramètres système",
+    "sendReceiveTokens": "Envoyer, recevoir et gérer des tokens",
+    "earnCommissions": "Gagnez des commissions sur les parrainages",
+    "appearance": "Apparence",
+    "chooseTheme": "Choisissez votre thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "auto": "Auto",
+    "language": "Langue",
+    "settings": "Paramètres",
+    "helpSupport": "Aide & Support",
+    "logOut": "Déconnexion",
+    "welcomeToHbct": "Bienvenue chez HBCT",
+    "fireProtection": "Protection Incendie",
+    "revolutionaryBlockchain": "Technologie blockchain révolutionnaire pour la sécurité incendie"
+  },
+  "security": {
+    "secureYourAccount": "Sécurisez votre compte",
+    "recommended": "Recommandé",
+    "twoFactorDescription": "Activez l'authentification à deux facteurs pour ajouter une couche de sécurité supplémentaire à votre compte et protéger vos tokens HBCT.",
+    "enable2FANow": "Activer 2FA maintenant"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Gérez les paramètres et préférences de votre compte",
+    "sidebar": {
+      "profile": "Profil",
+      "security": "Sécurité",
+      "notifications": "Notifications",
+      "wallets": "Portefeuilles Connectés",
+      "deleteAccount": "Supprimer le Compte"
+    },
+    "profile": {
+      "title": "Informations du Profil",
+      "description": "Mettez à jour vos informations personnelles",
+      "avatar": "Photo de Profil",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "Adresse E-mail",
+      "phone": "Numéro de Téléphone",
+      "phoneHint": "Format international (ex. +33612345678)",
+      "phoneError": "Veuillez entrer un numéro de téléphone valide (ex. +33612345678)",
+      "bio": "Biographie",
+      "bioPlaceholder": "Parlez-nous un peu de vous...",
+      "verified": "Vérifié",
+      "saveChanges": "Enregistrer les Modifications",
+      "saving": "Enregistrement...",
+      "updateSuccess": "Profil mis à jour avec succès",
+      "updateError": "Échec de la mise à jour du profil",
+      "uploading": "Téléversement...",
+      "changePhoto": "Changer la photo",
+      "uploadPhoto": "Téléverser une photo",
+      "removePhoto": "Supprimer",
+      "removing": "Suppression...",
+      "avatarUpdated": "Photo de profil mise à jour avec succès !",
+      "avatarRemoved": "Photo de profil supprimée",
+      "avatarUploadError": "Échec du téléversement de la photo de profil",
+      "avatarRemoveError": "Échec de la suppression de la photo de profil",
+      "invalidImageType": "Veuillez sélectionner un fichier image valide (JPEG, PNG, WebP ou GIF)",
+      "imageTooLarge": "La taille de l'image doit être inférieure à 5 Mo",
+      "username": {
+        "title": "Nom d'utilisateur",
+        "description": "Définissez un nom d'utilisateur unique pour recevoir des HBCT d'autres utilisateurs",
+        "currentUsername": "Votre nom d'utilisateur actuel : @{username}",
+        "shareHint": "Partagez-le pour que d'autres puissent vous envoyer des HBCT",
+        "changeUsername": "Changer le Nom d'utilisateur",
+        "chooseUsername": "Choisir un Nom d'utilisateur",
+        "placeholder": "jeandupont",
+        "available": "Ce nom d'utilisateur est disponible !",
+        "hint": "3-20 caractères. Lettres, chiffres et underscores uniquement. Doit commencer par une lettre.",
+        "updateUsername": "Mettre à jour le Nom d'utilisateur",
+        "setUsername": "Définir le Nom d'utilisateur",
+        "updated": "Nom d'utilisateur mis à jour avec succès !",
+        "updateError": "Échec de la mise à jour du nom d'utilisateur",
+        "tooShort": "Le nom d'utilisateur doit contenir au moins 3 caractères",
+        "tooLong": "Le nom d'utilisateur ne peut pas dépasser 20 caractères",
+        "invalidFormat": "Le nom d'utilisateur doit commencer par une lettre et ne contenir que des lettres, chiffres et underscores",
+        "checkError": "Échec de la vérification du nom d'utilisateur"
+      },
+      "accountType": {
+        "title": "Type de Compte",
+        "description": "Comment vous vous êtes inscrit",
+        "connected": "Connecté",
+        "createdOn": "Votre compte a été créé le {date}",
+        "providers": {
+          "credentials": {
+            "label": "E-mail & Mot de passe",
+            "description": "Vous vous êtes inscrit avec votre adresse e-mail et mot de passe"
+          },
+          "google": {
+            "label": "Google",
+            "description": "Vous vous êtes inscrit avec votre compte Google"
+          },
+          "facebook": {
+            "label": "Facebook",
+            "description": "Vous vous êtes inscrit avec votre compte Facebook"
+          },
+          "wallet": {
+            "label": "Portefeuille Web3",
+            "description": "Vous vous êtes inscrit avec votre portefeuille Web3"
+          }
+        }
+      }
+    },
+    "security": {
+      "title": "Sécurité",
+      "changePassword": "Changer le Mot de Passe",
+      "setPassword": "Définir un Mot de Passe",
+      "changePasswordDescription": "Mettez à jour votre mot de passe pour sécuriser votre compte",
+      "setPasswordDescription": "Créez un mot de passe pour activer la connexion par e-mail/mot de passe",
+      "currentPassword": "Mot de Passe Actuel",
+      "newPassword": "Nouveau Mot de Passe",
+      "confirmPassword": "Confirmer le Nouveau Mot de Passe",
+      "updatePassword": "Mettre à Jour le Mot de Passe",
+      "updating": "Mise à jour...",
+      "settingPassword": "Définition du mot de passe...",
+      "passwordSuccess": "Mot de passe mis à jour avec succès",
+      "passwordSetSuccess": "Mot de passe défini avec succès ! Vous pouvez maintenant vous connecter avec votre e-mail et mot de passe.",
+      "passwordError": "Échec de la mise à jour du mot de passe",
+      "passwordSetError": "Échec de la définition du mot de passe",
+      "passwordMismatch": "Les mots de passe ne correspondent pas",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
+      "passwordComplexity": "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
+      "passwordHint": "Le mot de passe doit contenir au moins 8 caractères avec une majuscule, une minuscule et un chiffre.",
+      "passwordNotAvailable": "Mot de passe non disponible",
+      "walletAuthOnly": "Votre compte utilise l'authentification par portefeuille. Pour définir un mot de passe, ajoutez d'abord une adresse e-mail à votre compte.",
+      "noPasswordSet": "Aucun mot de passe défini",
+      "noPasswordDescription": "Vous vous êtes inscrit via l'authentification {authMethod}. Définissez un mot de passe pour activer la connexion avec votre e-mail ({email}).",
+      "twoFactor": {
+        "title": "Authentification à Deux Facteurs",
+        "description": "Ajoutez une couche de sécurité supplémentaire à votre compte",
+        "enabled": "2FA activé",
+        "disabled": "2FA désactivé",
+        "enableHint": "Activez 2FA pour plus de sécurité",
+        "recoveryCodesRemaining": "{count} codes de récupération restants",
+        "enable": "Activer 2FA",
+        "disable": "Désactiver 2FA",
+        "disableConfirm": "Entrez votre code 2FA pour désactiver l'authentification à deux facteurs :",
+        "disableError": "Échec de la désactivation de 2FA",
+        "regenerateCodes": "Régénérer les Codes de Récupération",
+        "regenerateConfirm": "Entrez votre code 2FA pour générer de nouveaux codes de récupération :",
+        "regenerateWarning": "Cela invalidera vos codes de récupération actuels.",
+        "regenerateSuccess": "Nouveaux codes de récupération générés et téléchargés",
+        "regenerateError": "Échec de la régénération des codes",
+        "enterCode": "Veuillez entrer un code à 6 chiffres",
+        "confirm": "Confirmer",
+        "generate": "Générer",
+        "cancel": "Annuler"
+      },
+      "twoFactorSetup": {
+        "title": "Configurer l'Authentification à Deux Facteurs",
+        "verifyTitle": "Vérifiez Votre Code",
+        "recoveryTitle": "Sauvegardez les Codes de Récupération",
+        "scanDescription": "Scannez le QR code avec votre application d'authentification",
+        "verifyDescription": "Entrez le code à 6 chiffres de votre authentificateur",
+        "recoveryDescription": "Conservez ces codes en sécurité - ils sont votre accès de secours",
+        "scanInstruction": "Scannez avec Google Authenticator, Authy ou une application similaire",
+        "manualEntry": "Impossible de scanner ? Entrez ce code manuellement :",
+        "verificationCode": "Code de Vérification",
+        "continue": "Continuer",
+        "back": "Retour",
+        "verifying": "Vérification...",
+        "verifyAndEnable": "Vérifier & Activer",
+        "setupSuccess": "2FA activé avec succès !",
+        "setupError": "Échec de l'initialisation de la configuration 2FA",
+        "invalidCode": "Code de vérification invalide",
+        "secretCopied": "Secret copié dans le presse-papiers",
+        "recoveryWarning": "Sauvegardez ces codes maintenant. Ils ne seront plus affichés. Chaque code ne peut être utilisé qu'une seule fois.",
+        "copy": "Copier",
+        "download": "Télécharger",
+        "downloaded": "Téléchargé",
+        "completeSetup": "Terminer la Configuration",
+        "downloadToContinue": "Téléchargez les codes pour continuer",
+        "codesCopied": "Codes de récupération copiés dans le presse-papiers",
+        "codesDownloaded": "Codes de récupération téléchargés"
+      }
+    },
+    "sessions": {
+      "title": "Sessions Actives",
+      "description": "Gérez les appareils connectés à votre compte",
+      "loading": "Chargement des sessions...",
+      "loadError": "Échec du chargement des sessions",
+      "currentSession": "Cet appareil",
+      "trusted": "Approuvé",
+      "vpn": "VPN",
+      "stats": {
+        "active": "Actives",
+        "trusted": "Approuvées",
+        "other": "Autres",
+        "review": "À vérifier"
+      },
+      "revokeAll": "Révoquer Toutes les Autres Sessions",
+      "revokeSession": "Révoquer la Session",
+      "revokeSuccess": "Session révoquée avec succès",
+      "revokeError": "Échec de la révocation de la session",
+      "revokedCount": "{count} session(s) révoquée(s)",
+      "trustDevice": "Approuver l'Appareil",
+      "removeTrust": "Retirer l'Approbation",
+      "trustSuccess": "Appareil marqué comme approuvé",
+      "trustError": "Échec de l'approbation de l'appareil",
+      "untrustSuccess": "Approbation de l'appareil retirée",
+      "untrustError": "Échec du retrait de l'approbation",
+      "suspicious": {
+        "title": "Activité suspecte détectée",
+        "description": "{count} session(s) depuis des localisations différentes. Vérifiez et révoquez celles que vous ne reconnaissez pas."
+      },
+      "time": {
+        "justNow": "À l'instant",
+        "minutesAgo": "Il y a {count}m",
+        "hoursAgo": "Il y a {count}h",
+        "daysAgo": "Il y a {count}j"
+      },
+      "showFullIp": "Afficher l'IP complète",
+      "hideFullIp": "Masquer l'IP complète"
+    },
+    "activity": {
+      "title": "Activité de Sécurité",
+      "description": "Activité récente du compte et connexions",
+      "loading": "Chargement de l'activité...",
+      "loadError": "Échec du chargement de l'activité de sécurité",
+      "stats": {
+        "total": "Total d'Événements",
+        "logins24h": "Connexions 24h",
+        "alerts": "Alertes"
+      },
+      "filters": {
+        "all": "Tout",
+        "security": "Sécurité",
+        "access": "Accès",
+        "location": "Localisation"
+      },
+      "dateGroups": {
+        "today": "Aujourd'hui",
+        "yesterday": "Hier",
+        "thisWeek": "Cette Semaine",
+        "thisMonth": "Ce Mois",
+        "earlier": "Plus Ancien"
+      },
+      "types": {
+        "login": {
+          "label": "Connexion",
+          "description": "Connexion réussie à votre compte"
+        },
+        "logout": {
+          "label": "Déconnexion",
+          "description": "Déconnexion de votre compte"
+        },
+        "sessionReused": {
+          "label": "Session Reprise",
+          "description": "Continuation d'une session existante"
+        },
+        "tokenRefresh": {
+          "label": "Token Actualisé",
+          "description": "Le token de session a été renouvelé"
+        },
+        "deviceTrusted": {
+          "label": "Appareil Approuvé",
+          "description": "Cet appareil a été marqué comme approuvé"
+        },
+        "deviceUntrusted": {
+          "label": "Confiance Retirée",
+          "description": "La confiance a été retirée de cet appareil"
+        },
+        "ipCountryChange": {
+          "label": "Localisation Modifiée",
+          "description": "Accès depuis un autre pays détecté"
+        },
+        "continentChange": {
+          "label": "Région Modifiée",
+          "description": "Accès depuis un autre continent détecté"
+        },
+        "impossibleTravel": {
+          "label": "Localisation Suspecte",
+          "description": "Voyage impossible détecté - risque de sécurité potentiel"
+        },
+        "newLocation": {
+          "label": "Nouvelle Localisation",
+          "description": "Premier accès depuis cette localisation"
+        },
+        "refreshFailure": {
+          "label": "Actualisation Échouée",
+          "description": "La tentative d'actualisation du token a échoué"
+        },
+        "sessionRevoked": {
+          "label": "Session Révoquée",
+          "description": "Session terminée pour des raisons de sécurité"
+        },
+        "fingerprintMismatch": {
+          "label": "Appareil Non Reconnu",
+          "description": "L'empreinte de l'appareil ne correspond pas"
+        },
+        "vpnDetected": {
+          "label": "VPN Détecté",
+          "description": "Connexion VPN ou proxy détectée"
+        }
+      },
+      "defaultDescription": "Activité enregistrée",
+      "eventCount": "{count, plural, =1 {1 événement} other {# événements}}",
+      "severity": {
+        "success": "Succès",
+        "warning": "Avertissement",
+        "alert": "Alerte"
+      },
+      "details": {
+        "time": "Heure",
+        "ipAddress": "Adresse IP",
+        "location": "Localisation",
+        "device": "Appareil",
+        "userAgent": "Agent Utilisateur"
+      },
+      "noActivity": {
+        "title": "Pas encore d'activité",
+        "titleFiltered": "Pas d'activité {filter}",
+        "description": "L'activité apparaîtra ici lorsque vous utiliserez votre compte",
+        "descriptionFiltered": "Essayez un autre filtre pour voir plus d'activité"
+      },
+      "legend": {
+        "title": "Types d'Activité",
+        "info": "Info",
+        "success": "Succès",
+        "warning": "Avertissement",
+        "danger": "Danger"
+      }
+    },
+    "notifications": {
+      "title": "Types de Notifications",
+      "description": "Choisissez comment vous souhaitez être notifié pour chaque type",
+      "preferenceSaved": "Préférence enregistrée",
+      "preferenceError": "Échec de l'enregistrement de la préférence",
+      "channels": {
+        "all": "Tous",
+        "inApp": "Dans l'app",
+        "email": "E-mail",
+        "off": "Désactivé"
+      },
+      "types": {
+        "transactions": {
+          "label": "Transactions",
+          "description": "Dépôts, retraits, achats"
+        },
+        "security": {
+          "label": "Sécurité",
+          "description": "Alertes de connexion, changements de mot de passe"
+        },
+        "locking": {
+          "label": "Verrouillage",
+          "description": "Verrouillage créé, arrivé à échéance, récompenses"
+        },
+        "system": {
+          "label": "Système",
+          "description": "Maintenance, annonces"
+        },
+        "marketing": {
+          "label": "Marketing",
+          "description": "Promotions, nouvelles fonctionnalités"
+        }
+      },
+      "emailSettings": {
+        "title": "Paramètres E-mail",
+        "enableEmail": "Activer les Notifications E-mail",
+        "enableEmailDescription": "Recevoir des notifications par e-mail",
+        "dailyDigest": "Résumé Quotidien",
+        "dailyDigestDescription": "Recevoir un résumé au lieu d'e-mails instantanés"
+      },
+      "quietHours": {
+        "title": "Heures Calmes",
+        "description": "Suspendre les notifications pendant des heures spécifiques",
+        "enable": "Activer les Heures Calmes",
+        "enableDescription": "Pas de notifications push pendant cette période",
+        "from": "De",
+        "to": "À"
+      }
+    },
+    "preferences": {
+      "title": "Préférences",
+      "appearance": "Apparence",
+      "theme": "Thème",
+      "themeLight": "Clair",
+      "themeDark": "Sombre",
+      "themeSystem": "Système",
+      "localization": "Localisation",
+      "language": "Langue",
+      "currency": "Devise d'Affichage",
+      "timezone": "Fuseau Horaire",
+      "timezoneAuto": "Détection automatique"
+    },
+    "wallets": {
+      "title": "Portefeuilles Connectés",
+      "description": "Gérez vos portefeuilles Web3 connectés",
+      "activeWallet": {
+        "title": "Portefeuille Actif",
+        "description": "Portefeuille Web3 actuellement connecté"
+      },
+      "noWalletConnected": {
+        "title": "Aucun portefeuille connecté",
+        "description": "Connectez votre portefeuille Web3 pour interagir avec la blockchain et gérer vos tokens HBCT"
+      },
+      "connectWallet": "Connecter un Portefeuille",
+      "connecting": "Connexion...",
+      "disconnect": "Déconnecter",
+      "linked": "Lié",
+      "copyFullAddress": "Copier l'adresse complète",
+      "viewOnExplorer": "Voir sur l'explorateur",
+      "addressCopied": "Adresse copiée dans le presse-papiers",
+      "copyError": "Échec de la copie de l'adresse",
+      "linkedWallets": {
+        "title": "Portefeuilles Liés",
+        "description": "Portefeuilles liés de façon permanente à votre compte",
+        "remainingSlots": "{count}/{max} emplacements disponibles",
+        "noWallets": "Aucun portefeuille lié",
+        "noWalletsDescription": "Liez un portefeuille à votre compte pour un accès permanent"
+      },
+      "linkWallet": {
+        "title": "Lier au Compte",
+        "button": "Lier le Portefeuille",
+        "alreadyLinked": "Ce portefeuille est déjà lié à votre compte",
+        "maxReached": "Vous ne pouvez lier que {max} portefeuilles maximum",
+        "connectFirst": "Veuillez d'abord connecter un portefeuille",
+        "label": "Libellé du Portefeuille (Optionnel)",
+        "labelPlaceholder": "ex. Portefeuille Matériel",
+        "labelHint": "Donnez un nom reconnaissable à ce portefeuille",
+        "confirmTitle": "Lier le Portefeuille au Compte",
+        "confirmDescription": "Cela liera définitivement votre portefeuille connecté à votre compte. Vous pourrez utiliser ce portefeuille pour vous connecter.",
+        "signMessage": "Signer pour Lier",
+        "signDescription": "Veuillez signer le message dans votre portefeuille pour vérifier la propriété",
+        "signing": "Demande de signature...",
+        "success": "Portefeuille lié avec succès !",
+        "error": "Échec de la liaison du portefeuille",
+        "signatureCancelled": "La demande de signature a été annulée",
+        "signingNotSupported": "Ce portefeuille ne prend pas en charge la signature de messages. Veuillez utiliser MetaMask ou un autre portefeuille compatible.",
+        "cancel": "Annuler",
+        "confirm": "Confirmer & Signer"
+      },
+      "primary": "Principal",
+      "setPrimary": "Définir comme Principal",
+      "primaryUpdated": "Portefeuille principal mis à jour",
+      "primaryError": "Échec de la définition du portefeuille principal",
+      "editLabel": "Modifier le Libellé",
+      "labelUpdated": "Libellé mis à jour",
+      "labelError": "Échec de la mise à jour du libellé",
+      "labelEmpty": "Le libellé ne peut pas être vide",
+      "removeWallet": "Supprimer le Portefeuille",
+      "removeSuccess": "Portefeuille supprimé",
+      "removeError": "Échec de la suppression du portefeuille",
+      "wrongNetwork": {
+        "title": "Mauvais Réseau Détecté",
+        "description": "Veuillez basculer vers {network} pour continuer",
+        "switchNetwork": "Changer de Réseau"
+      },
+      "securityTips": {
+        "title": "Sécurité Multi-Portefeuilles",
+        "tip1": "Liez plusieurs portefeuilles pour un accès de secours",
+        "tip2": "Définissez votre portefeuille le plus sécurisé comme principal",
+        "tip3": "Supprimez les portefeuilles que vous n'utilisez plus"
+      }
+    },
+    "deleteAccount": {
+      "title": "Supprimer le Compte",
+      "dangerZone": "Zone de Danger",
+      "deleteYourAccount": "Supprimer Votre Compte",
+      "deleteDescription": "Demander la suppression du compte. Vous aurez 30 jours pour récupérer votre compte.",
+      "deleteButton": "Supprimer Mon Compte",
+      "recoveryPolicy": {
+        "title": "Politique de Récupération de Compte",
+        "gracePeriod": "Période de grâce de 30 jours : Vous pouvez récupérer votre compte dans les 30 jours",
+        "dataRetention": "Conservation des données 1 an : Vos données sont conservées 1 an pour conformité",
+        "contactSupport": "Contacter le support : Pour récupérer, contactez le support avec votre e-mail d'origine",
+        "permanentDeletion": "Suppression définitive : Après 1 an, toutes les données sont définitivement purgées"
+      },
+      "whatHappens": {
+        "title": "Que se passe-t-il lorsque vous supprimez votre compte ?",
+        "emailAnonymized": "Votre e-mail sera anonymisé immédiatement",
+        "sessionsLoggedOut": "Toutes les sessions seront déconnectées",
+        "cannotLogin": "Vous ne pourrez pas vous connecter tant que le compte n'est pas récupéré",
+        "tokensForfeited": "Après 30 jours, vos tokens et gains seront perdus"
+      },
+      "eligibility": {
+        "title": "Vérification de l'Éligibilité",
+        "description": "Vérification que votre compte peut être supprimé",
+        "checking": "Vérification du statut de votre compte...",
+        "eligible": "Votre compte est éligible à la suppression.",
+        "eligibleContinue": "Cliquez sur Continuer pour poursuivre.",
+        "notEligible": "Votre compte ne peut pas encore être supprimé. Veuillez résoudre :",
+        "recheck": "Revérifier"
+      },
+      "steps": {
+        "continue": "Continuer",
+        "cancel": "Annuler",
+        "back": "Retour"
+      },
+      "step1": {
+        "title": "Supprimer Votre Compte ?",
+        "description": "Cela planifiera la suppression de votre compte. Vous aurez 30 jours pour le récupérer.",
+        "gracePeriod": "Période de Grâce : 30 jours pour récupérer",
+        "dataRetention": "Conservation des Données : 1 an pour conformité",
+        "stepsWarning": "Ce processus nécessite {steps} étapes pour s'assurer qu'il ne s'agit pas d'une erreur."
+      },
+      "step2": {
+        "title": "Confirmer la Compréhension",
+        "description": "Veuillez reconnaître que vous comprenez les conséquences",
+        "confirmations": {
+          "loseTokens": "Je comprends que tous mes tokens et soldes seront définitivement perdus après la période de grâce",
+          "loseLockedTokens": "Je comprends que mes tokens verrouillés ne peuvent pas être récupérés après la période de grâce",
+          "loseAffiliateEarnings": "Je comprends que mes gains d'affiliation seront perdus",
+          "canRecover": "Je comprends que j'ai 30 jours pour récupérer mon compte en contactant le support"
+        }
+      },
+      "step3": {
+        "title": "Tapez SUPPRIMER pour Continuer",
+        "description": "Tapez SUPPRIMER dans le champ ci-dessous pour confirmer",
+        "placeholder": "Tapez SUPPRIMER"
+      },
+      "step4": {
+        "title": "Confirmation Finale",
+        "description": "Entrez votre adresse e-mail pour confirmer la suppression",
+        "emailLabel": "Adresse E-mail",
+        "emailPlaceholder": "Entrez votre e-mail",
+        "deleteForever": "Supprimer Définitivement",
+        "deleting": "Suppression...",
+        "emailMismatch": "L'e-mail ne correspond pas"
+      },
+      "success": "Compte supprimé avec succès. Vous pouvez le récupérer jusqu'au {date}."
+    }
   },
   "common": {
     "loading": "Chargement...",
     "error": "Une erreur s'est produite",
-    "retry": "Reessayer",
+    "retry": "Réessayer",
     "save": "Enregistrer",
     "cancel": "Annuler",
     "confirm": "Confirmer",
@@ -310,74 +1106,74 @@
     "search": "Rechercher",
     "filter": "Filtrer",
     "sort": "Trier",
-    "noResults": "Aucun resultat trouve"
+    "noResults": "Aucun résultat trouvé"
   },
   "metadata": {
     "title": "HBCT - La Protection Incendie Rencontre la Blockchain",
-    "description": "L'innovation qui protege. Technologie de protection incendie soutenue par HBC Group et la transparence blockchain."
+    "description": "L'innovation qui protège. Technologie de protection incendie soutenue par HBC Group et la transparence blockchain."
   },
   "hero": {
-    "title": "L'Innovation Qui Protege",
+    "title": "L'Innovation Qui Protège",
     "subtitle": "La Protection Incendie Rencontre la Blockchain — Soutenu par",
     "company": "HBC GROUP",
     "ctaToken": "Token HBCT",
     "ctaWhitepaper": "Livre Blanc",
     "cards": {
       "labCertified": {
-        "label": "Certifie Labo",
-        "description": "Resistance au feu prouvee de 5+ heures"
+        "label": "Certifié Labo",
+        "description": "Résistance au feu prouvée de 5+ heures"
       },
       "realUtility": {
-        "label": "Utilite Reelle",
+        "label": "Utilité Réelle",
         "description": "Achetez des produits de protection incendie avec HBCT"
       },
       "incomingToken": {
-        "label": "Token en Prevente",
-        "description": "Prevente HBCT a partir de 0,03$"
+        "label": "Token en Prévente",
+        "description": "Prévente HBCT à partir de 0,03 $"
       }
     }
   },
   "aboutTechnology": {
     "label": "Notre Technologie",
-    "title": "Concu pour la Securite",
-    "subtitle": "Quatre approches innovantes de la protection incendie, certifiees selon les normes internationales.",
+    "title": "Conçu pour la Sécurité",
+    "subtitle": "Quatre approches innovantes de la protection incendie, certifiées selon les normes internationales.",
     "woodPreservation": {
-      "title": "Preservation du Bois",
-      "description": "Revetements speciaux appliques aux elements structurels en bois pour reduire significativement l'inflammabilite et prolonger leur duree de vie.",
-      "features": ["Revetements retardateurs de carbonisation", "Impregnation ignifuge", "Conforme NFPA & EN"]
+      "title": "Préservation du Bois",
+      "description": "Revêtements spéciaux appliqués aux éléments structurels en bois pour réduire significativement l'inflammabilité et prolonger leur durée de vie.",
+      "features": ["Revêtements retardateurs de carbonisation", "Imprégnation ignifuge", "Conforme NFPA & EN"]
     },
     "filmProtection": {
       "title": "Protection par Film",
-      "description": "Films protecteurs transparents pour fenetres, murs et portes qui ralentissent la propagation des flammes.",
-      "features": ["Technologie thermoreflective", "Protection barriere anti-fumee", "Formats personnalises"]
+      "description": "Films protecteurs transparents pour fenêtres, murs et portes qui ralentissent la propagation des flammes.",
+      "features": ["Technologie thermoréflective", "Protection barrière anti-fumée", "Formats personnalisés"]
     },
     "facadeSystems": {
-      "title": "Systemes de Facade",
-      "description": "Materiaux architecturaux empechant la propagation des flammes sur les exterieurs des batiments.",
-      "features": ["Panneaux refractaires", "Conception de compartimentage", "Transparence visuelle"]
+      "title": "Systèmes de Façade",
+      "description": "Matériaux architecturaux empêchant la propagation des flammes sur les extérieurs des bâtiments.",
+      "features": ["Panneaux réfractaires", "Conception de compartimentage", "Transparence visuelle"]
     },
     "textileProtection": {
       "title": "Protection Textile Incendie",
-      "description": "Barrieres non invasives en fibre de verre revetues de silicone qui contiennent les flammes et reduisent la chaleur sans eau ni mousse. Technologie de couverture EV certifiee, sans entretien, reutilisable et resistante aux intemperies.",
-      "features": ["Technologie de couverture EV certifiee", "Sans entretien & reutilisable", "Materiaux resistants aux intemperies"]
+      "description": "Barrières non invasives en fibre de verre revêtues de silicone qui contiennent les flammes et réduisent la chaleur sans eau ni mousse. Technologie de couverture VE certifiée, sans entretien, réutilisable et résistante aux intempéries.",
+      "features": ["Technologie de couverture VE certifiée", "Sans entretien & réutilisable", "Matériaux résistants aux intempéries"]
     }
   },
   "whyHbct": {
     "label": "Avantages du Token",
     "title": "Pourquoi le Token HBCT",
-    "subtitle": "Plus qu'un simple token—c'est le pont entre la technologie blockchain et la protection incendie reelle.",
+    "subtitle": "Plus qu'un simple token — c'est le pont entre la technologie blockchain et la protection incendie réelle.",
     "features": {
       "realUtility": {
-        "title": "Utilite Reelle",
-        "description": "Connectez-vous directement aux produits de protection incendie verifies. Achats reels, adoption reelle et impact mesurable—pas seulement de la speculation."
+        "title": "Utilité Réelle",
+        "description": "Connectez-vous directement aux produits de protection incendie vérifiés. Achats réels, adoption réelle et impact mesurable — pas seulement de la spéculation."
       },
       "blockchainTransparency": {
         "title": "Transparence Blockchain",
-        "description": "Chaque certification, test de produit et transaction est enregistre de maniere immuable—creant une confiance totale pour les investisseurs et les clients."
+        "description": "Chaque certification, test de produit et transaction est enregistré de manière immuable — créant une confiance totale pour les investisseurs et les clients."
       },
       "longTermValue": {
-        "title": "Valeur a Long Terme",
-        "description": "A mesure que la demande de l'ecosysteme augmente, la valeur du token se stabilise grace a une base adossee a des actifs pour une expansion future."
+        "title": "Valeur à Long Terme",
+        "description": "À mesure que la demande de l'écosystème augmente, la valeur du token se stabilise grâce à une base adossée à des actifs pour une expansion future."
       }
     },
     "tokenInfo": {
@@ -392,40 +1188,40 @@
   "tokenDistribution": {
     "label": "Tokenomics",
     "title": "Distribution des Tokens",
-    "subtitle": "Une allocation equilibree concue pour la stabilite a long terme, la croissance et la confiance de la communaute.",
+    "subtitle": "Une allocation équilibrée conçue pour la stabilité à long terme, la croissance et la confiance de la communauté.",
     "distribution": {
       "companyReserve": {
-        "label": "Reserve Entreprise",
+        "label": "Réserve Entreprise",
         "percentage": "35",
         "tokens": "87 500 000",
-        "description": "Bloquee pendant 12 mois puis liberee progressivement pour soutenir l'expansion strategique"
+        "description": "Bloquée pendant 12 mois puis libérée progressivement pour soutenir l'expansion stratégique"
       },
       "publicPresale": {
-        "label": "Prevente Publique",
+        "label": "Prévente Publique",
         "percentage": "25",
         "tokens": "62 500 000",
-        "description": "Offre principale aux investisseurs a 0,03$ par token"
+        "description": "Offre principale aux investisseurs à 0,03 $ par token"
       },
       "ecosystemRewards": {
-        "label": "Ecosysteme & Recompenses",
+        "label": "Écosystème & Récompenses",
         "percentage": "15",
         "tokens": "37 500 000",
-        "description": "Incitations partenaires et developpement du protocole"
+        "description": "Incitations partenaires et développement du protocole"
       },
       "rdCertifications": {
         "label": "R&D & Certifications",
         "percentage": "10",
         "tokens": "25 000 000",
-        "description": "Tests en laboratoire et infrastructure de verification"
+        "description": "Tests en laboratoire et infrastructure de vérification"
       },
       "teamAdvisors": {
-        "label": "Equipe & Conseillers",
+        "label": "Équipe & Conseillers",
         "percentage": "10",
         "tokens": "25 000 000",
-        "description": "Blocage de 1 an, puis acquisition lineaire sur 4 ans"
+        "description": "Blocage de 1 an, puis acquisition linéaire sur 4 ans"
       },
       "liquidity": {
-        "label": "Liquidite",
+        "label": "Liquidité",
         "percentage": "5",
         "tokens": "12 500 000",
         "description": "Support des paires de trading en bourse"
@@ -434,43 +1230,43 @@
     "vesting": {
       "title": "Calendrier d'Acquisition",
       "presale": {
-        "title": "Prevente",
-        "description": "20% au TGE, le reste acquis lineairement sur 6-8 mois"
+        "title": "Prévente",
+        "description": "20 % au TGE, le reste acquis linéairement sur 6-8 mois"
       },
       "rdEcosystem": {
-        "title": "R&D & Ecosysteme",
-        "description": "Liberation trimestrielle a l'achevement des jalons"
+        "title": "R&D & Écosystème",
+        "description": "Libération trimestrielle à l'achèvement des jalons"
       },
       "companyReserve": {
-        "title": "Reserve Entreprise",
-        "description": "Blocage de 12 mois, puis liberation progressive"
+        "title": "Réserve Entreprise",
+        "description": "Blocage de 12 mois, puis libération progressive"
       }
     }
   },
   "projectTimeline": {
     "label": "Feuille de Route",
     "title": "Chronologie du Projet",
-    "subtitle": "Notre feuille de route strategique pour revolutionner la protection incendie grace a la technologie blockchain.",
+    "subtitle": "Notre feuille de route stratégique pour révolutionner la protection incendie grâce à la technologie blockchain.",
     "phases": {
       "phase1": {
         "phase": "Phase 1",
         "title": "Fondation",
-        "description": "Finalisation du livre blanc, tokenomics et architecture des smart contracts. Lancement du site web et du systeme de marque. Debut de la prevente du token HBCT."
+        "description": "Finalisation du livre blanc, tokenomics et architecture des smart contracts. Lancement du site web et du système de marque. Début de la prévente du token HBCT."
       },
       "phase2": {
         "phase": "Phase 2",
         "title": "Technologie & Certification",
-        "description": "Tests independants de resistance au feu 5h+ avec hachages de rapports sur la blockchain. Registre de certification v1 reliant les produits aux rapports verifies."
+        "description": "Tests indépendants de résistance au feu 5h+ avec hachages de rapports sur la blockchain. Registre de certification v1 reliant les produits aux rapports vérifiés."
       },
       "phase3": {
         "phase": "Phase 3",
-        "title": "Utilite & Ecosysteme",
-        "description": "Permettre l'achat de produits avec des tokens HBCT. Lancement des recompenses partenaires et des tableaux de bord de verification."
+        "title": "Utilité & Écosystème",
+        "description": "Permettre l'achat de produits avec des tokens HBCT. Lancement des récompenses partenaires et des tableaux de bord de vérification."
       },
       "phase4": {
         "phase": "Phase 4",
         "title": "Lancement du Token & Gouvernance",
-        "description": "Deploiement de HBCT avec acquisition et distribution publique. Etablissement de la liquidite DEX et preparation des listings CEX."
+        "description": "Déploiement de HBCT avec acquisition et distribution publique. Établissement de la liquidité DEX et préparation des listings CEX."
       },
       "phase5": {
         "phase": "Phase 5",
@@ -479,22 +1275,1458 @@
       },
       "phase6": {
         "phase": "Phase 6",
-        "title": "Durabilite & Croissance",
-        "description": "Noeuds de verification decentralises. Application mobile pour scanner les certificats et garanties."
+        "title": "Durabilité & Croissance",
+        "description": "Nœuds de vérification décentralisés. Application mobile pour scanner les certificats et garanties."
       }
     }
   },
   "joinRevolution": {
-    "badge": "Prevente en Cours",
+    "badge": "Prévente en Cours",
     "title": "Rejoignez La",
-    "titleHighlight": "Revolution",
-    "subtitle": "Faites partie de l'avenir ou la protection incendie rencontre l'innovation blockchain. Securisez vos tokens HBCT aujourd'hui.",
+    "titleHighlight": "Révolution",
+    "subtitle": "Faites partie de l'avenir où la protection incendie rencontre l'innovation blockchain. Sécurisez vos tokens HBCT aujourd'hui.",
     "ctaBuy": "Acheter Token HBCT",
     "ctaWhitepaper": "Livre Blanc",
     "trust": {
-      "auditedContract": "Smart Contract Audite",
-      "verifiedTeam": "Equipe Verifiee",
-      "securePayments": "Paiements Securises"
+      "auditedContract": "Smart Contract Audité",
+      "verifiedTeam": "Équipe Vérifiée",
+      "securePayments": "Paiements Sécurisés"
+    }
+  },
+  "aboutUs": {
+    "hero": {
+      "badge": "À Propos de HBC Engineering",
+      "title": "Excellence d'Ingénierie,",
+      "titleHighlight": "Impact Mondial",
+      "subtitle": "Combinant l'excellence de l'ingénierie européenne avec un support local. Nous sommes votre partenaire de confiance pour protéger les investissements, assurer la sécurité et stimuler le progrès aux États-Unis et en Europe.",
+      "stats": {
+        "regions": "US & UE",
+        "regionsLabel": "Régions de Service",
+        "projects": "750+",
+        "projectsLabel": "Projets Réalisés",
+        "experience": "10+",
+        "experienceLabel": "Années d'Expérience"
+      }
+    },
+    "mission": {
+      "label": "Notre Mission & Valeurs",
+      "title": "Ce Qui Nous Anime",
+      "subtitle": "Nous nous engageons à fournir des solutions innovantes qui protègent les personnes, les actifs et l'environnement tout en favorisant une croissance durable.",
+      "missionTitle": "Notre Mission",
+      "missionStatement": "Plus qu'un service — nous sommes votre partenaire pour protéger les investissements, assurer la sécurité et stimuler le progrès. Nous combinons une technologie de pointe avec des décennies d'expertise pour fournir des solutions qui font une vraie différence.",
+      "values": {
+        "experience": {
+          "title": "Expérience Prouvée",
+          "description": "Plus d'une décennie d'expertise industrielle fournissant des solutions fiables dans divers secteurs."
+        },
+        "partnership": {
+          "title": "Partenariat de Confiance",
+          "description": "Construire des relations à long terme basées sur la confiance, la transparence et le succès mutuel."
+        },
+        "innovation": {
+          "title": "Axé sur l'Innovation",
+          "description": "Évolution continue de nos solutions avec les dernières technologies et meilleures pratiques."
+        },
+        "reliability": {
+          "title": "Fiabilité de Bout en Bout",
+          "description": "Support complet de la consultation initiale jusqu'à la mise en œuvre et au-delà."
+        },
+        "flexibility": {
+          "title": "Flexibilité Sur Mesure",
+          "description": "Solutions personnalisées conçues pour répondre à vos exigences et défis spécifiques."
+        },
+        "commitment": {
+          "title": "Engagement Indéfectible",
+          "description": "Dévoués à dépasser les attentes et à fournir des résultats mesurables."
+        }
+      }
+    },
+    "services": {
+      "label": "Ce Que Nous Faisons",
+      "title": "Nos Services Principaux",
+      "subtitle": "Solutions complètes couvrant la protection incendie, la maintenance industrielle, les bâtiments intelligents et les services informatiques de pointe.",
+      "fireProtection": {
+        "title": "Protection Incendie",
+        "description": "Solutions avancées de protection incendie incluant la préservation du bois, les films protecteurs, les systèmes de façade et les barrières textiles certifiées.",
+        "features": ["Traitements de préservation du bois", "Technologies de film protecteur", "Systèmes de blindage de façade", "Technologie de couverture VE certifiée"]
+      },
+      "industrial": {
+        "title": "Maintenance Industrielle",
+        "description": "Services industriels complets incluant hydraulique, électricité, mécanique, soudure et support d'intervention rapide 24/7.",
+        "features": ["Maintenance préventive & prédictive", "Relocalisation de machines complexes", "Support d'intervention rapide 24/7", "Programmation & automatisation"]
+      },
+      "smartBuilding": {
+        "title": "Bâtiments Intelligents",
+        "description": "Domotique, intégration solaire, systèmes de sécurité et surveillance énergétique pour les bâtiments modernes.",
+        "features": ["Domotique", "Intégration solaire (PV)", "Sécurité & surveillance", "Systèmes de surveillance énergétique"]
+      },
+      "itSolutions": {
+        "title": "Solutions Informatiques",
+        "description": "Développement logiciel sur mesure, infrastructure cloud, automatisation IA et services d'intégration blockchain.",
+        "features": ["Développement logiciel sur mesure", "Infrastructure Cloud & DevOps", "Systèmes IA & automatisation", "Intégration Web3 & blockchain"]
+      }
+    },
+    "team": {
+      "label": "Direction",
+      "title": "Rencontrez Notre Équipe",
+      "subtitle": "Des professionnels expérimentés dédiés à l'excellence dans chaque projet que nous entreprenons.",
+      "members": {
+        "ceo": {
+          "name": "Michael Berg",
+          "role": "Directeur Général",
+          "description": "20+ ans à diriger des initiatives d'ingénierie mondiales avec un accent sur l'innovation et la croissance durable."
+        },
+        "cto": {
+          "name": "Alexander König",
+          "role": "Directeur Technique",
+          "description": "Expert en systèmes de protection incendie et technologies de bâtiments intelligents avec des brevets sur les matériaux ignifuges."
+        },
+        "coo": {
+          "name": "Sarah Roberts",
+          "role": "Directrice des Opérations",
+          "description": "Spécialisée dans le développement des opérations dans plusieurs régions tout en maintenant les normes de qualité."
+        },
+        "cfo": {
+          "name": "James Wilson",
+          "role": "Directeur Financier",
+          "description": "Leadership financier stratégique avec expertise sur les marchés internationaux et les projets blockchain."
+        }
+      }
+    },
+    "global": {
+      "label": "Présence Mondiale",
+      "title": "Où Nous Opérons",
+      "subtitle": "Au service des clients aux États-Unis et en Europe avec une expertise locale et des normes mondiales.",
+      "usa": {
+        "title": "États-Unis",
+        "subtitle": "Siège Social",
+        "address": "260 Peachtree Street, Atlanta, GA 30303, USA",
+        "phone": "+1 (404) 703-3649",
+        "email": "office@hbc-engineering.com"
+      },
+      "europe": {
+        "title": "Union Européenne",
+        "subtitle": "Bureau Régional",
+        "address": "Centre des Opérations Européennes",
+        "email": "eu@hbc-engineering.com"
+      },
+      "support": {
+        "title": "Support 24/7 Disponible",
+        "description": "Assistance permanente pour les infrastructures critiques et les interventions d'urgence.",
+        "cta": "Visiter Notre Site Web"
+      }
+    },
+    "cta": {
+      "badge": "Rejoignez l'Écosystème",
+      "title": "Prêt à",
+      "titleHighlight": "Commencer ?",
+      "subtitle": "Rejoignez des milliers d'utilisateurs qui font confiance à HBC Engineering et à l'écosystème HBCT pour leurs besoins en protection incendie et blockchain.",
+      "primaryCta": "Acheter des Tokens HBCT",
+      "secondaryCta": "Explorer le Tableau de Bord"
+    }
+  },
+  "services": {
+    "hero": {
+      "badge": "Services de Protection Incendie",
+      "title": "Solutions Avancées de",
+      "titleHighlight": "Protection Incendie",
+      "subtitle": "Technologie de protection incendie de pointe soutenue par des décennies d'expertise en ingénierie. De la préservation du bois aux barrières textiles, nous fournissons des solutions certifiées qui sauvent des vies et protègent les actifs.",
+      "exploreCta": "Explorer les Services",
+      "learnMoreCta": "En Savoir Plus",
+      "trust": {
+        "certified": "Certifié ISO",
+        "certifiedDesc": "Normes internationales",
+        "tested": "Testé en Labo",
+        "testedDesc": "Résistance 5+ heures",
+        "support": "Support 24/7",
+        "supportDesc": "Toujours disponible"
+      }
+    },
+    "list": {
+      "label": "Nos Services",
+      "title": "Technologies de Protection Incendie",
+      "subtitle": "Solutions complètes de protection incendie conçues pour répondre aux normes de sécurité les plus élevées et protéger ce qui compte le plus.",
+      "wood": {
+        "title": "Préservation & Traitement du Bois",
+        "description": "Nos traitements avancés de préservation du bois appliquent des revêtements ignifuges spécialisés aux éléments structurels en bois, réduisant significativement l'inflammabilité tout en prolongeant la durée de vie des structures en bois. Chaque traitement est personnalisé selon le type de bois, l'environnement d'application et le niveau de résistance au feu requis.",
+        "features": [
+          "Revêtements retardateurs de carbonisation formant une barrière protectrice",
+          "Imprégnation ignifuge à pénétration profonde",
+          "Traitements certifiés NFPA et EN",
+          "Adapté aux applications intérieures et extérieures",
+          "Prolonge la durée de vie du bois jusqu'à 50 %"
+        ]
+      },
+      "film": {
+        "title": "Technologies de Film Protecteur",
+        "description": "Films protecteurs transparents conçus pour les fenêtres, murs et portes qui ralentissent la propagation des flammes et réduisent le transfert de chaleur radiante. Nos films maintiennent la clarté optique tout en offrant une résistance au feu critique, les rendant idéaux pour les applications commerciales et résidentielles.",
+        "features": [
+          "Technologie thermoréflective réduisant le transfert thermique",
+          "Protection barrière anti-fumée bloquant les gaz toxiques",
+          "Formats personnalisés pour toute taille de fenêtre ou porte",
+          "Résistant aux UV avec durée de vie 10+ ans",
+          "Installation facile avec perturbation minimale"
+        ]
+      },
+      "facade": {
+        "title": "Systèmes de Blindage de Façade",
+        "description": "Matériaux architecturaux de protection incendie spécifiquement conçus pour empêcher la propagation des flammes sur les extérieurs des bâtiments. Nos systèmes de façade s'intègrent parfaitement aux conceptions de bâtiments modernes tout en respectant les codes stricts de sécurité incendie.",
+        "features": [
+          "Panneaux réfractaires avec classification feu A1",
+          "Conception de compartimentage empêchant la propagation du feu",
+          "Maintient la transparence visuelle et l'esthétique",
+          "Résistant aux intempéries pour tous les climats",
+          "Compatible avec les systèmes de façade ventilée"
+        ]
+      },
+      "textile": {
+        "title": "Protection Textile Incendie",
+        "description": "Barrières révolutionnaires non invasives en fibre de verre revêtues de silicone qui contiennent les flammes et réduisent la chaleur sans eau ni mousse. Notre technologie de couverture VE certifiée est sans entretien, réutilisable et résistante aux intempéries — idéale pour les interventions d'urgence et les installations permanentes.",
+        "features": [
+          "Couverture VE certifiée pour les incendies de véhicules électriques",
+          "Résiste à des températures jusqu'à 1100°C",
+          "Sans entretien et entièrement réutilisable",
+          "Résistante aux intempéries pour stockage extérieur",
+          "Conception compacte pour déploiement rapide"
+        ]
+      }
+    },
+    "features": {
+      "label": "Pourquoi Nous Choisir",
+      "title": "L'Avantage HBC",
+      "subtitle": "Nos solutions de protection incendie combinent une technologie innovante avec une fiabilité éprouvée pour offrir des performances de sécurité inégalées.",
+      "items": {
+        "protection": {
+          "title": "Protection Maximale",
+          "description": "Nos solutions offrent plus de 5 heures de résistance au feu, dépassant les normes de l'industrie et vous donnant un maximum de temps pour l'évacuation et l'intervention."
+        },
+        "certified": {
+          "title": "Entièrement Certifié",
+          "description": "Tous les produits respectent ou dépassent les exigences de certification NFPA, EN et ISO, assurant la conformité aux normes internationales de sécurité incendie."
+        },
+        "eco": {
+          "title": "Écologique",
+          "description": "Nos traitements sont respectueux de l'environnement, utilisant des formulations non toxiques sûres pour les occupants et l'environnement."
+        },
+        "durable": {
+          "title": "Longue Durée",
+          "description": "Conçues pour la durabilité, nos solutions maintiennent leur efficacité pendant des décennies avec des exigences de maintenance minimales."
+        },
+        "rapid": {
+          "title": "Déploiement Rapide",
+          "description": "Des processus d'installation rapides minimisent les perturbations de vos opérations tout en maximisant la protection dès le premier jour."
+        },
+        "support": {
+          "title": "Support Expert",
+          "description": "Notre équipe de spécialistes en protection incendie fournit une consultation continue, la maintenance et un support d'urgence 24/7."
+        }
+      }
+    },
+    "process": {
+      "label": "Comment Nous Travaillons",
+      "title": "Notre Processus",
+      "subtitle": "De la consultation initiale à la certification finale, nous vous guidons à chaque étape de la mise en œuvre de solutions complètes de protection incendie.",
+      "stats": {
+        "hours": "Heures de résistance au feu",
+        "compliance": "Taux de conformité"
+      },
+      "steps": {
+        "consultation": {
+          "title": "Consultation Initiale",
+          "description": "Nous commençons par une compréhension approfondie de vos besoins, discutant du type de propriété, des facteurs de risque et des exigences spécifiques en protection incendie."
+        },
+        "assessment": {
+          "title": "Évaluation du Site",
+          "description": "Nos ingénieurs effectuent une évaluation complète sur site, identifiant les vulnérabilités et mesurant les zones nécessitant une protection."
+        },
+        "solution": {
+          "title": "Conception de Solution Personnalisée",
+          "description": "Basés sur notre évaluation, nous concevons un système de protection incendie sur mesure qui répond à vos risques spécifiques tout en optimisant le rapport coût-efficacité."
+        },
+        "implementation": {
+          "title": "Installation Professionnelle",
+          "description": "Nos techniciens certifiés installent tous les systèmes de protection incendie avec une perturbation minimale de vos opérations, suivant des protocoles de qualité stricts."
+        },
+        "certification": {
+          "title": "Tests & Certification",
+          "description": "Chaque installation fait l'objet de tests rigoureux et d'une documentation, vous fournissant une certification complète à des fins d'assurance et de conformité."
+        }
+      }
+    },
+    "cta": {
+      "title": "Prêt à Protéger",
+      "titleHighlight": "Votre Propriété ?",
+      "subtitle": "Contactez nos spécialistes en protection incendie dès aujourd'hui pour une consultation gratuite et découvrez comment nos solutions peuvent sauvegarder vos actifs.",
+      "primaryCta": "Commencer avec HBCT",
+      "secondaryCta": "Visiter HBC Engineering",
+      "contact": {
+        "phoneLabel": "Appelez-nous directement",
+        "emailLabel": "Envoyez-nous un e-mail",
+        "responseTime": "Temps de réponse moyen : 2 heures pendant les heures ouvrables"
+      }
+    }
+  },
+  "project": {
+    "hero": {
+      "badge": "Écosystème Token HBCT",
+      "title": "L'Avenir de la",
+      "titleHighlight": "Protection Incendie",
+      "subtitle": "HBCT est un token utilitaire alimentant un écosystème complet — des achats marketplace aux récompenses de staking. Produits réels, valeur réelle, transparence blockchain.",
+      "primaryCta": "Acheter des Tokens HBCT",
+      "secondaryCta": "Explorer l'Écosystème",
+      "stats": {
+        "symbol": "Symbole du Token",
+        "chain": "Blockchain",
+        "supply": "Offre Totale",
+        "utility": "Token Utilitaire"
+      }
+    },
+    "token": {
+      "label": "Pourquoi HBCT",
+      "title": "Plus qu'un Simple",
+      "titleHighlight": "Token",
+      "subtitle": "HBCT fait le pont entre la technologie blockchain et les produits réels de protection incendie, créant une valeur tangible au-delà de la spéculation.",
+      "features": {
+        "utility": {
+          "title": "Utilité Réelle",
+          "description": "Utilisez HBCT pour acheter de vrais produits de protection incendie sur notre marketplace. Adoption réelle, impact mesurable et création de valeur authentique."
+        },
+        "transparency": {
+          "title": "Transparence Blockchain",
+          "description": "Chaque transaction, certification et test de produit est enregistré de manière immuable sur la blockchain, créant une confiance totale pour les détenteurs de tokens et les clients."
+        },
+        "value": {
+          "title": "Valeur à Long Terme",
+          "description": "À mesure que la demande de l'écosystème croît via les ventes de produits et le staking, la valeur du token est soutenue par une activité économique réelle."
+        }
+      },
+      "benefits": {
+        "instant": {
+          "title": "Transactions Instantanées",
+          "description": "Les transferts hors chaîne sont instantanés avec zéro frais. Les transactions on-chain sont rapides et sécurisées sur BSC."
+        },
+        "global": {
+          "title": "Accès Mondial",
+          "description": "Accédez à l'écosystème depuis n'importe où dans le monde avec support multi-devises."
+        },
+        "secure": {
+          "title": "Sécurité Entreprise",
+          "description": "Authentification multi-facteurs, journalisation d'audit et protection de portefeuille de niveau entreprise."
+        }
+      }
+    },
+    "tokenomics": {
+      "label": "Tokenomics",
+      "title": "Distribution des Tokens",
+      "subtitle": "Une allocation équilibrée conçue pour la stabilité à long terme, la croissance de l'écosystème et la confiance de la communauté.",
+      "totalSupply": "Offre Totale",
+      "distribution": {
+        "reserve": {
+          "label": "Réserve Entreprise"
+        },
+        "presale": {
+          "label": "Prévente Publique"
+        },
+        "ecosystem": {
+          "label": "Récompenses Écosystème"
+        },
+        "rd": {
+          "label": "R&D & Certifications"
+        },
+        "team": {
+          "label": "Équipe & Conseillers"
+        },
+        "liquidity": {
+          "label": "Liquidité"
+        }
+      },
+      "vestingTitle": "Calendrier d'Acquisition",
+      "vesting": {
+        "presale": {
+          "title": "Tokens Prévente",
+          "description": "20 % au TGE, le reste acquis linéairement sur 6-8 mois pour assurer la stabilité des prix."
+        },
+        "rd": {
+          "title": "R&D & Écosystème",
+          "description": "Libération trimestrielle à l'achèvement des jalons, assurant un développement continu."
+        },
+        "reserve": {
+          "title": "Réserve Entreprise",
+          "description": "Période de blocage de 12 mois, puis libération progressive alignée sur l'expansion stratégique."
+        }
+      },
+      "details": {
+        "network": "Réseau",
+        "type": "Type de Token"
+      }
+    },
+    "ecosystem": {
+      "label": "Écosystème",
+      "title": "Quatre Piliers de",
+      "titleHighlight": "Valeur",
+      "subtitle": "Un écosystème complet conçu pour créer de multiples voies pour gagner, dépenser et croître avec HBCT.",
+      "pillars": {
+        "marketplace": {
+          "title": "Marketplace",
+          "description": "Achetez de vrais produits de protection incendie avec des tokens HBCT. Utilité réelle générant une demande réelle.",
+          "features": [
+            "Produits de protection incendie",
+            "Intégration paiement HBCT",
+            "Suivi commandes & livraison"
+          ]
+        },
+        "locking": {
+          "title": "Verrouillage de Tokens",
+          "description": "Verrouillez vos tokens pour gagner des récompenses bonus. Les niveaux supérieurs débloquent de meilleurs APY et avantages exclusifs.",
+          "features": [
+            "Jusqu'à 50 % APY récompenses",
+            "Multiples niveaux de durée de verrouillage",
+            "Déverrouillage & réclamation en un clic"
+          ]
+        },
+        "affiliate": {
+          "title": "Programme d'Affiliation",
+          "description": "Gagnez jusqu'à 15 % de commission sur les achats de parrainage. Développez votre réseau, augmentez vos gains.",
+          "features": [
+            "15 % taux de commission",
+            "Suivi en temps réel",
+            "Paiements hebdomadaires en HBCT"
+          ]
+        },
+        "wallet": {
+          "title": "Portefeuille Intégré",
+          "description": "Gérez plusieurs devises avec options on-chain et off-chain. Vos fonds, votre contrôle.",
+          "features": [
+            "Support multi-devises",
+            "Transferts internes sans frais",
+            "Liaison multi-portefeuilles"
+          ]
+        }
+      },
+      "learnMore": "En Savoir Plus",
+      "stats": {
+        "pillars": "Piliers Écosystème",
+        "apy": "APY Max",
+        "commission": "Commission Max",
+        "access": "Accès Plateforme"
+      }
+    },
+    "marketplace": {
+      "label": "Marketplace",
+      "title": "Produits Réels,",
+      "titleHighlight": "Valeur Réelle",
+      "subtitle": "La marketplace HBCT connecte les détenteurs de tokens avec des produits de protection incendie certifiés. Chaque achat crée une demande réelle et une utilité pour le token.",
+      "cta": "Parcourir la Marketplace",
+      "benefits": [
+        "Achetez avec des tokens HBCT à des tarifs exclusifs",
+        "Produits de protection incendie certifiés",
+        "Livraison mondiale avec suivi de commande",
+        "Gagnez des récompenses fidélité sur les achats"
+      ],
+      "products": {
+        "woodProtection": {
+          "name": "Traitement Protection Bois",
+          "description": "Revêtement ignifuge pour bois structurel"
+        },
+        "flameRetardant": {
+          "name": "Spray Ignifuge",
+          "description": "Spray de protection incendie grade industriel"
+        },
+        "facadeCoating": {
+          "name": "Revêtement Ignifuge Façade",
+          "description": "Système de protection incendie extérieur"
+        },
+        "textileSpray": {
+          "name": "Spray Ignifuge Textile",
+          "description": "Protection incendie non toxique pour tissus"
+        }
+      },
+      "howItWorks": {
+        "title": "Comment Ça Marche",
+        "steps": [
+          {
+            "title": "Acheter HBCT",
+            "description": "Achetez des tokens avec BNB, USDT ou USDC"
+          },
+          {
+            "title": "Parcourir les Produits",
+            "description": "Explorez notre catalogue de protection incendie certifié"
+          },
+          {
+            "title": "Payer avec HBCT",
+            "description": "Utilisez vos tokens au paiement pour des tarifs exclusifs"
+          },
+          {
+            "title": "Recevoir & Protéger",
+            "description": "Faites-vous livrer vos produits dans le monde entier"
+          }
+        ]
+      }
+    },
+    "roadmap": {
+      "label": "Feuille de Route",
+      "title": "Chronologie du Projet",
+      "subtitle": "Notre feuille de route stratégique pour révolutionner la protection incendie grâce à la technologie blockchain et créer une valeur durable.",
+      "phaseLabel": "Phase",
+      "currentPhase": "En Cours",
+      "phases": {
+        "foundation": {
+          "title": "Fondation",
+          "period": "T1 2024",
+          "items": [
+            "Livre blanc & tokenomics finalisés",
+            "Développement smart contract",
+            "Lancement site web & marque",
+            "Début construction communauté"
+          ]
+        },
+        "launch": {
+          "title": "Lancement Token",
+          "period": "T2 2024",
+          "items": [
+            "Lancement prévente HBCT",
+            "Intégration système de portefeuille",
+            "Fonctionnalité verrouillage de tokens",
+            "Lancement programme d'affiliation"
+          ]
+        },
+        "growth": {
+          "title": "Croissance Écosystème",
+          "period": "T3 2024",
+          "items": [
+            "Lancement marketplace avec produits",
+            "Développement application mobile",
+            "Intégration partenaires",
+            "Programme de récompenses communauté"
+          ]
+        },
+        "expansion": {
+          "title": "Expansion Marché",
+          "period": "T4 2024",
+          "items": [
+            "Déploiement liquidité DEX",
+            "Candidatures listing CEX",
+            "Entrée marchés internationaux",
+            "Niveaux de staking améliorés"
+          ]
+        },
+        "ecosystem": {
+          "title": "Écosystème Complet",
+          "period": "T1 2025",
+          "items": [
+            "Registre de certification on-chain",
+            "Système de suivi des garanties",
+            "Portail partenaires B2B",
+            "Fonctionnalités token de gouvernance"
+          ]
+        },
+        "global": {
+          "title": "Échelle Mondiale",
+          "period": "T2 2025",
+          "items": [
+            "Expansion multi-chaînes",
+            "Partenariats fabricants mondiaux",
+            "Nœuds de vérification décentralisés",
+            "Lancement solutions entreprise"
+          ]
+        }
+      }
+    },
+    "cta": {
+      "title": "Rejoignez",
+      "titleHighlight": "l'Écosystème HBCT",
+      "subtitle": "Commencez votre aventure avec HBCT dès aujourd'hui. Achetez des tokens, gagnez des récompenses et faites partie de l'avenir de la protection incendie.",
+      "getStarted": "Commencer",
+      "actions": {
+        "buy": {
+          "title": "Acheter des Tokens HBCT",
+          "description": "Achetez des tokens directement avec BNB, USDT ou USDC. Livraison instantanée sur votre portefeuille."
+        },
+        "affiliate": {
+          "title": "Rejoindre le Programme d'Affiliation",
+          "description": "Gagnez jusqu'à 15 % de commission sur chaque achat de parrainage. Paiements hebdomadaires en HBCT."
+        },
+        "lock": {
+          "title": "Verrouiller & Gagner",
+          "description": "Verrouillez vos tokens pour gagner jusqu'à 50 % APY. Plusieurs niveaux avec avantages exclusifs."
+        }
+      },
+      "stats": {
+        "supply": "Offre Totale",
+        "price": "Prix Prévente",
+        "network": "Réseau",
+        "standard": "Standard Token"
+      },
+      "disclaimer": "Les investissements en cryptomonnaie comportent des risques inhérents. Veuillez effectuer vos propres recherches avant d'investir. HBCT est un token utilitaire, pas un titre financier."
+    }
+  },
+  "terms": {
+    "badge": "Document Juridique",
+    "title": "Conditions d'Utilisation",
+    "lastUpdated": "Dernière Mise à Jour",
+    "updateDate": "27 décembre 2024",
+    "introduction": "Bienvenue sur HBCT (HBC Fire Protection Token). Ces Conditions d'Utilisation régissent votre utilisation de notre plateforme, y compris notre site web, services de tokens, marketplace et toutes les fonctionnalités associées. En accédant ou en utilisant nos services, vous acceptez d'être lié par ces conditions. Veuillez les lire attentivement.",
+    "tableOfContents": "Table des Matières",
+    "sections": {
+      "acceptance": {
+        "title": "Acceptation des Conditions",
+        "content": "En accédant ou en utilisant la plateforme HBCT, vous reconnaissez avoir lu, compris et accepté d'être lié par ces Conditions d'Utilisation. Si vous n'acceptez pas ces conditions, vous ne devez pas accéder ni utiliser nos services.\n\nCes conditions constituent un accord juridiquement contraignant entre vous et HBC Engineering concernant votre utilisation de la plateforme. Nous nous réservons le droit de modifier ces conditions à tout moment, et votre utilisation continue de la plateforme constitue l'acceptation de toute modification."
+      },
+      "eligibility": {
+        "title": "Éligibilité",
+        "content": "Pour utiliser nos services, vous devez :\n\n• Avoir au moins 18 ans ou l'âge de la majorité légale dans votre juridiction\n• Avoir la capacité juridique de conclure des contrats contraignants\n• Ne pas être résident d'une juridiction où les transactions en cryptomonnaie sont interdites\n• Ne pas figurer sur une liste de sanctions ni être soumis à des restrictions commerciales\n• Respecter toutes les lois et réglementations applicables dans votre juridiction\n\nEn utilisant nos services, vous déclarez et garantissez que vous remplissez toutes les conditions d'éligibilité."
+      },
+      "account": {
+        "title": "Inscription au Compte & Sécurité",
+        "content": "Lorsque vous créez un compte, vous acceptez de :\n\n• Fournir des informations exactes, actuelles et complètes lors de l'inscription\n• Maintenir et mettre à jour rapidement les informations de votre compte\n• Garder votre mot de passe et vos identifiants d'authentification sécurisés et confidentiels\n• Activer l'authentification à deux facteurs pour une sécurité renforcée\n• Nous informer immédiatement de tout accès non autorisé à votre compte\n• Accepter la responsabilité de toutes les activités sous votre compte\n\nNous nous réservons le droit de suspendre ou de résilier les comptes qui violent ces conditions ou s'engagent dans des activités suspectes."
+      },
+      "tokens": {
+        "title": "Conditions du Token HBCT",
+        "content": "HBCT est un token utilitaire sur la Binance Smart Chain (BSC) conçu pour être utilisé au sein de l'écosystème HBC. En achetant ou détenant des tokens HBCT, vous reconnaissez que :\n\n• Les tokens HBCT ne sont pas des titres, des investissements ou des instruments financiers\n• Les valeurs des tokens peuvent fluctuer et vous pouvez perdre une partie ou la totalité de votre montant d'achat\n• Les tokens ne sont pas remboursables une fois achetés\n• Les fonctionnalités de verrouillage de tokens ont des durées fixes qui ne peuvent être annulées prématurément\n• Nous ne garantissons aucun rendement, profit ou appréciation de la valeur du token\n• Vous êtes seul responsable de toute obligation fiscale découlant des transactions de tokens\n\nLes achats de tokens sont soumis aux limites de transaction applicables et aux exigences de vérification."
+      },
+      "marketplace": {
+        "title": "Conditions de la Marketplace",
+        "content": "Notre marketplace vous permet d'acheter des produits de protection incendie en utilisant des tokens HBCT. Lors de l'utilisation de la marketplace :\n\n• Tous les prix des produits sont affichés en HBCT et peuvent varier en fonction de la valeur du token\n• Les commandes sont soumises à la disponibilité des produits et aux restrictions d'expédition\n• Les délais et coûts d'expédition varient selon la destination et sont clairement affichés lors du paiement\n• Les produits peuvent être soumis à des droits d'importation et taxes dans votre juridiction\n• Les retours et remboursements sont gérés selon notre Politique de Retour\n• Nous nous réservons le droit d'annuler les commandes qui violent ces conditions"
+      },
+      "prohibited": {
+        "title": "Activités Interdites",
+        "content": "Vous acceptez de ne pas vous engager dans les activités interdites suivantes :\n\n• Utiliser la plateforme pour le blanchiment d'argent ou le financement du terrorisme\n• Tenter de manipuler les prix des tokens ou s'engager dans une manipulation de marché\n• Créer plusieurs comptes pour contourner les limites ou restrictions\n• Utiliser des systèmes automatisés, bots ou scripts sans autorisation\n• Tenter de pirater, exploiter ou compromettre la sécurité de la plateforme\n• Se faire passer pour d'autres utilisateurs ou représentants de HBC Engineering\n• S'engager dans des transactions frauduleuses ou fournir de fausses informations\n• Violer les lois, réglementations ou droits de tiers applicables\n• Interférer avec le bon fonctionnement de la plateforme"
+      },
+      "intellectual": {
+        "title": "Propriété Intellectuelle",
+        "content": "Tout le contenu, marques, logos et propriété intellectuelle sur la plateforme HBCT sont la propriété de HBC Engineering ou lui sont concédés sous licence. Vous ne pouvez pas :\n\n• Copier, modifier ou distribuer tout contenu de la plateforme sans permission\n• Utiliser nos marques ou logos sans autorisation écrite\n• Effectuer de l'ingénierie inverse ou tenter d'extraire le code source de notre plateforme\n• Créer des œuvres dérivées basées sur notre propriété intellectuelle\n\nVous conservez la propriété de tout contenu que vous soumettez à la plateforme, mais nous accordez une licence pour utiliser ce contenu selon les besoins pour fournir nos services."
+      },
+      "disclaimer": {
+        "title": "Avertissements",
+        "content": "LA PLATEFORME ET LES SERVICES SONT FOURNIS « EN L'ÉTAT » ET « TELS QUE DISPONIBLES » SANS GARANTIE D'AUCUNE SORTE, EXPRESSE OU IMPLICITE.\n\nNous ne garantissons pas que :\n• La plateforme sera ininterrompue, sécurisée ou sans erreur\n• Tout défaut sera corrigé\n• La plateforme est exempte de virus ou composants nuisibles\n• Les résultats de l'utilisation de la plateforme répondront à vos attentes\n\nLes technologies de cryptomonnaie et blockchain comportent des risques inhérents. Vous reconnaissez comprendre ces risques et acceptez l'entière responsabilité de votre utilisation de la plateforme."
+      },
+      "liability": {
+        "title": "Limitation de Responsabilité",
+        "content": "DANS LA MESURE MAXIMALE PERMISE PAR LA LOI, HBC ENGINEERING ET SES AFFILIÉS NE SERONT PAS RESPONSABLES DE :\n\n• Tout dommage indirect, accessoire, spécial, consécutif ou punitif\n• Perte de profits, revenus, données ou opportunités commerciales\n• Fluctuations de la valeur des tokens ou pertes de marché\n• Accès non autorisé à votre compte ou données\n• Erreurs ou inexactitudes dans le contenu de la plateforme\n• Toute action ou contenu de tiers\n\nNotre responsabilité totale pour toute réclamation découlant de ces conditions ne dépassera pas le montant que vous nous avez payé au cours des 12 mois précédents."
+      },
+      "termination": {
+        "title": "Résiliation",
+        "content": "Nous pouvons suspendre ou résilier votre accès à la plateforme à tout moment, avec ou sans motif, et avec ou sans préavis. En cas de résiliation :\n\n• Votre droit d'accès à la plateforme cessera immédiatement\n• Vous devez cesser toute utilisation de nos services\n• Les dispositions qui, par leur nature, devraient survivre resteront en vigueur\n• Vous pourrez toujours retirer tous les tokens non verrouillés vers un portefeuille externe\n\nVous pouvez fermer votre compte à tout moment en contactant notre équipe de support."
+      },
+      "governing": {
+        "title": "Loi Applicable & Litiges",
+        "content": "Ces Conditions d'Utilisation seront régies et interprétées conformément aux lois de l'État de Géorgie, États-Unis, sans tenir compte de ses dispositions relatives aux conflits de lois.\n\nTout litige découlant de ces conditions ou de votre utilisation de la plateforme sera résolu par :\n\n1. Négociation de bonne foi entre les parties\n2. Arbitrage contraignant à Atlanta, Géorgie si la négociation échoue\n3. Tribunaux compétents du comté de Fulton, Géorgie pour les mesures injonctives\n\nVous acceptez de renoncer à tout droit de participer à des recours collectifs contre HBC Engineering."
+      },
+      "changes": {
+        "title": "Modifications des Conditions",
+        "content": "Nous nous réservons le droit de modifier ces Conditions d'Utilisation à tout moment. Lorsque nous apportons des modifications :\n\n• Nous mettrons à jour la date « Dernière Mise à Jour » en haut de cette page\n• Nous pouvons vous notifier par e-mail ou notification de plateforme pour les modifications importantes\n• Votre utilisation continue de la plateforme constitue l'acceptation des conditions modifiées\n• Si vous n'êtes pas d'accord avec les modifications, vous devez cesser d'utiliser la plateforme\n\nNous vous encourageons à consulter périodiquement ces conditions pour rester informé de toute mise à jour."
+      }
+    },
+    "contact": {
+      "title": "Questions sur ces Conditions ?",
+      "description": "Si vous avez des questions sur ces Conditions d'Utilisation, veuillez contacter notre équipe juridique."
+    },
+    "links": {
+      "privacy": "Politique de Confidentialité",
+      "audit": "Rapport d'Audit",
+      "home": "Accueil"
+    }
+  },
+  "privacy": {
+    "badge": "Votre Vie Privée Compte",
+    "title": "Politique de Confidentialité",
+    "lastUpdated": "Dernière Mise à Jour",
+    "updateDate": "27 décembre 2024",
+    "introduction": "Chez HBC Engineering, nous nous engageons à protéger votre vie privée et à assurer la sécurité de vos informations personnelles. Cette Politique de Confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous utilisez la plateforme HBCT. Veuillez lire attentivement cette politique pour comprendre nos pratiques concernant vos données personnelles.",
+    "tableOfContents": "Table des Matières",
+    "dataOverview": "Types de Données que Nous Collectons",
+    "dataTypes": {
+      "personal": "Informations Personnelles",
+      "personalDesc": "Nom, e-mail, numéro de téléphone et documents de vérification d'identité",
+      "wallet": "Informations de Portefeuille",
+      "walletDesc": "Adresses de portefeuille de cryptomonnaie et historique des transactions",
+      "transaction": "Données de Transaction",
+      "transactionDesc": "Historique des achats, transferts de tokens et commandes marketplace",
+      "device": "Informations d'Appareil",
+      "deviceDesc": "Adresse IP, type de navigateur, identifiants d'appareil et habitudes d'utilisation"
+    },
+    "sections": {
+      "collection": {
+        "title": "Informations que Nous Collectons",
+        "content": "Nous collectons les informations que vous nous fournissez directement, notamment :\n\n• Informations d'inscription au compte (nom, e-mail, mot de passe)\n• Documents de vérification d'identité pour la conformité KYC\n• Informations de paiement et de transaction\n• Communications avec notre équipe de support\n• Informations de profil et préférences\n\nNous collectons automatiquement certaines informations lorsque vous utilisez notre plateforme :\n\n• Informations d'appareil et de navigateur\n• Adresse IP et données de localisation\n• Habitudes d'utilisation et données d'interaction\n• Cookies et technologies de suivi similaires"
+      },
+      "usage": {
+        "title": "Comment Nous Utilisons Vos Informations",
+        "content": "Nous utilisons les informations que nous collectons pour :\n\n• Fournir, maintenir et améliorer nos services\n• Traiter les transactions et envoyer les notifications associées\n• Vérifier votre identité et prévenir la fraude\n• Respecter les exigences légales et réglementaires\n• Vous envoyer des mises à jour, alertes de sécurité et messages de support\n• Analyser les habitudes d'utilisation pour améliorer l'expérience utilisateur\n• Personnaliser le contenu et les recommandations\n• Protéger la sécurité de notre plateforme et de nos utilisateurs"
+      },
+      "blockchain": {
+        "title": "Blockchain & Données Publiques",
+        "content": "Veuillez noter que les transactions blockchain sont publiques par nature :\n\n• Les adresses de portefeuille et les montants de transaction sont visibles sur la blockchain\n• Ces informations ne peuvent pas être supprimées ou modifiées une fois enregistrées\n• Nous ne pouvons pas contrôler l'accès aux données publiques de la blockchain\n• Votre adresse de portefeuille peut être liée à votre identité si elle est divulguée\n\nNous recommandons d'utiliser des portefeuilles séparés pour les transactions sensibles et d'être prudent quant à l'association publique de votre identité avec des adresses de portefeuille."
+      },
+      "cookies": {
+        "title": "Cookies & Technologies de Suivi",
+        "content": "Nous utilisons des cookies et technologies similaires pour :\n\n• Vous maintenir connecté et mémoriser vos préférences\n• Analyser le trafic et les habitudes d'utilisation\n• Améliorer les performances et la sécurité de la plateforme\n• Fournir du contenu et des fonctionnalités personnalisés\n\nTypes de cookies que nous utilisons :\n\n• Cookies essentiels : Requis pour le fonctionnement de la plateforme\n• Cookies d'analyse : Nous aident à comprendre comment les utilisateurs interagissent avec notre plateforme\n• Cookies de préférence : Mémorisent vos paramètres et choix\n\nVous pouvez contrôler les cookies via les paramètres de votre navigateur, mais certaines fonctionnalités peuvent ne pas fonctionner correctement si les cookies sont désactivés."
+      },
+      "sharing": {
+        "title": "Partage d'Informations",
+        "content": "Nous pouvons partager vos informations avec :\n\n• Des prestataires de services qui nous aident à exploiter notre plateforme\n• Des processeurs de paiement pour le traitement des transactions\n• Des services de vérification d'identité pour la conformité KYC\n• Les forces de l'ordre lorsque requis par la loi ou procédure légale\n• Des conseillers professionnels (avocats, auditeurs, consultants)\n• Des partenaires commerciaux avec votre consentement\n\nNous ne vendons pas vos informations personnelles à des tiers à des fins marketing.\n\nEn cas de fusion, acquisition ou vente d'actifs, vos informations peuvent être transférées à l'entité acquéreuse."
+      },
+      "security": {
+        "title": "Sécurité des Données",
+        "content": "Nous mettons en œuvre des mesures de sécurité robustes pour protéger vos informations :\n\n• Chiffrement des données en transit et au repos (AES-256)\n• Authentification à deux facteurs pour l'accès au compte\n• Audits de sécurité réguliers et tests de pénétration\n• Contrôles d'accès et formation des employés\n• Centres de données sécurisés avec sécurité physique\n• Systèmes de réponse aux incidents et de surveillance\n\nBien que nous prenions des précautions étendues, aucun système n'est complètement sécurisé. Nous vous encourageons à utiliser des mots de passe forts et à activer toutes les fonctionnalités de sécurité disponibles."
+      },
+      "retention": {
+        "title": "Conservation des Données",
+        "content": "Nous conservons vos informations personnelles aussi longtemps que nécessaire pour :\n\n• Vous fournir nos services\n• Respecter les obligations légales et réglementaires\n• Résoudre les litiges et appliquer les accords\n• Maintenir la sécurité et prévenir la fraude\n\nPériodes de conservation spécifiques :\n\n• Informations de compte : Durée du compte plus 5 ans\n• Enregistrements de transactions : 7 ans pour la conformité fiscale et réglementaire\n• Journaux de sécurité : 2 ans\n• Préférences marketing : Jusqu'à votre désabonnement\n\nVous pouvez demander la suppression de vos données sous réserve des exigences légales de conservation."
+      },
+      "rights": {
+        "title": "Vos Droits en Matière de Confidentialité",
+        "content": "Selon votre localisation, vous pouvez avoir les droits suivants :\n\n• Accès : Demander une copie de vos données personnelles\n• Rectification : Corriger les données inexactes ou incomplètes\n• Effacement : Demander la suppression de vos données (avec limitations)\n• Portabilité : Recevoir vos données dans un format portable\n• Restriction : Limiter la façon dont nous traitons vos données\n• Opposition : Vous opposer à certaines activités de traitement\n• Retrait du consentement : Révoquer un consentement précédemment donné\n\nPour exercer ces droits, veuillez nous contacter à privacy@hbc-engineering.com. Nous répondrons dans un délai de 30 jours."
+      },
+      "international": {
+        "title": "Transferts Internationaux de Données",
+        "content": "Vos informations peuvent être transférées et traitées dans des pays autres que le vôtre, y compris les États-Unis où nos serveurs sont situés.\n\nNous assurons des garanties appropriées pour les transferts internationaux :\n\n• Clauses contractuelles types approuvées par les autorités réglementaires\n• Accords de traitement des données avec les prestataires de services\n• Conformité aux cadres de protection des données applicables\n\nEn utilisant notre plateforme, vous consentez au transfert de vos informations vers des pays qui peuvent avoir des lois de protection des données différentes de votre juridiction."
+      },
+      "children": {
+        "title": "Confidentialité des Enfants",
+        "content": "Notre plateforme n'est pas destinée aux personnes de moins de 18 ans. Nous ne collectons pas sciemment d'informations personnelles auprès d'enfants.\n\nSi nous apprenons que nous avons collecté des informations personnelles d'un enfant sans consentement parental, nous prendrons des mesures pour supprimer rapidement ces informations.\n\nSi vous pensez que nous avons collecté par inadvertance des informations d'un enfant, veuillez nous contacter immédiatement à privacy@hbc-engineering.com."
+      },
+      "changes": {
+        "title": "Modifications de cette Politique",
+        "content": "Nous pouvons mettre à jour cette Politique de Confidentialité de temps à autre pour refléter les changements dans nos pratiques ou les exigences légales.\n\nLorsque nous apportons des modifications :\n\n• Nous mettrons à jour la date « Dernière Mise à Jour »\n• Nous vous informerons des modifications importantes par e-mail ou notification de plateforme\n• Nous pouvons demander votre consentement si requis par la loi\n\nNous vous encourageons à consulter cette politique périodiquement. Votre utilisation continue de la plateforme après les modifications constitue l'acceptation de la politique mise à jour."
+      }
+    },
+    "rightsSummary": {
+      "title": "Résumé de Vos Droits",
+      "access": "Droit d'accéder à vos données",
+      "rectification": "Droit de corriger les données inexactes",
+      "erasure": "Droit de demander la suppression des données",
+      "portability": "Droit à la portabilité des données",
+      "restriction": "Droit de restreindre le traitement",
+      "objection": "Droit de s'opposer au traitement"
+    },
+    "contact": {
+      "title": "Contacter Notre Équipe Confidentialité",
+      "description": "Si vous avez des questions sur cette Politique de Confidentialité ou nos pratiques en matière de données, veuillez contacter notre Délégué à la Protection des Données.",
+      "address": "260 Peachtree Street, Atlanta, GA 30303, USA"
+    },
+    "links": {
+      "terms": "Conditions d'Utilisation",
+      "audit": "Rapport d'Audit",
+      "home": "Accueil"
+    }
+  },
+  "buyTokens": {
+    "pageTitle": "Acheter des Tokens HBCT",
+    "pageSubtitle": "Achetez des tokens HBCT avec votre portefeuille Web3 connecté",
+    "walletNotConnected": {
+      "title": "Portefeuille non connecté",
+      "description": "Veuillez connecter votre portefeuille Web3 pour acheter des tokens HBCT",
+      "connectButton": "Connecter le portefeuille"
+    },
+    "wrongNetwork": {
+      "title": "Mauvais réseau",
+      "description": "Veuillez passer au réseau principal BSC pour acheter des tokens HBCT",
+      "switchButton": "Passer au réseau principal"
+    },
+    "walletConnectWarning": {
+      "title": "WalletConnect peut avoir un support limité",
+      "description": "Certains portefeuilles mobiles ne supportent pas les transactions sur BSC via WalletConnect. Si vous voyez des erreurs \"Méthode inconnue\", veuillez utiliser l'une de ces options :",
+      "options": {
+        "metamask": "Extension de navigateur MetaMask ou Coinbase Wallet (recommandé)",
+        "trustWallet": "Application mobile Trust Wallet (meilleur support WalletConnect + BSC)",
+        "metamaskMobile": "Application mobile MetaMask"
+      }
+    },
+    "deliveryMethod": {
+      "internalBalance": "Solde interne",
+      "sendToWallet": "Envoyer au portefeuille"
+    },
+    "form": {
+      "title": "Acheter HBCT",
+      "youPay": "Vous payez",
+      "youReceive": "Vous recevez",
+      "balance": "Solde",
+      "destinationWallet": "Portefeuille de destination",
+      "noLinkedWallets": "Aucun portefeuille lié",
+      "linkWalletHint": "Liez un portefeuille dans les paramètres pour utiliser la livraison on-chain",
+      "linkWallet": "Lier un portefeuille →",
+      "linkNewWallet": "Lier un nouveau portefeuille"
+    },
+    "quote": {
+      "tokenAmount": "Montant des tokens",
+      "platformFee": "Frais de plateforme",
+      "networkFee": "Frais de réseau",
+      "totalCost": "Coût total"
+    },
+    "currencies": {
+      "bnb": "Binance Coin",
+      "usdt": "Tether USD",
+      "usdc": "USD Coin"
+    },
+    "button": {
+      "confirmInWallet": "Confirmez dans le portefeuille...",
+      "confirmingOnChain": "Confirmation on-chain...",
+      "processingPurchase": "Traitement de l'achat...",
+      "purchaseComplete": "Achat terminé !",
+      "noBalance": "Pas de solde {currency}",
+      "insufficientBalance": "Solde insuffisant",
+      "buyAddToBalance": "Acheter et ajouter au solde",
+      "buySendToWallet": "Acheter et envoyer au portefeuille"
+    },
+    "info": {
+      "internalBalance": {
+        "title": "Solde interne",
+        "instant": "Instantané",
+        "instantDesc": "Tokens ajoutés immédiatement",
+        "secureStorage": "Stockage sécurisé",
+        "secureStorageDesc": "Stocké dans le portefeuille de la plateforme",
+        "easyTransfers": "Transferts faciles",
+        "easyTransfersDesc": "Envoyez à d'autres utilisateurs instantanément"
+      },
+      "externalWallet": {
+        "title": "Portefeuille externe",
+        "onChain": "On-Chain",
+        "onChainDesc": "Tokens envoyés vers votre portefeuille",
+        "fullControl": "Contrôle total",
+        "fullControlDesc": "Vos clés, vos tokens",
+        "networkFee": "Frais de réseau",
+        "networkFeeDesc": "Petits frais pour la transaction blockchain"
+      }
+    },
+    "price": {
+      "title": "Prix actuel",
+      "perToken": "/ HBCT"
+    },
+    "limits": {
+      "title": "Vos limites",
+      "perTransaction": "Par transaction",
+      "upTo": "Jusqu'à",
+      "dailyRemaining": "Restant quotidien",
+      "monthlyRemaining": "Restant mensuel"
+    },
+    "paymentMethods": {
+      "title": "Payer avec",
+      "subtitle": "Depuis le portefeuille connecté"
+    },
+    "usdValue": "Valeur USD",
+    "lowSlippage": "Faible glissement",
+    "toast": {
+      "enterAmount": "Veuillez entrer un montant",
+      "connectWallet": "Veuillez d'abord connecter votre portefeuille",
+      "depositNotConfigured": "Portefeuille de dépôt non configuré",
+      "walletNotConnected": "Portefeuille non correctement connecté. Veuillez vous reconnecter.",
+      "safeWalletNotSupported": "Les portefeuilles Safe (multisig) ne sont pas supportés pour les achats de tokens. Veuillez utiliser un portefeuille standard.",
+      "walletNotReady": "Connexion au portefeuille non prête. Veuillez patienter un moment ou reconnecter votre portefeuille.",
+      "walletNotReadyHint": "Assurez-vous que votre application de portefeuille est ouverte et connectée.",
+      "unableToConnect": "Impossible de se connecter à votre portefeuille. Veuillez réessayer de vous connecter.",
+      "switchingNetwork": "Passage au réseau principal BSC...",
+      "switchNetworkToContinue": "Veuillez passer au réseau BSC pour continuer",
+      "failedToSwitchNetwork": "Échec du changement de réseau. Veuillez passer manuellement au BSC.",
+      "maxPurchaseExceeded": "L'achat maximum par transaction est de ${max}",
+      "checkWalletApp": "Vérifiez votre application de portefeuille pour la demande de transaction...",
+      "confirmTransaction": "Veuillez confirmer la transaction dans {wallet}...",
+      "transactionSent": "Transaction envoyée !",
+      "waitingForConfirmations": "En attente des confirmations blockchain...",
+      "selectDestinationWallet": "Veuillez sélectionner un portefeuille de destination"
+    },
+    "errors": {
+      "cancelled": {
+        "title": "Transaction annulée",
+        "message": "Vous avez annulé la transaction",
+        "details": "La transaction n'a pas été complétée car elle a été annulée dans votre portefeuille.",
+        "suggestion": "Vous pouvez réessayer quand vous êtes prêt à continuer."
+      },
+      "walletIncompatibility": {
+        "title": "Incompatibilité du portefeuille",
+        "messageWalletConnect": "Votre portefeuille ne supporte pas les transactions BSC via WalletConnect",
+        "detailsWalletConnect": "Certains portefeuilles mobiles ont un support limité pour les transactions sur le réseau BSC lorsqu'ils sont connectés via WalletConnect.",
+        "suggestionWalletConnect": "Veuillez utiliser l'extension de navigateur MetaMask ou Coinbase Wallet, ou essayez l'application mobile Trust Wallet pour une meilleure compatibilité.",
+        "messageGeneric": "Votre portefeuille ne supporte pas ce type de transaction",
+        "detailsGeneric": "Le portefeuille connecté peut ne pas supporter entièrement toutes les méthodes de transaction requises.",
+        "suggestionGeneric": "Essayez d'utiliser l'extension de navigateur MetaMask ou Coinbase Wallet à la place."
+      },
+      "insufficientFunds": {
+        "title": "Solde insuffisant",
+        "message": "Vous n'avez pas assez de solde pour cette transaction",
+        "details": "Votre solde {currency} n'est pas suffisant pour couvrir le montant de la transaction plus les frais de réseau.",
+        "suggestion": "Veuillez ajouter plus de fonds à votre portefeuille ou réduire le montant de la transaction."
+      },
+      "networkError": {
+        "title": "Erreur réseau",
+        "message": "Veuillez vous connecter au bon réseau",
+        "details": "Votre portefeuille peut être connecté à un réseau blockchain différent de celui requis.",
+        "suggestion": "Passez au réseau BNB Smart Chain (BSC) dans votre portefeuille et réessayez."
+      },
+      "timeout": {
+        "title": "Délai d'expiration de la transaction",
+        "message": "La transaction a pris trop de temps à traiter",
+        "details": "Le réseau blockchain peut être congestionné ou votre connexion au portefeuille a été interrompue.",
+        "suggestion": "Veuillez vérifier votre portefeuille pour toute transaction en attente et réessayez."
+      },
+      "connectionLost": {
+        "title": "Connexion perdue",
+        "message": "Votre connexion au portefeuille a été perdue",
+        "details": "La connexion entre votre portefeuille et l'application a été interrompue.",
+        "suggestion": "Veuillez reconnecter votre portefeuille et réessayez."
+      },
+      "txPending": {
+        "title": "Transaction en attente",
+        "message": "Une transaction est déjà en cours",
+        "details": "Vous avez une autre transaction qui n'a pas encore été confirmée.",
+        "suggestion": "Veuillez attendre que la transaction en attente soit terminée ou vérifiez votre application de portefeuille."
+      },
+      "unknown": {
+        "suggestion": "Veuillez réessayer. Si le problème persiste, contactez le support."
+      }
+    },
+    "result": {
+      "success": {
+        "title": "Achat réussi !",
+        "messageOffChain": "Vos tokens HBCT ont été ajoutés à votre solde",
+        "messageOnChain": "Vos tokens HBCT ont été envoyés vers votre portefeuille"
+      }
+    }
+  },
+  "audit": {
+    "badge": "Rapport d'Audit de Sécurité",
+    "title": "Audit de Sécurité HBCT",
+    "subtitle": "Analyse de sécurité complète du smart contract HBCT et de l'intégration de la plateforme",
+    "reportDate": "Date du Rapport",
+    "version": "Version",
+    "downloadPdf": "Télécharger le Rapport d'Audit PDF",
+    "generating": "Génération du PDF...",
+    "tabs": {
+      "smartContract": "Smart Contract",
+      "platform": "Plateforme"
+    },
+    "smartContract": {
+      "summary": "Le contrat token HBCT est un token BEP-20 standard déployé sur la BNB Smart Chain. Notre analyse confirme que le contrat suit les standards établis sans vulnérabilités critiques trouvées dans l'implémentation du token.",
+      "recommendations": {
+        "title": "Recommandations",
+        "multisig": "Envisager l'implémentation d'exigences multi-signatures pour les opérations du propriétaire du contrat.",
+        "thirdPartyAudit": "Engager une société de sécurité tierce pour un audit indépendant du smart contract."
+      },
+      "conclusion": "Le smart contract HBCT démontre une implémentation solide du standard BEP-20. Le token suit les meilleures pratiques avec une protection intégrée contre les dépassements et des mécanismes de transfert standard. Aucune vulnérabilité critique n'a été identifiée lors de cet audit."
+    },
+    "platform": {
+      "summary": "La plateforme HBCT implémente des mesures de sécurité robustes pour les opérations de dépôt et de retrait. Notre analyse confirme les meilleures pratiques de l'industrie incluant l'authentification multi-facteurs, le stockage chiffré et une validation complète des transactions.",
+      "recommendations": {
+        "title": "Recommandations",
+        "monitoring": "Mettre en place une surveillance en temps réel et des alertes pour les modèles de transaction inhabituels ou les gros transferts.",
+        "insurance": "Envisager d'obtenir une couverture d'assurance de plateforme pour une protection supplémentaire.",
+        "penetrationTest": "Effectuer des tests de pénétration réguliers pour identifier les vulnérabilités de sécurité potentielles."
+      },
+      "conclusion": "L'intégration de la plateforme démontre des contrôles de sécurité solides avec authentification multi-facteurs, stockage chiffré, journalisation complète et validation robuste des transactions. Les améliorations recommandées sont des améliorations consultatives plutôt que des corrections critiques."
+    },
+    "executiveSummary": {
+      "title": "Résumé Exécutif",
+      "status": "RÉUSSI - Aucune Vulnérabilité Critique Trouvée",
+      "description": "Le contrat token HBCT est un token BEP-20 standard déployé sur la BNB Smart Chain. Notre analyse confirme que le token suit les standards établis et l'intégration de la plateforme implémente des mesures de sécurité robustes pour les opérations de dépôt et de retrait."
+    },
+    "contractOverview": {
+      "title": "Aperçu du Contrat",
+      "tokenName": "Nom du Token",
+      "contractAddress": "Adresse du Contrat",
+      "network": "Réseau",
+      "tokenStandard": "Standard Token",
+      "decimals": "Décimales",
+      "totalSupply": "Offre Totale",
+      "presalePrice": "Prix Prévente"
+    },
+    "platformWallets": {
+      "title": "Adresses de Portefeuille de la Plateforme",
+      "depositWallet": "Portefeuille de Dépôt",
+      "depositDescription": "La plateforme reçoit les dépôts HBCT à cette adresse. Tous les transferts entrants sont surveillés et crédités aux comptes utilisateurs après confirmation."
+    },
+    "contractFunctions": {
+      "title": "Fonctions du Smart Contract",
+      "transfer": "Transférer des tokens entre adresses",
+      "balanceOf": "Interroger le solde de tokens d'une adresse",
+      "decimals": "Retourne les décimales du token (18)",
+      "symbol": "Retourne le symbole du token (HBCT)",
+      "allowance": "Vérifier l'allocation de dépense approuvée",
+      "transferEvent": "Émis sur tous les transferts de tokens pour le suivi"
+    },
+    "securityAnalysis": {
+      "title": "Analyse de Sécurité",
+      "items": {
+        "standard": {
+          "title": "Conformité Standard BEP-20",
+          "desc": "Le contrat implémente l'interface BEP-20 standard avec toutes les fonctions et événements requis."
+        },
+        "ownership": {
+          "title": "Structure de Propriété",
+          "desc": "Les fonctions de propriété et de transfert de tokens fonctionnent comme prévu sans portes dérobées cachées."
+        },
+        "reentrancy": {
+          "title": "Protection Contre la Réentrance",
+          "desc": "Les transferts de tokens standard n'ont pas de vulnérabilités de réentrance."
+        },
+        "overflow": {
+          "title": "Dépassement/Sous-dépassement d'Entiers",
+          "desc": "Solidity 0.8+ fournit une protection intégrée contre les dépassements pour les opérations arithmétiques."
+        },
+        "gasLimit": {
+          "title": "Optimisation du Gas",
+          "desc": "Les transferts de tokens fonctionnent dans les limites de gas normales pour les tokens BEP-20."
+        },
+        "centralization": {
+          "title": "Note de Centralisation",
+          "desc": "Les opérations de la plateforme (dépôts/retraits) sont gérées de manière centralisée avec des contrôles de sécurité appropriés."
+        }
+      }
+    },
+    "platformSecurity": {
+      "title": "Sécurité de l'Intégration Plateforme",
+      "items": {
+        "2fa": "Authentification à Deux Facteurs (TOTP)",
+        "encryption": "Chiffrement AES-256-GCM pour les Secrets",
+        "auditLog": "Journalisation d'Audit Complète",
+        "multiWallet": "Vérification de Signature Multi-Portefeuille",
+        "confirmations": "Exigence de 12 Confirmations de Bloc",
+        "rateLimiting": "Limitation de Débit & Protection Contre le Verrouillage"
+      }
+    },
+    "withdrawalSecurity": {
+      "title": "Configuration de Sécurité des Retraits",
+      "minAmount": "Retrait Minimum",
+      "maxAmount": "Retrait Maximum",
+      "feePercent": "Frais de Retrait",
+      "approvalThreshold": "Seuil d'Approbation Admin",
+      "emailConfirmation": "Confirmation par E-mail",
+      "required": "Requis",
+      "gasProtection": "Protection Prix du Gas"
+    },
+    "depositSecurity": {
+      "title": "Configuration de Sécurité des Dépôts",
+      "confirmations": "Confirmations Requises",
+      "eventTracking": "Méthode de Suivi des Événements",
+      "transferEvents": "Surveillance des événements de transfert via Viem",
+      "deduplication": "Déduplication des Événements",
+      "txHashLogIndex": "Suivi hash de transaction + index de log",
+      "rpcRedundancy": "Redondance RPC",
+      "primaryFallback": "Points de terminaison RPC principal + secours"
+    },
+    "techStack": {
+      "title": "Stack Technologique",
+      "viem": "Client Blockchain",
+      "wagmi": "Connexion Portefeuille",
+      "nestjs": "Framework Backend",
+      "nextjs": "Framework Frontend"
+    },
+    "recommendations": {
+      "title": "Recommandations",
+      "items": {
+        "multisig": "Envisager l'implémentation d'exigences multi-signatures pour les opérations de portefeuille de retrait à haute valeur.",
+        "monitoring": "Mettre en place une surveillance en temps réel et des alertes pour les modèles de transaction inhabituels ou les gros transferts.",
+        "insurance": "Envisager d'obtenir une couverture d'assurance smart contract pour une protection supplémentaire.",
+        "thirdPartyAudit": "Engager une société de sécurité tierce pour un audit indépendant du smart contract."
+      }
+    },
+    "conclusion": {
+      "title": "Conclusion",
+      "content": "Le contrat token HBCT et l'intégration de la plateforme démontrent une base de sécurité solide. Le token suit les standards BEP-20, et la plateforme implémente les meilleures pratiques de l'industrie incluant l'authentification multi-facteurs, le stockage chiffré, la journalisation complète et la validation robuste des transactions. Les améliorations recommandées sont des améliorations consultatives plutôt que des corrections critiques. Dans l'ensemble, le système est adapté à une utilisation en production avec les mesures de sécurité actuelles en place."
+    },
+    "signature": {
+      "preparedBy": "Préparé Par",
+      "date": "Date du Rapport",
+      "version": "Version du Rapport"
+    },
+    "links": {
+      "viewOnBscscan": "Voir sur BSCScan",
+      "terms": "Conditions d'Utilisation",
+      "privacy": "Politique de Confidentialité",
+      "home": "Accueil"
+    }
+  },
+  "wallet": {
+    "title": "Portefeuille",
+    "subtitle": "Gérez vos tokens HBCT et transactions",
+    "balance": "Solde",
+    "available": "Disponible",
+    "locked": "Verrouillé",
+    "total": "Total",
+    "deposit": "Déposer",
+    "withdraw": "Retirer",
+    "transfer": "Transférer",
+    "history": "Historique",
+    "noTransactions": "Aucune transaction",
+    "depositAddress": "Adresse de Dépôt",
+    "copyAddress": "Copier l'Adresse",
+    "addressCopied": "Adresse copiée !",
+    "minDeposit": "Dépôt minimum",
+    "depositConfirmations": "Confirmations requises",
+    "depositWarning": "Envoyez uniquement des tokens HBCT (BEP-20) à cette adresse. L'envoi d'autres tokens peut entraîner une perte de fonds.",
+    "withdrawAmount": "Montant à Retirer",
+    "withdrawAddress": "Adresse de Retrait",
+    "withdrawAddressPlaceholder": "Entrez l'adresse de portefeuille BEP-20",
+    "withdrawFee": "Frais de Retrait",
+    "withdrawMin": "Minimum",
+    "withdrawMax": "Maximum",
+    "withdrawButton": "Retirer",
+    "withdrawing": "Retrait en cours...",
+    "withdrawSuccess": "Retrait initié avec succès",
+    "withdrawError": "Échec du retrait",
+    "insufficientBalance": "Solde insuffisant",
+    "invalidAddress": "Adresse invalide",
+    "pendingWithdrawals": "Retraits en Attente",
+    "noPendingWithdrawals": "Aucun retrait en attente",
+    "transactionId": "ID Transaction",
+    "status": "Statut",
+    "date": "Date",
+    "amount": "Montant",
+    "fee": "Frais",
+    "txHash": "Hash Transaction",
+    "viewOnExplorer": "Voir sur l'Explorateur",
+    "connecting": "Connexion...",
+    "connectWeb3": "Connecter Web3",
+    "connect": "Connecter",
+    "disconnect": "Déconnecter",
+    "onChainBalance": "Solde On-chain",
+    "onChain": "On-chain",
+    "myWallet": "Mon portefeuille",
+    "switchToBSC": "Passer à BNB Smart Chain",
+    "switchedToBSC": "Passé à BNB Smart Chain",
+    "failedToSwitchBSC": "Échec du passage à BNB Smart Chain",
+    "switchedTo": "Passé à {network}",
+    "failedToSwitchNetwork": "Échec du changement de réseau",
+    "walletConnected": "Portefeuille connecté !",
+    "walletDisconnected": "Portefeuille déconnecté",
+    "connectionCancelled": "Connexion annulée",
+    "failedToConnect": "Échec de la connexion au portefeuille. Veuillez réessayer.",
+    "connectorNotFound": "Connecteur non trouvé",
+    "modal": {
+      "title": "Connecter le portefeuille",
+      "initializing": "Initialisation...",
+      "scanWithWallet": "Scanner avec votre application portefeuille",
+      "orConnectDirectly": "ou connecter directement",
+      "walletsFound": "{count} portefeuille trouvé · Cliquez pour connecter",
+      "walletsFoundPlural": "{count} portefeuilles trouvés · Cliquez pour connecter",
+      "noWalletsDetected": "Aucun portefeuille détecté · Installez-en un pour continuer",
+      "opening": "Ouverture de {wallet}...",
+      "preparingConnection": "Préparation de la connexion...",
+      "connectionTimeout": "Délai de connexion dépassé. Veuillez réessayer.",
+      "dontHaveWallet": "Vous n'avez pas de portefeuille ?",
+      "getStartedMetaMask": "Commencez avec MetaMask",
+      "get": "Obtenir",
+      "securedByWalletConnect": "Sécurisé par WalletConnect",
+      "securedWithWalletConnect": "Sécurisé avec WalletConnect"
+    },
+    "conflict": {
+      "title": "Connexion du portefeuille bloquée",
+      "description": "Ce portefeuille appartient à un autre compte",
+      "blockedWallet": "Portefeuille bloqué",
+      "defaultMessage": "Cette adresse de portefeuille est déjà liée à un autre compte utilisateur.",
+      "disconnectedMessage": "Le portefeuille a été déconnecté pour des raisons de sécurité. Veuillez connecter un autre portefeuille.",
+      "whyBlocked": "Pourquoi cela a-t-il été bloqué ?",
+      "oneAccountRule": "Chaque portefeuille ne peut être lié qu'à un seul compte",
+      "protectsUsers": "Cela protège les utilisateurs contre les transactions non autorisées",
+      "connectOwnWallet": "Connectez un portefeuille qui vous appartient pour continuer",
+      "connectDifferent": "Connecter un autre portefeuille",
+      "close": "Fermer",
+      "contactSupport": "Vous pensez que c'est une erreur ? Contactez le support",
+      "toastTitle": "Portefeuille bloqué",
+      "toastMessage": "Ce portefeuille est déjà lié à un autre compte. Veuillez utiliser un autre portefeuille."
+    },
+    "signature": {
+      "required": "Signature requise",
+      "checkWallet": "Vérifiez votre portefeuille",
+      "signing": "Signature...",
+      "verified": "Vérifié !",
+      "failed": "Signature échouée",
+      "verifyOwnership": "Pour vérifier la propriété de votre portefeuille, veuillez signer le message dans {wallet}.",
+      "openMobileApp": "Ouvrez votre application portefeuille mobile",
+      "requestWaiting": "Une demande de signature est en attente",
+      "confirmInExtension": "Veuillez confirmer la demande de signature dans votre extension portefeuille.",
+      "verifiedSuccess": "Votre portefeuille a été vérifié avec succès. Connexion en cours...",
+      "rejectedOrFailed": "La signature a été rejetée ou a échoué. Veuillez réessayer.",
+      "connected": "Connecté",
+      "signMessage": "Signer le message",
+      "closingAutomatically": "Fermeture automatique..."
+    },
+    "deposit": {
+      "title": "Déposer des HBCT",
+      "subtitle": "Envoyez des tokens HBCT depuis votre portefeuille externe",
+      "tabs": {
+        "deposit": "Dépôt",
+        "history": "Historique"
+      },
+      "backToWallet": "Retour au Portefeuille",
+      "notConfigured": {
+        "title": "Dépôts non disponibles",
+        "description": "Le système de dépôt n'est pas encore configuré. Veuillez contacter le support."
+      },
+      "qrSection": {
+        "title": "Dépôt HBCT",
+        "network": "BNB Smart Chain (BSC)",
+        "status": "Actif",
+        "scanInstruction": "Scannez le code QR ou copiez l'adresse ci-dessous",
+        "addressLabel": "Adresse de dépôt",
+        "bscNetwork": "Réseau BSC",
+        "copy": "Copier",
+        "copied": "Copié !",
+        "viewOnBscscan": "Voir sur BSCScan"
+      },
+      "howTo": {
+        "title": "Comment déposer",
+        "step1": {
+          "title": "Copiez l'adresse de dépôt",
+          "description": "Cliquez sur le bouton copier ci-dessus ou scannez le code QR"
+        },
+        "step2": {
+          "title": "Envoyez des HBCT depuis votre portefeuille",
+          "description": "Utilisez MetaMask, Trust Wallet ou tout portefeuille compatible BSC"
+        },
+        "step3": {
+          "title": "Attendez la confirmation",
+          "description": "{confirmations} confirmations de blocs (~1-2 minutes)"
+        },
+        "step4": {
+          "title": "Cliquez sur \"Vérifier les dépôts\"",
+          "description": "Utilisez le bouton ci-dessous pour vérifier votre dépôt"
+        }
+      },
+      "checkDeposits": {
+        "button": "Vérifier les dépôts",
+        "linkWalletFirst": "Liez d'abord un portefeuille pour vérifier les dépôts",
+        "noWalletError": "Veuillez d'abord lier un portefeuille pour vérifier les dépôts"
+      },
+      "linkedWallets": {
+        "title": "Vos portefeuilles liés",
+        "manage": "Gérer",
+        "creditInfo": "Les dépôts de ces portefeuilles seront automatiquement crédités sur votre compte :",
+        "primary": "PRINCIPAL",
+        "noWallets": {
+          "title": "Aucun portefeuille lié",
+          "description": "Liez un portefeuille pour que les dépôts soient automatiquement associés à votre compte"
+        },
+        "linkWallet": "Lier un portefeuille"
+      },
+      "warning": {
+        "title": "Important",
+        "onlyHbct": "N'envoyez que des tokens HBCT à cette adresse",
+        "onlyBsc": "N'utilisez que le réseau BNB Smart Chain (BSC)",
+        "permanentLoss": "L'envoi d'autres tokens peut entraîner une perte permanente"
+      }
+    },
+    "withdraw": {
+      "title": "Retirer des HBCT",
+      "subtitle": "Envoyez des tokens HBCT vers votre portefeuille externe",
+      "tabs": {
+        "newWithdrawal": "Nouveau retrait",
+        "history": "Historique"
+      },
+      "backToWallet": "Retour au Portefeuille",
+      "successMessage": "Demande de retrait soumise ! Vérifiez votre e-mail pour le code de confirmation."
+    },
+    "main": {
+        "title": "Mon Portefeuille",
+        "subtitle": "Gérez vos tokens HBCT",
+        "refresh": "Actualiser",
+        "history": "Historique",
+        "totalBalance": "Solde Total",
+        "available": "Disponible",
+        "reserved": "Réservé",
+        "locked": "Verrouillé",
+        "noChange": "Pas de changement",
+        "thisMonth": "ce mois-ci",
+        "quickActions": {
+          "send": "Envoyer",
+          "receive": "Recevoir",
+          "deposit": "Déposer",
+          "withdraw": "Retirer",
+          "buy": "Acheter"
+        },
+        "pendingTransfers": {
+          "title": "{count} Transfert en Attente",
+          "titlePlural": "{count} Transferts en Attente",
+          "reserved": "({amount} HBCT réservés)",
+          "confirmOrCancel": "Confirmez ou annulez pour libérer les fonds réservés",
+          "view": "Voir"
+        },
+        "limits": {
+          "title": "Limites de Transfert",
+          "daily": "Limite Journalière",
+          "weekly": "Limite Hebdomadaire",
+          "left": "restant",
+          "used": "utilisé",
+          "max": "max"
+        },
+        "summary": {
+          "title": "Ce Mois-ci",
+          "transactions": "Transactions",
+          "volume": "Volume"
+        },
+        "activity": {
+          "title": "Activité Récente",
+          "viewAll": "Voir Tout",
+          "empty": "Aucune activité récente",
+          "emptyDesc": "Vos transactions apparaîtront ici",
+          "justNow": "À l'instant",
+          "mAgo": "il y a {mins}m",
+          "hAgo": "il y a {hours}h",
+          "dAgo": "il y a {days}j"
+        },
+        "types": {
+          "deposit": "Dépôt",
+          "withdrawal": "Retrait",
+          "sent": "Envoyé",
+          "received": "Reçu",
+          "purchase": "Achat",
+          "sale": "Vente",
+          "locked": "Verrouillé",
+          "unlocked": "Déverrouillé",
+          "reward": "Récompense",
+          "airdrop": "Airdrop",
+          "commission": "Commission",
+          "fee": "Frais",
+          "refund": "Remboursement"
+        },
+        "status": {
+          "completed": "Terminé",
+          "pending": "En Attente",
+          "cancelled": "Annulé",
+          "expired": "Expiré",
+          "failed": "Échoué",
+          "processing": "En Traitement"
+        }
+      },
+      "send": {
+        "title": "Envoyer HBCT",
+        "subtitle": "Transférer des tokens à un autre utilisateur",
+        "success": {
+          "title": "Transfert Réussi !",
+          "sentTo": "Envoyé à",
+          "amount": "Montant",
+          "sendAnother": "Envoyer un Autre",
+          "done": "Terminé"
+        },
+        "error": {
+          "title": "Échec du Transfert",
+          "tryAgain": "Réessayer",
+          "backToWallet": "Retour au Portefeuille"
+        },
+        "failedToInitiate": "Impossible d'initier le transfert",
+        "invalidCode": "Code de confirmation invalide",
+        "completed": "Transfert effectué avec succès !"
+      },
+      "receive": {
+        "title": "Recevoir HBCT",
+        "subtitle": "Partagez vos informations pour être payé instantanément",
+        "backToWallet": "Retour au Portefeuille",
+        "yourUsername": "Votre Nom d'Utilisateur",
+        "yourEmail": "Votre E-mail",
+        "setUsername": "Définir un nom d'utilisateur →",
+        "shareMyDetails": "Partager Mes Informations",
+        "copied": "Copié !",
+        "copy": "Copier",
+        "allMethods": {
+          "title": "Toutes les Méthodes de Réception",
+          "subtitle": "L'expéditeur peut utiliser l'une d'elles pour vous trouver",
+          "username": "Nom d'Utilisateur",
+          "email": "E-mail"
+        },
+        "howItWorks": {
+          "title": "Comment ça marche",
+          "step1": "Partagez votre nom d'utilisateur ou e-mail avec l'expéditeur",
+          "step2": "Il vous recherche sur la page Envoyer",
+          "step3": "Transfert instantané — les HBCT arrivent en secondes"
+        }
+      },
+      "transactions": {
+        "title": "Historique des Transactions HBCT",
+        "transactionCount": "{count} transaction",
+        "transactionCountPlural": "{count} transactions",
+        "filters": "Filtres",
+        "clearAll": "Tout effacer",
+        "export": "Exporter",
+        "status": "Statut",
+        "type": "Type",
+        "allStatuses": "Tous les statuts",
+        "allTypes": "Tous les types",
+        "summary": {
+          "totalIn": "Total Entrant",
+          "totalOut": "Total Sortant",
+          "thisMonth": "Ce Mois-ci",
+          "tx": "tx"
+        },
+        "empty": "Aucune transaction trouvée",
+        "emptyWithFilters": "Essayez d'ajuster vos filtres",
+        "emptyDesc": "Votre historique de transactions HBCT apparaîtra ici",
+        "previous": "Précédent",
+        "next": "Suivant"
+      }
+  },
+  "help": {
+    "title": "Centre d'Aide",
+    "subtitle": "Comment pouvons-nous vous aider ?",
+    "searchPlaceholder": "Rechercher de l'aide...",
+    "categories": {
+      "gettingStarted": "Premiers Pas",
+      "account": "Compte & Sécurité",
+      "tokens": "Tokens & Transactions",
+      "marketplace": "Marketplace",
+      "affiliate": "Programme d'Affiliation",
+      "technical": "Support Technique"
+    },
+    "contact": {
+      "title": "Contactez-Nous",
+      "subtitle": "Besoin d'aide supplémentaire ? Notre équipe de support est là pour vous.",
+      "email": "E-mail",
+      "emailPlaceholder": "votre@email.com",
+      "subject": "Sujet",
+      "subjectPlaceholder": "De quoi avez-vous besoin ?",
+      "message": "Message",
+      "messagePlaceholder": "Décrivez votre problème ou question...",
+      "submit": "Envoyer le Message",
+      "submitting": "Envoi...",
+      "success": "Message envoyé avec succès ! Nous vous répondrons bientôt.",
+      "error": "Échec de l'envoi du message. Veuillez réessayer."
+    },
+    "faq": {
+      "title": "Questions Fréquentes",
+      "q1": "Qu'est-ce que HBCT ?",
+      "a1": "HBCT (HBC Fire Protection Token) est un token utilitaire sur la Binance Smart Chain qui alimente l'écosystème de protection incendie HBC. Il peut être utilisé pour acheter des produits, gagner des récompenses et participer à la gouvernance de la plateforme.",
+      "q2": "Comment acheter des tokens HBCT ?",
+      "a2": "Vous pouvez acheter des tokens HBCT directement sur notre plateforme en utilisant BNB, USDT ou USDC. Connectez simplement votre portefeuille, sélectionnez le montant et confirmez la transaction.",
+      "q3": "Comment fonctionne le verrouillage de tokens ?",
+      "a3": "Le verrouillage de tokens vous permet de bloquer vos tokens HBCT pendant une période définie pour gagner des récompenses bonus. Plus la durée de verrouillage est longue, plus le taux de récompense est élevé.",
+      "q4": "Comment fonctionne le programme d'affiliation ?",
+      "a4": "Notre programme d'affiliation vous permet de gagner des commissions en parrainant de nouveaux utilisateurs. Partagez votre lien de parrainage unique et gagnez un pourcentage sur chaque achat effectué par vos filleuls.",
+      "q5": "Comment puis-je retirer mes tokens ?",
+      "a5": "Pour retirer des tokens, allez dans la section Portefeuille, sélectionnez Retirer, entrez l'adresse de destination et le montant. Les retraits sont traités après vérification de sécurité."
+    },
+    "tickets": {
+      "title": "Mes Tickets",
+      "newTicket": "Nouveau Ticket",
+      "noTickets": "Aucun ticket",
+      "noTicketsDesc": "Vous n'avez pas encore créé de ticket de support.",
+      "createFirst": "Créer Votre Premier Ticket",
+      "status": {
+        "open": "Ouvert",
+        "inProgress": "En Cours",
+        "resolved": "Résolu",
+        "closed": "Fermé"
+      },
+      "priority": {
+        "low": "Basse",
+        "medium": "Moyenne",
+        "high": "Haute",
+        "urgent": "Urgente"
+      },
+      "category": "Catégorie",
+      "priority_label": "Priorité",
+      "created": "Créé",
+      "updated": "Mis à jour",
+      "reply": "Répondre",
+      "replyPlaceholder": "Écrivez votre réponse...",
+      "sendReply": "Envoyer la Réponse",
+      "sending": "Envoi...",
+      "close": "Fermer le Ticket",
+      "reopen": "Rouvrir le Ticket"
+    },
+    "quickHelp": {
+      "title": "Aide Rapide",
+      "deposit": "Comment déposer",
+      "withdraw": "Comment retirer",
+      "security": "Sécurité du compte",
+      "affiliate": "Rejoindre l'affiliation"
     }
   }
 }

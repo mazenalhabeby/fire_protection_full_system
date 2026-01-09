@@ -1,15 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { Send, CheckCircle, Loader2 } from "lucide-react";
+import { Send, CheckCircle, Loader2, Ticket, Copy } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { supportApi } from "@/lib/api";
-import type { ContactFormRequest } from "@/types/support";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 interface QuickContactFormProps {
   onSuccess?: () => void;
   compact?: boolean;
+}
+
+interface FormData {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+interface TicketResult {
+  ticketNumber: string;
+  accessToken: string;
 }
 
 export function QuickContactForm({
@@ -17,8 +28,8 @@ export function QuickContactForm({
   compact = false,
 }: QuickContactFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [formData, setFormData] = useState<ContactFormRequest>({
+  const [ticketResult, setTicketResult] = useState<TicketResult | null>(null);
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
     subject: "",
@@ -30,41 +41,89 @@ export function QuickContactForm({
     setIsSubmitting(true);
 
     try {
-      await supportApi.submitContactForm(formData);
-      setIsSuccess(true);
-      toast.success("Message sent successfully!");
-      if (onSuccess) onSuccess();
+      // Create a guest ticket instead of contact form
+      const result = await supportApi.createGuestTicket({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      });
 
-      // Reset form after delay
-      setTimeout(() => {
-        setFormData({ name: "", email: "", subject: "", message: "" });
-        setIsSuccess(false);
-      }, 3000);
+      setTicketResult({
+        ticketNumber: result.ticketNumber,
+        accessToken: result.accessToken,
+      });
+
+      toast.success("Support ticket created! Check your email for the access link.");
+      if (onSuccess) onSuccess();
     } catch (error) {
-      console.error("Failed to submit contact form:", error);
-      toast.error("Failed to send message. Please try again.");
+      console.error("Failed to create ticket:", error);
+      toast.error("Failed to create ticket. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isSuccess) {
+  const copyTicketNumber = () => {
+    if (ticketResult) {
+      navigator.clipboard.writeText(ticketResult.ticketNumber);
+      toast.success("Ticket number copied!");
+    }
+  };
+
+  if (ticketResult) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 text-center animate-in fade-in zoom-in duration-300">
-        <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-          Message Sent!
+      <div className="flex flex-col items-center justify-center py-4 sm:py-8 text-center animate-in fade-in zoom-in duration-300">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+          <CheckCircle className="w-7 h-7 sm:w-10 sm:h-10 text-green-500" />
+        </div>
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-1.5 sm:mb-2">
+          Ticket Created!
         </h3>
-        <p className="text-gray-600 dark:text-gray-400">
-          We&apos;ll get back to you as soon as possible.
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
+          We&apos;ve sent an access link to your email.
         </p>
+
+        <div className="w-full max-w-sm p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 mb-3 sm:mb-4">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">Your Ticket Number</p>
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-base sm:text-lg font-mono font-bold text-gray-900 dark:text-white">
+              #{ticketResult.ticketNumber}
+            </span>
+            <button
+              onClick={copyTicketNumber}
+              className="p-1.5 text-gray-500 hover:text-indigo-600 transition-colors"
+              title="Copy ticket number"
+            >
+              <Copy className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <Link
+          href={`/help/ticket?token=${ticketResult.accessToken}`}
+          className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm sm:text-base font-medium rounded-lg shadow-lg hover:shadow-xl transition-all"
+        >
+          <Ticket className="w-4 h-4 sm:w-5 sm:h-5" />
+          View Your Ticket
+        </Link>
+
+        <button
+          onClick={() => {
+            setTicketResult(null);
+            setFormData({ name: "", email: "", subject: "", message: "" });
+          }}
+          className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500 hover:text-indigo-600 transition-colors"
+        >
+          Create another ticket
+        </button>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className={compact ? "grid grid-cols-2 gap-4" : "space-y-4"}>
+    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+      <div className={compact ? "grid sm:grid-cols-2 gap-3 sm:gap-4" : "space-y-3 sm:space-y-4"}>
         <div>
           <label
             htmlFor="name"
@@ -76,9 +135,10 @@ export function QuickContactForm({
             type="text"
             id="name"
             required
+            minLength={2}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             placeholder="John Doe"
           />
         </div>
@@ -98,7 +158,7 @@ export function QuickContactForm({
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             placeholder="john@example.com"
           />
         </div>
@@ -115,11 +175,12 @@ export function QuickContactForm({
           type="text"
           id="subject"
           required
+          minLength={5}
           value={formData.subject}
           onChange={(e) =>
             setFormData({ ...formData, subject: e.target.value })
           }
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
           placeholder="How can we help?"
         />
       </div>
@@ -134,12 +195,13 @@ export function QuickContactForm({
         <textarea
           id="message"
           required
-          rows={compact ? 3 : 5}
+          minLength={10}
+          rows={compact ? 3 : 4}
           value={formData.message}
           onChange={(e) =>
             setFormData({ ...formData, message: e.target.value })
           }
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+          className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
           placeholder="Describe your inquiry in detail..."
         />
       </div>
@@ -147,20 +209,32 @@ export function QuickContactForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm sm:text-base font-medium rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Sending...
+            <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+            <span className="hidden sm:inline">Creating Ticket...</span>
+            <span className="sm:hidden">Creating...</span>
           </>
         ) : (
           <>
-            <Send className="w-5 h-5" />
-            Send Message
+            <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Create Support Ticket</span>
+            <span className="sm:hidden">Create Ticket</span>
           </>
         )}
       </button>
+
+      <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+        Have an existing ticket?{" "}
+        <Link
+          href="/help/ticket"
+          className="text-indigo-600 hover:text-indigo-700 font-medium"
+        >
+          Look it up here
+        </Link>
+      </p>
     </form>
   );
 }

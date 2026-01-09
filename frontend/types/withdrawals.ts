@@ -42,9 +42,12 @@ export interface WithdrawalRequest {
   };
 }
 
-export interface WithdrawalResponse {
-  withdrawal: WithdrawalRequest;
-  message: string;
+// Confirmation method type
+export type ConfirmationMethod = '2fa' | 'email';
+
+// Response from withdrawal request - includes confirmation method
+export interface WithdrawalResponse extends WithdrawalRequest {
+  confirmationMethod: ConfirmationMethod;
 }
 
 export interface WithdrawalListResponse {
@@ -57,9 +60,11 @@ export interface WithdrawalListResponse {
 
 export interface WithdrawalStats {
   totalWithdrawals: number;
-  totalAmount: string;
-  totalFees: string;
+  totalAmount: string;        // Only completed withdrawals
+  totalFees: string;          // Only completed withdrawals
+  pendingAmount: string;      // Pending + Processing withdrawals
   pendingCount: number;
+  pendingConfirmationCount: number;
   pendingApprovalCount: number;
   processingCount: number;
   completedCount: number;

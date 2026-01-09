@@ -57,6 +57,7 @@ export class UsersService {
         username: true,
         firstName: true,
         lastName: true,
+        profileImageUrl: true,
         walletAddress: true,
         legacyRole: true,
         isEmailVerified: true,
@@ -87,6 +88,7 @@ export class UsersService {
       username: user.username,
       firstName: user.firstName,
       lastName: user.lastName,
+      profileImageUrl: user.profileImageUrl,
       walletAddress: user.walletAddress,
       role: user.legacyRole,
       isEmailVerified: user.isEmailVerified,
@@ -164,6 +166,7 @@ export class UsersService {
         firstName: true,
         lastName: true,
         phoneNumber: true,
+        profileImageUrl: true,
         walletAddress: true,
         legacyRole: true,
         isEmailVerified: true,
@@ -184,6 +187,7 @@ export class UsersService {
       firstName: user.firstName,
       lastName: user.lastName,
       phoneNumber: user.phoneNumber,
+      profileImageUrl: user.profileImageUrl,
       walletAddress: user.walletAddress,
       role: user.legacyRole,
       isEmailVerified: user.isEmailVerified,
@@ -312,5 +316,51 @@ export class UsersService {
     });
 
     return user;
+  }
+
+  // ============================================
+  // PROFILE IMAGE MANAGEMENT
+  // ============================================
+
+  async updateProfileImage(userId: string, profileImageUrl: string | null) {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { profileImageUrl },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        firstName: true,
+        lastName: true,
+        phoneNumber: true,
+        profileImageUrl: true,
+        walletAddress: true,
+        legacyRole: true,
+        isEmailVerified: true,
+        authProvider: true,
+        passwordHash: true,
+        createdAt: true,
+        twoFactorAuth: {
+          select: { isEnabled: true },
+        },
+      },
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phoneNumber: user.phoneNumber,
+      profileImageUrl: user.profileImageUrl,
+      walletAddress: user.walletAddress,
+      role: user.legacyRole,
+      isEmailVerified: user.isEmailVerified,
+      authProvider: user.authProvider?.toUpperCase() || 'CREDENTIALS',
+      hasPassword: !!user.passwordHash,
+      twoFactorEnabled: user.twoFactorAuth?.isEnabled ?? false,
+      createdAt: user.createdAt,
+    };
   }
 }

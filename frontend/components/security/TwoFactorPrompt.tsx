@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { authApi } from "@/lib/api/auth";
 import { cn } from "@/lib/utils";
 import {
@@ -18,6 +19,7 @@ interface TwoFactorPromptProps {
 
 export function TwoFactorPrompt({ className }: TwoFactorPromptProps) {
   const router = useRouter();
+  const t = useTranslations("security");
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -90,14 +92,14 @@ export function TwoFactorPrompt({ className }: TwoFactorPromptProps) {
           <div className="flex-1 min-w-0">
             <div>
               <h3 className="text-sm md:text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                Secure Your Account
+                {t("secureYourAccount")}
                 <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full">
                   <Lock className="h-2.5 w-2.5" />
-                  Recommended
+                  {t("recommended")}
                 </span>
               </h3>
               <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
-                Enable two-factor authentication to add an extra layer of security to your account and protect your HBCT tokens.
+                {t("twoFactorDescription")}
               </p>
             </div>
 
@@ -116,7 +118,7 @@ export function TwoFactorPrompt({ className }: TwoFactorPromptProps) {
                 )}
               >
                 <ShieldCheck className="h-4 w-4" />
-                Enable 2FA Now
+                {t("enable2FANow")}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>

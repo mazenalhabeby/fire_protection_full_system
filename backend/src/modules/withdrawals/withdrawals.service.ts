@@ -13,6 +13,7 @@ import { BlockchainConfigService } from '../blockchain/blockchain.config';
 import { BalanceService } from '../wallet/services/balance.service';
 import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TwoFactorService } from '../auth/two-factor.service';
 import {
   WithdrawalRequestStatus,
   Currency,
@@ -21,6 +22,9 @@ import {
 } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { randomBytes, createHash, timingSafeEqual } from 'crypto';
+
+// Confirmation method types
+export type ConfirmationMethod = '2fa' | 'email';
 
 // Maximum failed confirmation attempts before lockout
 const MAX_CONFIRMATION_ATTEMPTS = 5;
@@ -65,6 +69,8 @@ export class WithdrawalsService {
     private readonly emailService: EmailService,
     @Inject(forwardRef(() => NotificationsService))
     private readonly notificationsService: NotificationsService,
+    @Inject(forwardRef(() => TwoFactorService))
+    private readonly twoFactorService: TwoFactorService,
   ) {}
 
   /**
@@ -155,10 +161,19 @@ export class WithdrawalsService {
       throw new BadRequestException('Amount too small after fees');
     }
 
-    // Generate confirmation code (raw code for email, hashed for storage)
-    const rawConfirmationCode = this.generateConfirmationCode();
-    const hashedConfirmationCode = this.hashCode(rawConfirmationCode);
+    // Check if user has 2FA enabled
+    const has2FA = await this.twoFactorService.isEnabled(userId);
+    const confirmationMethod: ConfirmationMethod = has2FA ? '2fa' : 'email';
+
+    // Generate confirmation code for email (only used if no 2FA)
+    let rawConfirmationCode: string | null = null;
+    let hashedConfirmationCode: string | null = null;
     const confirmationExpiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+    if (!has2FA) {
+      rawConfirmationCode = this.generateConfirmationCode();
+      hashedConfirmationCode = this.hashCode(rawConfirmationCode);
+    }
 
     // Determine if approval is required
     const approvalThreshold = new Decimal(
@@ -178,7 +193,7 @@ export class WithdrawalsService {
         ipAddress,
       );
 
-      // Create withdrawal record (store hashed confirmation code)
+      // Create withdrawal record
       const created = await tx.withdrawal.create({
         data: {
           userId,
@@ -188,8 +203,8 @@ export class WithdrawalsService {
           netAmount,
           toAddress: destinationAddress.toLowerCase(),
           status: WithdrawalRequestStatus.PENDING_CONFIRMATION,
-          confirmationCode: hashedConfirmationCode,
-          confirmationExpiresAt,
+          confirmationCode: hashedConfirmationCode, // null if 2FA
+          confirmationExpiresAt: has2FA ? null : confirmationExpiresAt,
           requiresApproval,
         },
       });
@@ -205,6 +220,7 @@ export class WithdrawalsService {
             netAmount: netAmount.toString(),
             toAddress: destinationAddress,
             requiresApproval,
+            confirmationMethod,
           },
         },
       });
@@ -212,22 +228,32 @@ export class WithdrawalsService {
       return created;
     });
 
-    // Send confirmation email (with raw code, not hashed)
-    if (user.email) {
-      await this.sendConfirmationEmail(
-        user.email,
-        user.firstName || 'User',
-        rawConfirmationCode,
-        netAmount.toString(),
-        destinationAddress,
-      );
+    // Send confirmation email only if not using 2FA
+    if (!has2FA && user.email && rawConfirmationCode) {
+      try {
+        await this.sendConfirmationEmail(
+          user.email,
+          user.firstName || 'User',
+          rawConfirmationCode,
+          netAmount.toString(),
+          destinationAddress,
+        );
+        this.logger.log(`Withdrawal confirmation email sent to ${user.email}`);
+      } catch (error) {
+        this.logger.warn(`Failed to send withdrawal confirmation email to ${user.email}: ${error}`);
+      }
     }
 
-    return this.formatWithdrawal(withdrawal);
+    // Return withdrawal with confirmation method
+    const formattedWithdrawal = this.formatWithdrawal(withdrawal);
+    return {
+      ...formattedWithdrawal,
+      confirmationMethod,
+    };
   }
 
   /**
-   * Confirm withdrawal with email code
+   * Confirm withdrawal with 2FA or email code
    */
   async confirmWithdrawal(
     withdrawalId: string,
@@ -247,9 +273,11 @@ export class WithdrawalsService {
       throw new NotFoundException('Withdrawal not found or already processed');
     }
 
-    // Check expiration
-    if (withdrawal.confirmationExpiresAt && withdrawal.confirmationExpiresAt < new Date()) {
-      // Cancel the withdrawal and refund
+    // Determine if this withdrawal uses 2FA (no stored confirmation code) or email
+    const uses2FA = !withdrawal.confirmationCode;
+
+    // Check expiration for email-based confirmation
+    if (!uses2FA && withdrawal.confirmationExpiresAt && withdrawal.confirmationExpiresAt < new Date()) {
       await this.cancelWithdrawal(withdrawalId, userId, 'Confirmation code expired');
       throw new BadRequestException('Confirmation code expired');
     }
@@ -271,10 +299,35 @@ export class WithdrawalsService {
       );
     }
 
-    // Verify code using timing-safe comparison
-    const providedHash = this.hashCode(confirmationCode);
-    const storedHash = withdrawal.confirmationCode || '';
-    const isValidCode = this.timingSafeCompare(providedHash, storedHash);
+    let isValidCode = false;
+
+    if (uses2FA) {
+      // Verify using 2FA service
+      try {
+        isValidCode = await this.twoFactorService.verifyToken(userId, confirmationCode, ipAddress);
+      } catch (error) {
+        // 2FA verification failed - log and throw
+        await this.prisma.withdrawalProcessingLog.create({
+          data: {
+            withdrawalId,
+            action: 'CONFIRM_FAILED',
+            details: { reason: '2FA verification failed', attempt: failedAttempts + 1 },
+          },
+        });
+
+        const remainingAttempts = MAX_CONFIRMATION_ATTEMPTS - failedAttempts - 1;
+        throw new BadRequestException(
+          remainingAttempts > 0
+            ? `Invalid 2FA code. ${remainingAttempts} attempts remaining.`
+            : `Too many failed attempts. Please wait ${CONFIRMATION_LOCKOUT_MINUTES} minutes.`,
+        );
+      }
+    } else {
+      // Verify email code using timing-safe comparison
+      const providedHash = this.hashCode(confirmationCode);
+      const storedHash = withdrawal.confirmationCode || '';
+      isValidCode = this.timingSafeCompare(providedHash, storedHash);
+    }
 
     if (!isValidCode) {
       // Log failed attempt
@@ -282,14 +335,17 @@ export class WithdrawalsService {
         data: {
           withdrawalId,
           action: 'CONFIRM_FAILED',
-          details: { reason: 'Invalid confirmation code', attempt: failedAttempts + 1 },
+          details: {
+            reason: uses2FA ? 'Invalid 2FA code' : 'Invalid confirmation code',
+            attempt: failedAttempts + 1,
+          },
         },
       });
 
       const remainingAttempts = MAX_CONFIRMATION_ATTEMPTS - failedAttempts - 1;
       throw new BadRequestException(
         remainingAttempts > 0
-          ? `Invalid confirmation code. ${remainingAttempts} attempts remaining.`
+          ? `Invalid ${uses2FA ? '2FA' : 'confirmation'} code. ${remainingAttempts} attempts remaining.`
           : `Too many failed attempts. Please wait ${CONFIRMATION_LOCKOUT_MINUTES} minutes.`,
       );
     }
@@ -610,8 +666,8 @@ export class WithdrawalsService {
       );
 
       if (result.success) {
-        // Deduct from locked balance permanently
-        await this.balanceService.debitBalance({
+        // Consume the locked balance (permanently remove - tokens sent on-chain)
+        const consumeResult = await this.balanceService.consumeLockedBalance({
           userId: withdrawal.userId,
           currency: Currency.HBCT,
           amount: withdrawal.amount,
@@ -621,15 +677,15 @@ export class WithdrawalsService {
             withdrawalId,
             txHash: result.txHash,
             blockNumber: result.blockNumber?.toString(),
+            feeAmount: withdrawal.feeAmount.toString(),
+            netAmount: withdrawal.netAmount.toString(),
           },
+          externalTxHash: result.txHash,
         });
 
-        // First unlock the balance (it was locked when requested)
-        await this.balanceService.unlockBalance(
-          withdrawal.userId,
-          Currency.HBCT,
-          withdrawal.amount,
-        );
+        if (!consumeResult.success) {
+          this.logger.error(`Failed to consume locked balance for withdrawal ${withdrawalId}: ${consumeResult.error}`);
+        }
 
         // Mark as completed
         const updated = await this.prisma.$transaction(async (tx) => {
@@ -777,46 +833,73 @@ export class WithdrawalsService {
     totalWithdrawals: number;
     totalAmount: string;
     totalFees: string;
+    pendingAmount: string;
     pendingCount: number;
+    pendingApprovalCount: number;
+    pendingConfirmationCount: number;
     processingCount: number;
     completedCount: number;
     failedCount: number;
   }> {
-    const [stats, pendingCount, processingCount, completedCount, failedCount] =
-      await Promise.all([
-        this.prisma.withdrawal.aggregate({
-          _count: true,
-          _sum: { amount: true, feeAmount: true },
-        }),
-        this.prisma.withdrawal.count({
-          where: {
-            status: {
-              in: [
-                WithdrawalRequestStatus.PENDING_CONFIRMATION,
-                WithdrawalRequestStatus.PENDING_APPROVAL,
-                WithdrawalRequestStatus.APPROVED,
-              ],
-            },
+    const [
+      totalCount,
+      completedStats,
+      pendingStats,
+      pendingConfirmationCount,
+      pendingApprovalCount,
+      approvedCount,
+      processingCount,
+      failedCount,
+    ] = await Promise.all([
+      // Total withdrawal count
+      this.prisma.withdrawal.count(),
+      // Only COMPLETED withdrawals for total amount/fees
+      this.prisma.withdrawal.aggregate({
+        where: { status: WithdrawalRequestStatus.COMPLETED },
+        _count: true,
+        _sum: { amount: true, feeAmount: true },
+      }),
+      // Pending withdrawals amount (for display)
+      this.prisma.withdrawal.aggregate({
+        where: {
+          status: {
+            in: [
+              WithdrawalRequestStatus.PENDING_CONFIRMATION,
+              WithdrawalRequestStatus.PENDING_APPROVAL,
+              WithdrawalRequestStatus.APPROVED,
+              WithdrawalRequestStatus.PROCESSING,
+            ],
           },
-        }),
-        this.prisma.withdrawal.count({
-          where: { status: WithdrawalRequestStatus.PROCESSING },
-        }),
-        this.prisma.withdrawal.count({
-          where: { status: WithdrawalRequestStatus.COMPLETED },
-        }),
-        this.prisma.withdrawal.count({
-          where: { status: WithdrawalRequestStatus.FAILED },
-        }),
-      ]);
+        },
+        _sum: { amount: true },
+      }),
+      this.prisma.withdrawal.count({
+        where: { status: WithdrawalRequestStatus.PENDING_CONFIRMATION },
+      }),
+      this.prisma.withdrawal.count({
+        where: { status: WithdrawalRequestStatus.PENDING_APPROVAL },
+      }),
+      this.prisma.withdrawal.count({
+        where: { status: WithdrawalRequestStatus.APPROVED },
+      }),
+      this.prisma.withdrawal.count({
+        where: { status: WithdrawalRequestStatus.PROCESSING },
+      }),
+      this.prisma.withdrawal.count({
+        where: { status: WithdrawalRequestStatus.FAILED },
+      }),
+    ]);
 
     return {
-      totalWithdrawals: stats._count,
-      totalAmount: stats._sum.amount?.toString() || '0',
-      totalFees: stats._sum.feeAmount?.toString() || '0',
-      pendingCount,
+      totalWithdrawals: totalCount,
+      totalAmount: completedStats._sum.amount?.toString() || '0',
+      totalFees: completedStats._sum.feeAmount?.toString() || '0',
+      pendingAmount: pendingStats._sum.amount?.toString() || '0',
+      pendingCount: pendingConfirmationCount + pendingApprovalCount + approvedCount,
+      pendingConfirmationCount,
+      pendingApprovalCount,
       processingCount,
-      completedCount,
+      completedCount: completedStats._count,
       failedCount,
     };
   }
@@ -826,31 +909,63 @@ export class WithdrawalsService {
    */
   async getHotWalletStatus(): Promise<{
     address: string;
-    hbctBalance: string;
+    balance: string;
     bnbBalance: string;
+    pendingWithdrawalsAmount: string;
+    availableBalance: string;
+    isLow: boolean;
     isEnabled: boolean;
+    warningThreshold: string;
   }> {
     const isEnabled = this.blockchainConfig.isWithdrawalEnabled();
+    const warningThreshold = '1000'; // 1000 HBCT warning threshold
 
     if (!isEnabled) {
       return {
         address: '',
-        hbctBalance: '0',
+        balance: '0',
         bnbBalance: '0',
+        pendingWithdrawalsAmount: '0',
+        availableBalance: '0',
+        isLow: false,
         isEnabled: false,
+        warningThreshold,
       };
     }
 
-    const [hbctBalance, bnbBalance] = await Promise.all([
+    // Get wallet balances and pending withdrawals in parallel
+    const [hbctBalance, bnbBalance, pendingWithdrawals] = await Promise.all([
       this.blockchainClient.getWithdrawalWalletBalance(),
       this.blockchainClient.getWithdrawalWalletBnbBalance(),
+      this.prisma.withdrawal.aggregate({
+        where: {
+          status: {
+            in: [
+              WithdrawalRequestStatus.PENDING_APPROVAL,
+              WithdrawalRequestStatus.APPROVED,
+              WithdrawalRequestStatus.PROCESSING,
+            ],
+          },
+        },
+        _sum: { netAmount: true },
+      }),
     ]);
+
+    const pendingAmount = pendingWithdrawals._sum.netAmount?.toString() || '0';
+    const balance = new Decimal(hbctBalance);
+    const pending = new Decimal(pendingAmount);
+    const available = balance.sub(pending);
+    const isLow = balance.lessThan(new Decimal(warningThreshold));
 
     return {
       address: this.blockchainConfig.withdrawalWalletAddress,
-      hbctBalance,
+      balance: hbctBalance,
       bnbBalance,
+      pendingWithdrawalsAmount: pendingAmount,
+      availableBalance: available.toString(),
+      isLow,
       isEnabled: true,
+      warningThreshold,
     };
   }
 

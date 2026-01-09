@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,7 @@ export function TwoFactorSetupModal({
   onClose,
   onSuccess,
 }: TwoFactorSetupModalProps) {
+  const t = useTranslations("settings.security.twoFactorSetup");
   const [step, setStep] = useState<Step>("qr");
   const [isLoading, setIsLoading] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
@@ -68,7 +70,7 @@ export function TwoFactorSetupModal({
       if (err instanceof ApiError) {
         toast.error(err.message);
       } else {
-        toast.error("Failed to initialize 2FA setup");
+        toast.error(t("setupError"));
       }
       onClose();
     } finally {
@@ -78,7 +80,7 @@ export function TwoFactorSetupModal({
 
   const handleVerify = async () => {
     if (verificationCode.length !== 6) {
-      toast.error("Please enter a 6-digit code");
+      toast.error(t("enterCode"));
       return;
     }
 
@@ -87,12 +89,12 @@ export function TwoFactorSetupModal({
       const response = await authApi.verifyTwoFactorSetup(verificationCode);
       setRecoveryCodes(response.recoveryCodes);
       setStep("recovery");
-      toast.success("2FA enabled successfully!");
+      toast.success(t("setupSuccess"));
     } catch (err) {
       if (err instanceof ApiError) {
         toast.error(err.message);
       } else {
-        toast.error("Invalid verification code");
+        toast.error(t("invalidCode"));
       }
     } finally {
       setIsLoading(false);
@@ -101,12 +103,12 @@ export function TwoFactorSetupModal({
 
   const handleCopySecret = () => {
     navigator.clipboard.writeText(manualSecret);
-    toast.success("Secret copied to clipboard");
+    toast.success(t("secretCopied"));
   };
 
   const handleCopyCodes = () => {
     navigator.clipboard.writeText(recoveryCodes.join("\n"));
-    toast.success("Recovery codes copied to clipboard");
+    toast.success(t("codesCopied"));
   };
 
   const handleDownloadCodes = () => {
@@ -132,7 +134,7 @@ Generated: ${new Date().toISOString()}
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     setCodesDownloaded(true);
-    toast.success("Recovery codes downloaded");
+    toast.success(t("codesDownloaded"));
   };
 
   const handleComplete = () => {
@@ -146,17 +148,14 @@ Generated: ${new Date().toISOString()}
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-emerald-500" />
-            {step === "qr" && "Set Up Two-Factor Authentication"}
-            {step === "verify" && "Verify Your Code"}
-            {step === "recovery" && "Save Recovery Codes"}
+            {step === "qr" && t("title")}
+            {step === "verify" && t("verifyTitle")}
+            {step === "recovery" && t("recoveryTitle")}
           </DialogTitle>
           <DialogDescription>
-            {step === "qr" &&
-              "Scan the QR code with your authenticator app"}
-            {step === "verify" &&
-              "Enter the 6-digit code from your authenticator"}
-            {step === "recovery" &&
-              "Store these codes safely - they're your backup access"}
+            {step === "qr" && t("scanDescription")}
+            {step === "verify" && t("verifyDescription")}
+            {step === "recovery" && t("recoveryDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -199,13 +198,13 @@ Generated: ${new Date().toISOString()}
 
                   {/* Scan instruction */}
                   <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-                    Scan with Google Authenticator, Authy, or similar app
+                    {t("scanInstruction")}
                   </p>
 
                   {/* Manual Secret */}
                   <div className="space-y-2">
                     <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                      Can&apos;t scan? Enter this code manually:
+                      {t("manualEntry")}
                     </p>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm font-mono text-center break-all">
@@ -225,7 +224,7 @@ Generated: ${new Date().toISOString()}
                     className="w-full"
                     onClick={() => setStep("verify")}
                   >
-                    Continue
+                    {t("continue")}
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </>
@@ -238,7 +237,7 @@ Generated: ${new Date().toISOString()}
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Verification Code
+                  {t("verificationCode")}
                 </label>
                 <Input
                   type="text"
@@ -264,7 +263,7 @@ Generated: ${new Date().toISOString()}
                   disabled={isLoading}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
+                  {t("back")}
                 </Button>
                 <Button
                   className="flex-1"
@@ -274,11 +273,11 @@ Generated: ${new Date().toISOString()}
                   {isLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Verifying...
+                      {t("verifying")}
                     </>
                   ) : (
                     <>
-                      Verify & Enable
+                      {t("verifyAndEnable")}
                       <CheckCircle className="h-4 w-4 ml-2" />
                     </>
                   )}
@@ -294,8 +293,7 @@ Generated: ${new Date().toISOString()}
               <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
                 <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-amber-800 dark:text-amber-200">
-                  Save these codes now. They won&apos;t be shown again. Each code
-                  can only be used once.
+                  {t("recoveryWarning")}
                 </p>
               </div>
 
@@ -319,7 +317,7 @@ Generated: ${new Date().toISOString()}
                   className="flex-1"
                 >
                   <Copy className="h-4 w-4 mr-2" />
-                  Copy
+                  {t("copy")}
                 </Button>
                 <Button
                   variant="outline"
@@ -331,7 +329,7 @@ Generated: ${new Date().toISOString()}
                   )}
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  {codesDownloaded ? "Downloaded" : "Download"}
+                  {codesDownloaded ? t("downloaded") : t("download")}
                 </Button>
               </div>
 
@@ -342,11 +340,11 @@ Generated: ${new Date().toISOString()}
               >
                 {codesDownloaded ? (
                   <>
-                    Complete Setup
+                    {t("completeSetup")}
                     <CheckCircle className="h-4 w-4 ml-2" />
                   </>
                 ) : (
-                  "Download codes to continue"
+                  t("downloadToContinue")
                 )}
               </Button>
             </div>

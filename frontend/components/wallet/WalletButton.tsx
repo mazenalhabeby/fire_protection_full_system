@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useWallet, useCorrectChain, useClickOutside } from "@/hooks";
 import { WalletConnectModal } from "./WalletConnectModal";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ interface WalletButtonProps {
 }
 
 export function WalletButton({ variant = "default", className }: WalletButtonProps) {
+  const t = useTranslations("wallet");
   const {
     address,
     shortAddress,
@@ -70,7 +72,7 @@ export function WalletButton({ variant = "default", className }: WalletButtonPro
           )}
         >
           <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Connecting...</span>
+          <span>{t("connecting")}</span>
         </button>
         <WalletConnectModal isOpen={isModalOpen} onClose={closeModal} />
       </>
@@ -98,7 +100,7 @@ export function WalletButton({ variant = "default", className }: WalletButtonPro
           <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
           <Wallet className="w-4 h-4" />
-          <span>Connect Web3</span>
+          <span>{t("connectWeb3")}</span>
         </button>
         <WalletConnectModal isOpen={isModalOpen} onClose={closeModal} />
       </>
@@ -187,7 +189,7 @@ export function WalletButton({ variant = "default", className }: WalletButtonPro
                   <button
                     onClick={handleCopy}
                     className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                    title="Copy address"
+                    title={t("copyAddress")}
                   >
                     {copied ? (
                       <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
@@ -218,7 +220,7 @@ export function WalletButton({ variant = "default", className }: WalletButtonPro
 
             {/* On-chain Balance Card */}
             <div className="mt-4 p-3 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">On-chain Balance</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("onChainBalance")}</div>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
                   {balance}
@@ -239,7 +241,7 @@ export function WalletButton({ variant = "default", className }: WalletButtonPro
                 className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
-                Switch to BNB Smart Chain
+                {t("switchToBSC")}
               </button>
             </div>
           )}
@@ -255,7 +257,7 @@ export function WalletButton({ variant = "default", className }: WalletButtonPro
             >
               <LogOut className="w-4 h-4 text-red-600 dark:text-red-400" />
               <span className="text-sm font-medium text-red-600 dark:text-red-400">
-                Disconnect
+                {t("disconnect")}
               </span>
             </button>
           </div>

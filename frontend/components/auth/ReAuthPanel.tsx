@@ -137,7 +137,12 @@ export function ReAuthPanel({
     setError(null);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        setError("API URL not configured. Please contact support.");
+        setIsLoading(false);
+        return;
+      }
       const width = 500;
       const height = 600;
       const left = window.screenX + (window.outerWidth - width) / 2;

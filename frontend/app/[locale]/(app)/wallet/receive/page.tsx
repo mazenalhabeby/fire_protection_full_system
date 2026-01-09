@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { useWalletBalances } from "@/hooks/useWalletData";
 import { usePageLoading } from "@/hooks/useMinimumLoading";
@@ -20,6 +21,7 @@ import { formatName } from "@/lib/utils";
 
 export default function ReceivePage() {
   const router = useRouter();
+  const t = useTranslations("wallet.receive");
   const { user } = useAuth();
 
   // State
@@ -96,7 +98,7 @@ export default function ReceivePage() {
           className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm font-medium">Back to Wallet</span>
+          <span className="text-sm font-medium">{t("backToWallet")}</span>
         </button>
 
         {/* Hero Card */}
@@ -111,15 +113,15 @@ export default function ReceivePage() {
                 <ArrowDownLeft className="h-6 w-6 text-brand-400" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">Receive HBCT</h1>
-                <p className="text-white/70 text-sm">Share to get paid instantly</p>
+                <h1 className="text-xl font-bold text-white">{t("title")}</h1>
+                <p className="text-white/70 text-sm">{t("subtitle")}</p>
               </div>
             </div>
 
             {/* Primary Identifier */}
             <div className="bg-gray-700/50 backdrop-blur border border-gray-600/50 rounded-2xl p-4 mb-4">
               <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">
-                {userDetails.username ? "Your Username" : "Your Email"}
+                {userDetails.username ? t("yourUsername") : t("yourEmail")}
               </p>
               <div className="flex items-center justify-between">
                 <p className="text-2xl font-bold text-white truncate pr-4">
@@ -146,12 +148,12 @@ export default function ReceivePage() {
               {copied === "share" ? (
                 <>
                   <Check className="h-5 w-5" />
-                  Copied!
+                  {t("copied")}
                 </>
               ) : (
                 <>
                   <Share2 className="h-5 w-5" />
-                  Share My Details
+                  {t("shareMyDetails")}
                 </>
               )}
             </button>
@@ -162,10 +164,10 @@ export default function ReceivePage() {
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm mb-6">
           <div className="p-4 border-b border-gray-200 dark:border-gray-800">
             <h3 className="font-semibold text-gray-900 dark:text-white">
-              All Receive Methods
+              {t("allMethods.title")}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Sender can use any of these to find you
+              {t("allMethods.subtitle")}
             </p>
           </div>
 
@@ -177,7 +179,7 @@ export default function ReceivePage() {
                   <AtSign className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Username</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t("allMethods.username")}</p>
                   {userDetails.username ? (
                     <p className="font-medium text-gray-900 dark:text-white">
                       @{userDetails.username}
@@ -187,7 +189,7 @@ export default function ReceivePage() {
                       onClick={() => router.push('/settings?tab=profile')}
                       className="text-sm text-brand-500 hover:text-brand-600 font-medium"
                     >
-                      Set username →
+                      {t("setUsername")}
                     </button>
                   )}
                 </div>
@@ -200,12 +202,12 @@ export default function ReceivePage() {
                   {copied === "username" ? (
                     <>
                       <Check className="h-4 w-4 text-emerald-500" />
-                      Copied
+                      {t("copied")}
                     </>
                   ) : (
                     <>
                       <Copy className="h-4 w-4" />
-                      Copy
+                      {t("copy")}
                     </>
                   )}
                 </button>
@@ -220,7 +222,7 @@ export default function ReceivePage() {
                     <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{t("allMethods.email")}</p>
                     <p className="font-medium text-gray-900 dark:text-white">
                       {userDetails.email}
                     </p>
@@ -233,12 +235,12 @@ export default function ReceivePage() {
                   {copied === "email" ? (
                     <>
                       <Check className="h-4 w-4 text-emerald-500" />
-                      Copied
+                      {t("copied")}
                     </>
                   ) : (
                     <>
                       <Copy className="h-4 w-4" />
-                      Copy
+                      {t("copy")}
                     </>
                   )}
                 </button>
@@ -251,7 +253,7 @@ export default function ReceivePage() {
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="h-5 w-5 text-brand-500" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">How it works</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">{t("howItWorks.title")}</h3>
           </div>
           <div className="space-y-3">
             <div className="flex items-start gap-3">
@@ -259,7 +261,7 @@ export default function ReceivePage() {
                 <span className="text-xs font-bold text-brand-600 dark:text-brand-400">1</span>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Share your <span className="font-medium text-gray-900 dark:text-white">username</span> or <span className="font-medium text-gray-900 dark:text-white">email</span> with the sender
+                {t("howItWorks.step1")}
               </p>
             </div>
             <div className="flex items-start gap-3">
@@ -267,7 +269,7 @@ export default function ReceivePage() {
                 <span className="text-xs font-bold text-brand-600 dark:text-brand-400">2</span>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                They search for you in the <span className="font-medium text-gray-900 dark:text-white">Send</span> page
+                {t("howItWorks.step2")}
               </p>
             </div>
             <div className="flex items-start gap-3">
@@ -275,7 +277,7 @@ export default function ReceivePage() {
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium text-gray-900 dark:text-white">Instant transfer</span> — HBCT arrives in seconds
+                {t("howItWorks.step3")}
               </p>
             </div>
           </div>

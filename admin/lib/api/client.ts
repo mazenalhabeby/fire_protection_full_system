@@ -5,6 +5,7 @@ import { getDeviceFingerprint } from './utils/deviceFingerprint';
 import { setSessionHintCookie, clearSessionHintCookie } from '@/lib/cookies';
 
 // Backend API URL - direct connection
+// In production, set NEXT_PUBLIC_API_URL in your environment
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 // =============================================================================

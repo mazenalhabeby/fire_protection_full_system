@@ -1,16 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import { join } from 'path';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { validateEnvironment } from './common/utils/env-validation';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const isProduction = process.env.NODE_ENV === 'production';
 
-  const app = await NestFactory.create(AppModule, {
+  // Validate environment variables before starting
+  validateEnvironment();
+
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     // Enable debug logging in development for token debugging
     logger: isProduction ? ['error', 'warn', 'log'] : ['error', 'warn', 'log', 'debug'],
   });
@@ -19,6 +25,11 @@ async function bootstrap() {
   // This enables proper extraction of client IP from X-Forwarded-For header
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', true);
+
+  // Serve static files from uploads directory
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads/',
+  });
 
   // Global prefix
   app.setGlobalPrefix('api');

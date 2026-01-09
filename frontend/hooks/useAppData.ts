@@ -174,6 +174,7 @@ function mapWalletTypeToTransactionType(walletType: string): Transaction['type']
     'AFFILIATE_COMMISSION': 'AFFILIATE_BONUS',
     'FEE': 'TRANSFER',
     'REFUND': 'MARKETPLACE_REFUND',
+    'ADMIN_ADJUSTMENT': 'ADMIN_ADJUSTMENT',
   };
   return typeMap[walletType] || 'TRANSFER';
 }

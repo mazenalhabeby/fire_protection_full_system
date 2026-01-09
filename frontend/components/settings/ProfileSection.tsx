@@ -1,27 +1,27 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { toast } from "sonner";
-import { User, Mail, Phone, FileText, CheckCircle, Camera, KeyRound, Wallet, Link2, AtSign, Loader2, Check, X } from "lucide-react";
+import { User, Mail, Phone, FileText, CheckCircle, Camera, KeyRound, Wallet, Link2, AtSign, Loader2, Check, X, Trash2 } from "lucide-react";
 import type { User as UserType } from "@/types/api";
 import { cn, formatName } from "@/lib/utils";
-import { authApi } from "@/lib/api/auth";
+import { authApi, uploadApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 
 // Auth provider display config (keys match backend enum values)
-const authProviderConfig: Record<string, { label: string; icon: React.ReactNode; color: string; bgColor: string; description: string }> = {
+// Labels and descriptions are handled via translations inside the component
+const authProviderConfig: Record<string, { icon: React.ReactNode; color: string; bgColor: string }> = {
   CREDENTIALS: {
-    label: "Email & Password",
     icon: <KeyRound className="h-5 w-5" />,
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-100 dark:bg-blue-900/30",
-    description: "You signed up with your email address and password"
   },
   GOOGLE: {
-    label: "Google",
     icon: (
       <svg className="h-5 w-5" viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -32,10 +32,8 @@ const authProviderConfig: Record<string, { label: string; icon: React.ReactNode;
     ),
     color: "text-gray-700 dark:text-gray-300",
     bgColor: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
-    description: "You signed up with your Google account"
   },
   FACEBOOK: {
-    label: "Facebook",
     icon: (
       <svg className="h-5 w-5" fill="#1877F2" viewBox="0 0 24 24">
         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -43,14 +41,11 @@ const authProviderConfig: Record<string, { label: string; icon: React.ReactNode;
     ),
     color: "text-[#1877F2]",
     bgColor: "bg-blue-50 dark:bg-blue-900/20",
-    description: "You signed up with your Facebook account"
   },
   WALLET: {
-    label: "Web3 Wallet",
     icon: <Wallet className="h-5 w-5" />,
     color: "text-purple-600 dark:text-purple-400",
     bgColor: "bg-purple-100 dark:bg-purple-900/30",
-    description: "You signed up with your Web3 wallet"
   }
 };
 
@@ -59,6 +54,9 @@ interface ProfileSectionProps {
 }
 
 export function ProfileSection({ user }: ProfileSectionProps) {
+  const t = useTranslations("settings.profile");
+  const tUsername = useTranslations("settings.profile.username");
+  const tAccount = useTranslations("settings.profile.accountType");
   const { updateUser, refreshUser } = useAuth();
   // Normalize authProvider to uppercase for config lookup
   const authProvider = user?.authProvider?.toUpperCase() || '';
@@ -70,6 +68,65 @@ export function ProfileSection({ user }: ProfileSectionProps) {
     bio: "",
   });
   const [isSaving, setIsSaving] = useState(false);
+
+  // Avatar upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isDeletingAvatar, setIsDeletingAvatar] = useState(false);
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(t("invalidImageType"));
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("imageTooLarge"));
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      await uploadApi.uploadAvatar(file);
+      await refreshUser();
+      toast.success(t("avatarUpdated"));
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      toast.error(error.message || 'Failed to upload profile picture');
+    } finally {
+      setIsUploadingAvatar(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleAvatarDelete = async () => {
+    if (!user?.profileImageUrl) return;
+
+    setIsDeletingAvatar(true);
+    try {
+      await uploadApi.deleteAvatar();
+      await refreshUser();
+      toast.success(t("avatarRemoved"));
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      toast.error(error.message || 'Failed to remove profile picture');
+    } finally {
+      setIsDeletingAvatar(false);
+    }
+  };
 
   // Sync form data when user prop changes
   useEffect(() => {
@@ -142,11 +199,11 @@ export function ProfileSection({ user }: ProfileSectionProps) {
     try {
       await authApi.updateUsername(username);
       await refreshUser();
-      toast.success("Username updated successfully!");
+      toast.success(tUsername("updated"));
       setUsernameAvailable(null);
     } catch (err: unknown) {
       const error = err as { message?: string };
-      toast.error(error.message || "Failed to update username");
+      toast.error(error.message || tUsername("updateError"));
     } finally {
       setIsSavingUsername(false);
     }
@@ -192,15 +249,13 @@ export function ProfileSection({ user }: ProfileSectionProps) {
         lastName: formData.lastName || undefined,
         phoneNumber: formData.phoneNumber || undefined,
       });
-      toast.success("Profile updated successfully");
+      toast.success(t("updateSuccess"));
     } catch {
-      toast.error("Failed to update profile");
+      toast.error(t("updateError"));
     } finally {
       setIsSaving(false);
     }
   };
-
-  const initials = user?.firstName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U";
 
   return (
     <div className="space-y-6">
@@ -209,25 +264,67 @@ export function ProfileSection({ user }: ProfileSectionProps) {
         <div className="p-6 border-b border-gray-100 dark:border-gray-800">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <User className="h-5 w-5 text-brand-500" />
-            Profile Information
+            {t("title")}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Update your personal information
+            {t("description")}
           </p>
         </div>
 
         <div className="p-6">
           {/* Avatar Section */}
           <div className="flex items-center gap-6 mb-8">
-            <div className="relative">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-3xl font-bold text-white shadow-lg shadow-brand-500/20">
-                {initials}
+            <div className="relative group">
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+
+              {/* Avatar with overlay */}
+              <div className="relative">
+                <UserAvatar
+                  src={user?.profileImageUrl}
+                  firstName={user?.firstName}
+                  lastName={user?.lastName}
+                  email={user?.email}
+                  username={user?.username}
+                  size="2xl"
+                  className="shadow-lg shadow-brand-500/20"
+                />
+
+                {/* Upload overlay */}
+                <button
+                  onClick={handleAvatarClick}
+                  disabled={isUploadingAvatar}
+                  className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                >
+                  {isUploadingAvatar ? (
+                    <Loader2 className="h-6 w-6 text-white animate-spin" />
+                  ) : (
+                    <Camera className="h-6 w-6 text-white" />
+                  )}
+                </button>
               </div>
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                <Camera className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+
+              {/* Camera button for mobile */}
+              <button
+                onClick={handleAvatarClick}
+                disabled={isUploadingAvatar}
+                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors md:hidden"
+              >
+                {isUploadingAvatar ? (
+                  <Loader2 className="h-4 w-4 text-gray-600 dark:text-gray-400 animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                )}
               </button>
             </div>
-            <div>
+
+            <div className="flex-1">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                 {user?.firstName || user?.lastName
                   ? formatName(user?.firstName, user?.lastName)
@@ -243,7 +340,7 @@ export function ProfileSection({ user }: ProfileSectionProps) {
                     {user?.isEmailVerified && (
                       <Badge variant="success" size="sm" className="flex items-center gap-1">
                         <CheckCircle className="h-3 w-3" />
-                        Verified
+                        {t("verified")}
                       </Badge>
                     )}
                   </>
@@ -253,6 +350,46 @@ export function ProfileSection({ user }: ProfileSectionProps) {
                   </span>
                 ) : null}
               </div>
+
+              {/* Avatar actions */}
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={handleAvatarClick}
+                  disabled={isUploadingAvatar}
+                  className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 font-medium flex items-center gap-1.5"
+                >
+                  {isUploadingAvatar ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      {t("uploading")}
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="h-3.5 w-3.5" />
+                      {user?.profileImageUrl ? t("changePhoto") : t("uploadPhoto")}
+                    </>
+                  )}
+                </button>
+                {user?.profileImageUrl && (
+                  <button
+                    onClick={handleAvatarDelete}
+                    disabled={isDeletingAvatar}
+                    className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium flex items-center gap-1.5"
+                  >
+                    {isDeletingAvatar ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        {t("removing")}
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-3.5 w-3.5" />
+                        {t("removePhoto")}
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -260,7 +397,7 @@ export function ProfileSection({ user }: ProfileSectionProps) {
           <div className="grid gap-6 md:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                First Name
+                {t("firstName")}
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -275,7 +412,7 @@ export function ProfileSection({ user }: ProfileSectionProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Last Name
+                {t("lastName")}
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -290,7 +427,7 @@ export function ProfileSection({ user }: ProfileSectionProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email Address
+                {t("email")}
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -304,7 +441,7 @@ export function ProfileSection({ user }: ProfileSectionProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Phone Number
+                {t("phone")}
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -323,21 +460,21 @@ export function ProfileSection({ user }: ProfileSectionProps) {
                 <p className="text-xs text-red-500 mt-1.5">{phoneError}</p>
               ) : (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-                  International format (e.g., +1234567890)
+                  {t("phoneHint")}
                 </p>
               )}
             </div>
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Bio
+                {t("bio")}
               </label>
               <div className="relative">
                 <FileText className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <textarea
                   value={formData.bio}
                   onChange={(e) => handleChange("bio", e.target.value)}
-                  placeholder="Tell us a little about yourself..."
+                  placeholder={t("bioPlaceholder")}
                   rows={3}
                   className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none"
                 />
@@ -352,7 +489,7 @@ export function ProfileSection({ user }: ProfileSectionProps) {
               onClick={handleSave}
               disabled={isSaving}
             >
-              {isSaving ? "Saving..." : "Save Changes"}
+              {isSaving ? t("saving") : t("saveChanges")}
             </Button>
           </div>
         </div>
@@ -363,10 +500,10 @@ export function ProfileSection({ user }: ProfileSectionProps) {
         <div className="p-6 border-b border-gray-100 dark:border-gray-800">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <AtSign className="h-5 w-5 text-brand-500" />
-            Username
+            {tUsername("title")}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Set a unique username to receive HBCT from other users
+            {tUsername("description")}
           </p>
         </div>
 
@@ -385,7 +522,7 @@ export function ProfileSection({ user }: ProfileSectionProps) {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {user?.username ? "Change Username" : "Choose a Username"}
+                {user?.username ? tUsername("changeUsername") : tUsername("chooseUsername")}
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
@@ -416,10 +553,10 @@ export function ProfileSection({ user }: ProfileSectionProps) {
                 <p className="text-xs text-red-500 mt-1.5">{usernameError}</p>
               )}
               {usernameAvailable && !usernameError && (
-                <p className="text-xs text-emerald-500 mt-1.5">Username is available!</p>
+                <p className="text-xs text-emerald-500 mt-1.5">{tUsername("available")}</p>
               )}
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-                3-20 characters. Letters, numbers, and underscores only. Must start with a letter.
+                {tUsername("hint")}
               </p>
             </div>
 
@@ -432,10 +569,10 @@ export function ProfileSection({ user }: ProfileSectionProps) {
                 {isSavingUsername ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Saving...
+                    {t("saving")}
                   </>
                 ) : (
-                  user?.username ? "Update Username" : "Set Username"
+                  user?.username ? tUsername("updateUsername") : tUsername("setUsername")
                 )}
               </Button>
             </div>
@@ -448,10 +585,10 @@ export function ProfileSection({ user }: ProfileSectionProps) {
         <div className="p-6 border-b border-gray-100 dark:border-gray-800">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <Link2 className="h-5 w-5 text-brand-500" />
-            Account Type
+            {tAccount("title")}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            How you signed up for your account
+            {tAccount("description")}
           </p>
         </div>
 
@@ -469,14 +606,14 @@ export function ProfileSection({ user }: ProfileSectionProps) {
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {authProviderConfig[authProvider].label}
+                    {tAccount(`providers.${authProvider.toLowerCase()}.label`)}
                   </h3>
                   <Badge variant="success" size="sm">
-                    Connected
+                    {tAccount("connected")}
                   </Badge>
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {authProviderConfig[authProvider].description}
+                  {tAccount(`providers.${authProvider.toLowerCase()}.description`)}
                 </p>
                 {authProvider === 'WALLET' && user?.walletAddress && (
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 font-mono">
@@ -492,10 +629,10 @@ export function ProfileSection({ user }: ProfileSectionProps) {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Email & Password
+                  {tAccount("providers.credentials.label")}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  You signed up with your email address and password
+                  {tAccount("providers.credentials.description")}
                 </p>
               </div>
             </div>

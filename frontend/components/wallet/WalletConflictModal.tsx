@@ -4,11 +4,13 @@ import React from "react";
 import { Link } from "@/i18n/navigation";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 import { useWallet, formatAddress } from "@/hooks/useWallet";
 import { ShieldX, X, Wallet, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function WalletConflictModal() {
+  const t = useTranslations("wallet.conflict");
   const { walletConflict, clearWalletConflict, openModal } = useWallet();
 
   const isOpen = walletConflict?.hasConflict ?? false;
@@ -60,10 +62,10 @@ export function WalletConflictModal() {
             </div>
 
             <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
-              Wallet Connection Blocked
+              {t("title")}
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              This wallet belongs to another account
+              {t("description")}
             </DialogDescription>
           </div>
 
@@ -73,7 +75,7 @@ export function WalletConflictModal() {
             <div className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 mb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-red-600 dark:text-red-400 mb-1 font-medium">Blocked Wallet</p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mb-1 font-medium">{t("blockedWallet")}</p>
                   <p className="text-sm font-mono font-semibold text-red-700 dark:text-red-300">
                     {walletConflict?.walletAddress ? formatAddress(walletConflict.walletAddress, 6) : "Unknown"}
                   </p>
@@ -87,30 +89,30 @@ export function WalletConflictModal() {
             {/* Warning Message */}
             <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 mb-5">
               <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                {walletConflict?.message || "This wallet address is already linked to another user account."}
+                {walletConflict?.message || t("defaultMessage")}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                The wallet has been disconnected for security. Please connect a different wallet.
+                {t("disconnectedMessage")}
               </p>
             </div>
 
             {/* What This Means */}
             <div className="space-y-2 mb-6">
               <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Why was this blocked?
+                {t("whyBlocked")}
               </h4>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 flex-shrink-0" />
-                  <span>Each wallet can only be linked to one account</span>
+                  <span>{t("oneAccountRule")}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 flex-shrink-0" />
-                  <span>This protects users from unauthorized transactions</span>
+                  <span>{t("protectsUsers")}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 flex-shrink-0" />
-                  <span>Connect a wallet that you own to continue</span>
+                  <span>{t("connectOwnWallet")}</span>
                 </li>
               </ul>
             </div>
@@ -122,14 +124,14 @@ export function WalletConflictModal() {
                 className="w-full h-12 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/20"
               >
                 <Wallet className="w-4 h-4 mr-2" />
-                Connect Different Wallet
+                {t("connectDifferent")}
               </Button>
 
               <button
                 onClick={handleClose}
                 className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors py-2"
               >
-                Close
+                {t("close")}
               </button>
             </div>
           </div>
@@ -141,7 +143,7 @@ export function WalletConflictModal() {
               href="/help"
               className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors"
             >
-              <span>Think this is a mistake? Contact support</span>
+              <span>{t("contactSupport")}</span>
               <ExternalLink className="w-3 h-3" />
             </Link>
           </div>

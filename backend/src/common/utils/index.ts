@@ -7,6 +7,9 @@ export * from './pagination';
 // Re-export transform utilities
 export * from './transforms';
 
+// Re-export user status utilities
+export * from './user-status.util';
+
 /**
  * Safely converts a Decimal or string to a number
  */

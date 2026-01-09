@@ -201,7 +201,7 @@ export default function LoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('reason') === 'session_revoked') {
-      toast.error('Your session was ended from another device. Please log in again.');
+      toast.error(t("sessionRevoked"));
       // Clean up URL
       const url = new URL(window.location.href);
       url.searchParams.delete('reason');
@@ -317,20 +317,20 @@ export default function LoginPage() {
       walletConnectSelectedRef.current = false;
       hasInitiatedAuthRef.current = false;
 
-      let errorMessage = "Failed to connect wallet. Please try again.";
+      let errorMessage = t("walletErrors.failedToConnect");
 
       if (err instanceof ApiError) {
         errorMessage = err.message;
       } else if (err instanceof Error) {
         const errMsg = err.message.toLowerCase();
         if (errMsg.includes("user rejected") || errMsg.includes("user disapproved") || errMsg.includes("rejected")) {
-          errorMessage = "Signature request was cancelled";
+          errorMessage = t("walletErrors.signatureCancelled");
         } else if (errMsg.includes("personal_sign") || errMsg.includes("not supported") || errMsg.includes("method not found")) {
-          errorMessage = "This wallet doesn't support message signing. Please use MetaMask or another compatible wallet.";
+          errorMessage = t("walletErrors.signingNotSupported");
         } else if (errMsg.includes("failed to fetch") || errMsg.includes("network") || errMsg.includes("timeout")) {
-          errorMessage = "Unable to connect to server. Please check your internet connection and try again.";
+          errorMessage = t("walletErrors.networkError");
         } else {
-          errorMessage = "Failed to authenticate. Please try again.";
+          errorMessage = t("walletErrors.authFailed");
         }
       }
 
@@ -350,16 +350,24 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!backendUrl) {
+      toast.error(t("apiNotConfigured"));
+      return;
+    }
     setSocialLoading("google");
     // Redirect to backend Google OAuth endpoint
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
     window.location.href = `${backendUrl}/auth/google`;
   };
 
   const handleFacebookLogin = () => {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!backendUrl) {
+      toast.error(t("apiNotConfigured"));
+      return;
+    }
     setSocialLoading("facebook");
     // Redirect to backend Facebook OAuth endpoint
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
     window.location.href = `${backendUrl}/auth/facebook`;
   };
 
@@ -438,7 +446,7 @@ export default function LoginPage() {
   const handleTwoFactorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!twoFactorCode || twoFactorCode.length < 6) {
-      toast.error("Please enter a valid 6-digit code or recovery code");
+      toast.error(t("twoFactor.invalidCode"));
       return;
     }
 
@@ -452,7 +460,7 @@ export default function LoginPage() {
       if (err instanceof ApiError) {
         toast.error(err.message);
       } else {
-        toast.error("Invalid verification code. Please try again.");
+        toast.error(t("twoFactor.verificationFailed"));
       }
       // Only set loading to false on error
       setTwoFactorLoading(false);
@@ -578,10 +586,10 @@ export default function LoginPage() {
                 </div>
 
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Two-Factor Authentication
+                  {t("twoFactor.title")}
                 </h1>
                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  Enter the 6-digit code from your authenticator app
+                  {t("twoFactor.subtitle")}
                 </p>
               </div>
 
@@ -621,11 +629,11 @@ export default function LoginPage() {
                       {twoFactorLoading ? (
                         <>
                           <Loader2 className="h-5 w-5 animate-spin" />
-                          Verifying...
+                          {t("twoFactor.verifying")}
                         </>
                       ) : (
                         <>
-                          Verify & Continue
+                          {t("twoFactor.verifyButton")}
                           <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                         </>
                       )}
@@ -635,7 +643,7 @@ export default function LoginPage() {
 
                 {/* Recovery code hint */}
                 <p className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
-                  Lost access to your authenticator? Use a recovery code (format: XXXX-XXXX)
+                  {t("twoFactor.recoveryHint")}
                 </p>
               </div>
             </>
@@ -924,13 +932,13 @@ export default function LoginPage() {
 
         {/* Footer text */}
         <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
-          By continuing, you agree to our{" "}
-          <Link href="/" className="text-brand-500 hover:text-brand-600 font-medium">
-            Terms of Service
+          {t("legal.agreementPrefix")}{" "}
+          <Link href="/terms" className="text-brand-500 hover:text-brand-600 font-medium">
+            {t("legal.termsOfService")}
           </Link>{" "}
-          and{" "}
-          <Link href="/" className="text-brand-500 hover:text-brand-600 font-medium">
-            Privacy Policy
+          {t("legal.and")}{" "}
+          <Link href="/privacy" className="text-brand-500 hover:text-brand-600 font-medium">
+            {t("legal.privacyPolicy")}
           </Link>
         </p>
       </div>

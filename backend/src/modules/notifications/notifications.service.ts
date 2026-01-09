@@ -46,8 +46,9 @@ export class NotificationsService {
 
   /**
    * Create a notification and optionally broadcast it via SSE
+   * @param skipEmail - Skip sending generic email (use when custom email is already sent)
    */
-  async create(dto: CreateNotificationDto, broadcast = true) {
+  async create(dto: CreateNotificationDto, broadcast = true, skipEmail = false) {
     // Check user's notification preferences
     const preferences = await this.getOrCreatePreferences(dto.userId);
     const channel = this.getChannelForType(preferences, dto.type);
@@ -92,7 +93,9 @@ export class NotificationsService {
     }
 
     // Send email if channel is EMAIL or BOTH and email is enabled
+    // Skip if skipEmail flag is set (custom email already sent)
     if (
+      !skipEmail &&
       preferences.emailEnabled &&
       (channel === NotificationChannel.EMAIL ||
         channel === NotificationChannel.BOTH)
@@ -472,7 +475,7 @@ export class NotificationsService {
       title: titles[status],
       message: messages[status],
       data: { amount, currency, status, txHash },
-      actionUrl: '/wallet/history',
+      actionUrl: '/wallet/transactions',
     });
   }
 
@@ -591,19 +594,40 @@ export class NotificationsService {
    */
   async notifyNewLogin(
     userId: string,
-    deviceInfo: string,
+    deviceName: string,
     location?: string,
     ipAddress?: string,
   ) {
     const locationText = location ? ` from ${location}` : '';
-    return this.create({
-      userId,
-      type: NotificationType.SECURITY,
-      title: 'New Login Detected',
-      message: `New login on ${deviceInfo}${locationText}. If this wasn't you, please secure your account.`,
-      data: { deviceInfo, location },
-      actionUrl: '/settings?tab=security',
+
+    // Get user email for security alert
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
     });
+
+    // Send security alert email with proper formatting
+    if (user?.email) {
+      await this.emailService.sendSecurityAlert(user.email, 'new_login', {
+        deviceName,
+        location,
+        timestamp: new Date(),
+      });
+    }
+
+    // Create in-app notification (skip generic email since we sent security alert above)
+    return this.create(
+      {
+        userId,
+        type: NotificationType.SECURITY,
+        title: 'New Login Detected',
+        message: `New login on ${deviceName}${locationText}. If this wasn't you, please secure your account.`,
+        data: { deviceName, location, ipAddress },
+        actionUrl: '/settings?tab=security',
+      },
+      true, // broadcast
+      true, // skipEmail - we already sent the security alert email
+    );
   }
 
   /**

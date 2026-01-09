@@ -33,6 +33,7 @@ export interface User {
   firstName: string | null;
   lastName: string | null;
   phoneNumber: string | null;
+  profileImageUrl: string | null;
   walletAddress: string | null;
   role: 'USER' | 'ADMIN';
   roleId: string | null; // RBAC role ID - if set, user has admin panel access
@@ -457,7 +458,8 @@ export type TransactionType =
   | 'MARKETPLACE_PURCHASE'
   | 'MARKETPLACE_REFUND'
   | 'LIQUIDITY_ADD'
-  | 'FEE_CASHBACK';
+  | 'FEE_CASHBACK'
+  | 'ADMIN_ADJUSTMENT';
 
 export interface Transaction {
   id: string;
@@ -517,7 +519,8 @@ export type WalletTransactionType =
   | 'AIRDROP'
   | 'AFFILIATE_COMMISSION'
   | 'FEE'
-  | 'REFUND';
+  | 'REFUND'
+  | 'ADMIN_ADJUSTMENT';
 
 export type WalletTransactionStatus =
   | 'PENDING'

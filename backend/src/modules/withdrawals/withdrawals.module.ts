@@ -5,9 +5,15 @@ import { WithdrawalsProcessorService } from './withdrawals.processor';
 import { WalletModule } from '../wallet/wallet.module';
 import { EmailModule } from '../email/email.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [WalletModule, EmailModule, forwardRef(() => NotificationsModule)],
+  imports: [
+    WalletModule,
+    EmailModule,
+    forwardRef(() => NotificationsModule),
+    forwardRef(() => AuthModule),
+  ],
   controllers: [WithdrawalsController],
   providers: [WithdrawalsService, WithdrawalsProcessorService],
   exports: [WithdrawalsService],

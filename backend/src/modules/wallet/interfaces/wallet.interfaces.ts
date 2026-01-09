@@ -132,6 +132,7 @@ export interface BalanceCreditDebitParams {
   metadata?: Record<string, unknown>;
   ipAddress?: string;
   relatedTransferId?: string;
+  externalTxHash?: string;
 }
 
 export interface InitiateTransferParams {

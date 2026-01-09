@@ -21,3 +21,4 @@ export { walletApi } from './wallet';
 export { depositsApi } from './deposits';
 export { withdrawalsApi } from './withdrawals';
 export { notificationsApi } from './notifications';
+export { uploadApi } from './upload';

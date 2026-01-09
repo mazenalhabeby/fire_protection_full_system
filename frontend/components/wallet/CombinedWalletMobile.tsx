@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { Wallet, Loader2, ChevronUp, ChevronDown } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useWallet, useCorrectChain } from "@/hooks/useWallet";
 import { WalletConnectModal } from "./WalletConnectModal";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ export function CombinedWalletMobile({
   offChainBalance = "0.00",
   className,
 }: CombinedWalletMobileProps) {
+  const t = useTranslations("wallet");
   const router = useRouter();
   const {
     isConnected,
@@ -54,7 +56,7 @@ export function CombinedWalletMobile({
           )}
         >
           <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Connecting...</span>
+          <span>{t("connecting")}</span>
         </div>
         <WalletConnectModal isOpen={isModalOpen} onClose={closeModal} />
       </>
@@ -109,7 +111,7 @@ export function CombinedWalletMobile({
                   <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
                 </div>
                 <div className="flex flex-col items-start leading-none min-w-0">
-                  <span className="text-[9px] text-gray-400 dark:text-gray-500">My Wallet</span>
+                  <span className="text-[9px] text-gray-400 dark:text-gray-500">{t("myWallet")}</span>
                   <span className="text-xs font-semibold truncate">{offChainBalance} <span className="text-[8px] font-normal text-gray-500 dark:text-gray-400">HBCT</span></span>
                 </div>
               </>
@@ -129,13 +131,13 @@ export function CombinedWalletMobile({
                   </div>
                 </div>
                 <div className="flex flex-col items-start leading-none min-w-0">
-                  <span className="text-[9px] text-gray-400 dark:text-gray-500">On-chain</span>
+                  <span className="text-[9px] text-gray-400 dark:text-gray-500">{t("onChain")}</span>
                   <span className="text-xs font-semibold truncate">{balance} {balanceSymbol}</span>
                 </div>
               </>
             ) : (
               // On-chain not connected
-              <span className="text-xs font-semibold">Connect Web3</span>
+              <span className="text-xs font-semibold">{t("connectWeb3")}</span>
             )}
           </div>
         </button>

@@ -91,7 +91,7 @@ export function HelpWidget() {
       icon: MessageSquare,
       label: "Help Center",
       description: "Browse all topics",
-      href: `/${locale}/help`,
+      href: "/help",
     },
   ];
 
@@ -100,7 +100,7 @@ export function HelpWidget() {
       icon: Ticket,
       label: "My Tickets",
       description: "View support history",
-      href: `/${locale}/help/tickets`,
+      href: "/help/tickets",
     });
   }
 
@@ -209,7 +209,7 @@ export function HelpWidget() {
               {/* Create Ticket Button */}
               {isAuthenticated && (
                 <Link
-                  href={`/${locale}/help/tickets/new`}
+                  href="/help/tickets/new"
                   onClick={handleClose}
                   className="block mt-4 w-full p-3 text-center font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-xl transition-colors"
                 >
@@ -263,7 +263,7 @@ export function HelpWidget() {
               ))}
 
               <Link
-                href={`/${locale}/help#faq`}
+                href="/help#faq"
                 onClick={handleClose}
                 className="flex items-center justify-center gap-2 p-3 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
               >

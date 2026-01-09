@@ -7,10 +7,20 @@
     "locks": "Token Locks",
     "deposits": "Deposits",
     "withdrawals": "Withdrawals",
+    "buyback": "Buyback Pool",
     "purchases": "Purchases",
+    "support": "Support",
     "roles": "Roles",
     "settings": "Settings",
-    "backToApp": "Back to App"
+    "backToApp": "Back to App",
+    "menu": "Menu",
+    "theme": "Theme",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "systemMode": "System preference",
+    "language": "Language",
+    "administrator": "Administrator",
+    "user": "User"
   },
   "auth": {
     "login": "Login",
@@ -18,5 +28,539 @@
     "email": "Email",
     "password": "Password",
     "adminRequired": "Admin access required"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "noResults": "No results found",
+    "refresh": "Refresh",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "amount": "Amount",
+    "user": "User",
+    "page": "Page",
+    "of": "of",
+    "total": "total",
+    "allStatus": "All Status",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "viewOnExplorer": "View on BSCScan",
+    "approve": "Approve",
+    "reject": "Reject",
+    "process": "Process",
+    "reason": "Reason"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Real-time platform analytics",
+    "stats": {
+      "totalUsers": "Total Users",
+      "activeUsers": "Active Users",
+      "totalDeposits": "Total Deposits",
+      "totalWithdrawals": "Total Withdrawals",
+      "pendingApprovals": "Pending Approvals",
+      "openTickets": "Open Tickets",
+      "totalVolume": "Total Volume",
+      "totalRevenue": "Total Revenue",
+      "tokensSold": "Tokens Sold",
+      "tokensLocked": "Tokens Locked",
+      "pendingWithdrawals": "Pending Withdrawals",
+      "pendingDeposits": "Pending Deposits",
+      "affiliatePayouts": "Affiliate Payouts",
+      "registered": "{count} registered",
+      "purchases": "{count} purchases",
+      "ofSold": "{percent}% of sold",
+      "awaitingApproval": "Awaiting approval",
+      "awaitingConfirmation": "Awaiting confirmation",
+      "needAttention": "Need attention",
+      "totalPaid": "Total paid"
+    },
+    "recentActivity": "Recent Activity",
+    "latestTransactions": "Latest transactions",
+    "noRecentTransactions": "No recent transactions",
+    "quickActions": "Quick Actions",
+    "lockStatus": {
+      "title": "Lock Status",
+      "subtitle": "Token locks breakdown",
+      "hbctLocked": "HBCT locked",
+      "noData": "No lock data available",
+      "locks": "Locks",
+      "amount": "Amount"
+    },
+    "topAffiliates": {
+      "title": "Top Affiliates",
+      "noAffiliates": "No affiliates yet"
+    },
+    "transactions": {
+      "tokenPurchase": "Token Purchase",
+      "dexPurchase": "DEX Purchase",
+      "transferSent": "Transfer Sent",
+      "transferReceived": "Transfer Received",
+      "tokenLock": "Token Lock",
+      "tokenUnlock": "Token Unlock",
+      "reward": "Reward",
+      "airdrop": "Airdrop",
+      "affiliateBonus": "Affiliate Bonus",
+      "deposit": "Deposit",
+      "withdrawal": "Withdrawal"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{minutes}m ago",
+      "hoursAgo": "{hours}h ago",
+      "daysAgo": "{days}d ago"
+    }
+  },
+  "deposits": {
+    "title": "Deposit Management",
+    "subtitle": "Monitor and manage on-chain deposits",
+    "stats": {
+      "totalDeposits": "Total Deposits",
+      "totalAmount": "Total Amount (HBCT)",
+      "pending": "Pending",
+      "credited": "Credited",
+      "locked24h": "Locked (24h)",
+      "unmapped": "Unmapped"
+    },
+    "listener": {
+      "title": "Deposit Listener",
+      "running": "Running",
+      "stopped": "Stopped",
+      "pollingEvery": "Polling every {seconds}s",
+      "processNow": "Process Now",
+      "start": "Start",
+      "stop": "Stop"
+    },
+    "lookup": {
+      "title": "Transaction Lookup & Historical Scan",
+      "subtitle": "Use when a user reports a missing deposit",
+      "placeholder": "Enter transaction hash (0x...)",
+      "button": "Lookup",
+      "quickScan": "Quick Scan (24h)",
+      "fullScan": "Full Scan (7 days)",
+      "scanning24h": "Scanning last 24 hours...",
+      "scanning7d": "Scanning last 7 days...",
+      "pleaseWaitBlockchain": "Please wait while we check the blockchain...",
+      "mayTakeSeveralMinutes": "This may take several minutes. Please wait...",
+      "scanCannotBeStopped": "Note: Scan runs on the server and cannot be stopped once started."
+    },
+    "filters": {
+      "allDeposits": "All Deposits",
+      "locked": "Locked",
+      "unmapped": "Unmapped"
+    },
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "credited": "Credited",
+      "locked": "Locked",
+      "failed": "Failed",
+      "unmapped": "Unmapped"
+    },
+    "table": {
+      "txHash": "TX Hash",
+      "from": "From",
+      "amount": "Amount",
+      "user": "User",
+      "status": "Status",
+      "confirmations": "Confirmations",
+      "date": "Date",
+      "actions": "Actions",
+      "noDeposits": "No deposits found"
+    },
+    "actions": {
+      "mapUser": "Map User",
+      "release": "Release",
+      "reassign": "Reassign",
+      "unmap": "Unmap"
+    },
+    "modals": {
+      "mapDeposit": {
+        "title": "Map Deposit to User",
+        "subtitle": "Link this unmapped deposit to a user account",
+        "searchUser": "Search User",
+        "searchPlaceholder": "Search by email, username, or wallet address...",
+        "selectedUser": "Selected User",
+        "verifyWarning": {
+          "title": "Verify Before Mapping",
+          "description": "Make sure the deposit actually belongs to this user. The amount will be credited to their balance immediately."
+        },
+        "button": "Map Deposit",
+        "mapping": "Mapping..."
+      },
+      "unmapDeposit": {
+        "title": "Unmap Deposit",
+        "subtitle": "Remove user mapping and reverse credit",
+        "transaction": "Transaction",
+        "depositAmount": "Deposit Amount",
+        "currentUser": "Current User",
+        "userBalance": "User Balance",
+        "insufficientBalance": "Insufficient Balance",
+        "insufficientWarning": "User only has {balance} HBCT but deposit was {amount} HBCT. They may have already withdrawn the funds.",
+        "forceUnmap": "Force unmap without debiting",
+        "forceUnmapDesc": "Unmap the deposit record without deducting from user's balance",
+        "reasonLabel": "Reason for Unmapping *",
+        "reasonPlaceholder": "e.g., Deposit was mapped to wrong user by mistake...",
+        "balanceReversalWarning": {
+          "title": "Warning: Balance Reversal",
+          "description": "This will debit {amount} HBCT from the user's balance and set the deposit back to unmapped status."
+        },
+        "button": "Unmap Deposit",
+        "forceButton": "Force Unmap",
+        "unmapping": "Unmapping..."
+      },
+      "reassignDeposit": {
+        "title": "Reassign Deposit",
+        "subtitle": "Move deposit from one user to another",
+        "searchNewUser": "Search New User",
+        "newUser": "New User",
+        "forceReassign": "Force reassign without debiting old user",
+        "forceReassignDesc": "Credit new user without deducting from old user's balance",
+        "reasonLabel": "Reason for Reassignment *",
+        "reasonPlaceholder": "e.g., Original mapping was incorrect, user provided proof of ownership...",
+        "balanceTransferWarning": {
+          "title": "Balance Transfer",
+          "description": "This will debit {amount} HBCT from the current user and credit it to the new user."
+        },
+        "button": "Reassign Deposit",
+        "forceButton": "Force Reassign",
+        "reassigning": "Reassigning..."
+      },
+      "releaseDeposit": {
+        "title": "Release Locked Deposit",
+        "subtitle": "Release deposit early before 24h lock expires",
+        "assignedUser": "Assigned User",
+        "timeRemaining": "Time Remaining",
+        "lockReason": "Lock Reason",
+        "readyToRelease": "Ready to release",
+        "whyLocked": {
+          "title": "Why is this deposit locked?",
+          "description": "The deposit was mapped to a user whose wallet address doesn't match the sender. The 24-hour lock prevents immediate withdrawal in case of incorrect mapping."
+        },
+        "reasonLabel": "Reason for Early Release *",
+        "reasonPlaceholder": "e.g., User verified ownership via support ticket, confirmed transaction signature...",
+        "button": "Release Now",
+        "releasing": "Releasing..."
+      }
+    },
+    "timeRemaining": "{hours}h {minutes}m remaining",
+    "readyToRelease": "Ready to release"
+  },
+  "withdrawals": {
+    "title": "Withdrawal Management",
+    "subtitle": "Monitor and process user withdrawals",
+    "stats": {
+      "totalWithdrawals": "Total Withdrawals",
+      "totalAmount": "Total Amount (HBCT)",
+      "pendingApproval": "Pending Approval",
+      "totalFees": "Total Fees (HBCT)"
+    },
+    "hotWallet": {
+      "title": "Hot Wallet",
+      "pending": "Pending",
+      "lowBalanceWarning": "Low balance warning! Refill hot wallet."
+    },
+    "status": {
+      "pendingConfirmation": "Awaiting Confirm",
+      "pendingApproval": "Needs Approval",
+      "approved": "Approved",
+      "processing": "Processing",
+      "completed": "Completed",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled",
+      "failed": "Failed"
+    },
+    "table": {
+      "user": "User",
+      "amount": "Amount",
+      "fee": "Fee",
+      "toAddress": "To Address",
+      "status": "Status",
+      "tx": "TX",
+      "date": "Date",
+      "actions": "Actions",
+      "noWithdrawals": "No withdrawals found"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "process": "Process"
+    },
+    "confirmApprove": "Are you sure you want to approve this withdrawal?",
+    "confirmProcess": "Manually process this withdrawal now?",
+    "rejectPlaceholder": "Reason",
+    "toast": {
+      "approveSuccess": "Withdrawal approved successfully",
+      "rejectSuccess": "Withdrawal rejected",
+      "processSuccess": "Withdrawal processing started",
+      "noPermissionApprove": "You don't have permission to approve withdrawals",
+      "noPermissionReject": "You don't have permission to reject withdrawals",
+      "noPermissionProcess": "You don't have permission to process withdrawals"
+    }
+  },
+  "users": {
+    "title": "User Management",
+    "subtitle": "View and manage user accounts",
+    "stats": {
+      "totalUsers": "Total Users",
+      "verifiedUsers": "Verified Users",
+      "activeToday": "Active Today",
+      "newThisMonth": "New This Month"
+    },
+    "table": {
+      "user": "User",
+      "email": "Email",
+      "status": "Status",
+      "balance": "Balance",
+      "role": "Role",
+      "joined": "Joined",
+      "lastActive": "Last Active",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended",
+      "banned": "Banned"
+    },
+    "actions": {
+      "viewDetails": "View Details",
+      "editUser": "Edit User",
+      "suspendUser": "Suspend User",
+      "banUser": "Ban User",
+      "restoreUser": "Restore User"
+    }
+  },
+  "support": {
+    "title": "Support Tickets",
+    "subtitle": "Manage customer support requests",
+    "stats": {
+      "openTickets": "Open Tickets",
+      "pendingResponse": "Pending Response",
+      "resolvedToday": "Resolved Today",
+      "avgResponseTime": "Avg Response Time"
+    },
+    "status": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "waitingOnCustomer": "Waiting on Customer",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "table": {
+      "id": "ID",
+      "subject": "Subject",
+      "user": "User",
+      "category": "Category",
+      "priority": "Priority",
+      "status": "Status",
+      "created": "Created",
+      "lastUpdate": "Last Update",
+      "actions": "Actions"
+    },
+    "actions": {
+      "reply": "Reply",
+      "assignToMe": "Assign to Me",
+      "changeStatus": "Change Status",
+      "changePriority": "Change Priority",
+      "close": "Close Ticket"
+    }
+  },
+  "purchases": {
+    "title": "Token Purchases",
+    "subtitle": "View all token purchase transactions",
+    "stats": {
+      "totalPurchases": "Total Purchases",
+      "totalVolume": "Total Volume",
+      "todayPurchases": "Today's Purchases",
+      "averageOrder": "Average Order"
+    },
+    "table": {
+      "id": "ID",
+      "user": "User",
+      "amount": "Amount",
+      "tokens": "Tokens",
+      "currency": "Currency",
+      "status": "Status",
+      "txHash": "TX Hash",
+      "date": "Date"
+    },
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "failed": "Failed",
+      "refunded": "Refunded"
+    }
+  },
+  "buyback": {
+    "title": "Buyback Pool",
+    "subtitle": "Manage the token buyback system",
+    "stats": {
+      "poolBalance": "Pool Balance",
+      "totalBought": "Total HBCT Bought",
+      "pendingAllocations": "Pending Allocations",
+      "lastExecution": "Last Execution"
+    },
+    "allocations": {
+      "title": "Pending Allocations",
+      "currency": "Currency",
+      "amount": "Amount",
+      "source": "Source",
+      "date": "Date",
+      "noAllocations": "No pending allocations"
+    },
+    "actions": {
+      "executeBuyback": "Execute Buyback",
+      "executing": "Executing...",
+      "addAllocation": "Add Allocation"
+    },
+    "history": {
+      "title": "Execution History",
+      "bnbSpent": "BNB Spent",
+      "hbctBought": "HBCT Bought",
+      "txHash": "TX Hash",
+      "date": "Date"
+    }
+  },
+  "affiliates": {
+    "title": "Affiliate Management",
+    "subtitle": "View and manage affiliate program",
+    "stats": {
+      "totalAffiliates": "Total Affiliates",
+      "totalReferrals": "Total Referrals",
+      "totalCommissions": "Total Commissions",
+      "pendingPayouts": "Pending Payouts"
+    },
+    "table": {
+      "affiliate": "Affiliate",
+      "tier": "Tier",
+      "referrals": "Referrals",
+      "totalEarned": "Total Earned",
+      "pendingPayout": "Pending Payout",
+      "status": "Status"
+    },
+    "tiers": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold",
+      "platinum": "Platinum",
+      "diamond": "Diamond"
+    }
+  },
+  "locks": {
+    "title": "Token Locks",
+    "subtitle": "View all token locking activities",
+    "stats": {
+      "totalLocked": "Total Locked",
+      "activeLocks": "Active Locks",
+      "totalRewards": "Total Rewards",
+      "avgLockPeriod": "Avg Lock Period"
+    },
+    "table": {
+      "user": "User",
+      "amount": "Amount",
+      "tier": "Tier",
+      "startDate": "Start Date",
+      "unlockDate": "Unlock Date",
+      "reward": "Reward",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Active",
+      "completed": "Completed",
+      "unlocked": "Unlocked"
+    }
+  },
+  "roles": {
+    "title": "Role Management",
+    "subtitle": "Manage admin roles and permissions",
+    "stats": {
+      "totalAdmins": "Total Admins",
+      "superAdmins": "Super Admins",
+      "moderators": "Moderators"
+    },
+    "table": {
+      "user": "User",
+      "role": "Role",
+      "permissions": "Permissions",
+      "assignedBy": "Assigned By",
+      "assignedAt": "Assigned At"
+    },
+    "roles": {
+      "superAdmin": "Super Admin",
+      "admin": "Admin",
+      "moderator": "Moderator",
+      "support": "Support"
+    },
+    "actions": {
+      "assignRole": "Assign Role",
+      "removeRole": "Remove Role",
+      "editPermissions": "Edit Permissions"
+    }
+  },
+  "settings": {
+    "title": "Platform Settings",
+    "subtitle": "Configure platform-wide settings",
+    "sections": {
+      "general": "General",
+      "security": "Security",
+      "payments": "Payments",
+      "notifications": "Notifications",
+      "integrations": "Integrations"
+    },
+    "general": {
+      "siteName": "Site Name",
+      "siteDescription": "Site Description",
+      "maintenanceMode": "Maintenance Mode",
+      "maintenanceModeDesc": "Enable to put the site in maintenance mode"
+    },
+    "security": {
+      "twoFactorRequired": "Require 2FA for Admins",
+      "sessionTimeout": "Session Timeout (minutes)",
+      "maxLoginAttempts": "Max Login Attempts",
+      "ipWhitelist": "IP Whitelist"
+    },
+    "payments": {
+      "tokenPrice": "Token Price (USD)",
+      "minPurchase": "Minimum Purchase (USD)",
+      "maxPurchase": "Maximum Purchase (USD)",
+      "withdrawalFee": "Withdrawal Fee (%)",
+      "minWithdrawal": "Minimum Withdrawal"
+    }
+  },
+  "pagination": {
+    "page": "Page",
+    "of": "of",
+    "previous": "Previous",
+    "next": "Next",
+    "showingResults": "Showing {from} to {to} of {total} results"
+  },
+  "errors": {
+    "unauthorized": "Unauthorized access",
+    "notFound": "Not found",
+    "serverError": "Server error occurred",
+    "networkError": "Network error",
+    "validationError": "Validation error",
+    "permissionDenied": "Permission denied"
   }
 }
