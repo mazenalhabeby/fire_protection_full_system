@@ -8,5 +8,6 @@ export default createMiddleware({
 });
 
 export const config = {
-  matcher: ['/', '/(de|en|fr|es|it)/:path*'],
+  // Exclude /api routes from locale middleware
+  matcher: ['/', '/(de|en|fr|es|it)/:path*', '/((?!api).*)'],
 };
