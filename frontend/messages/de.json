@@ -1140,22 +1140,38 @@
     "woodPreservation": {
       "title": "Holzschutz",
       "description": "Spezielle Beschichtungen für tragende Holzelemente zur deutlichen Reduzierung der Entflammbarkeit und Verlängerung der Lebensdauer.",
-      "features": ["Brandhemmende Beschichtungen", "Feuerschutz-Imprägnierung", "NFPA & EN konform"]
+      "features": [
+        "Brandhemmende Beschichtungen",
+        "Feuerschutz-Imprägnierung",
+        "NFPA & EN konform"
+      ]
     },
     "filmProtection": {
       "title": "Folienschutz",
       "description": "Transparente Schutzfolien für Fenster, Wände und Türen, die die Flammenausbreitung verlangsamen.",
-      "features": ["Wärmereflektierende Technologie", "Rauchbarriereschutz", "Individuelle Formate"]
+      "features": [
+        "Wärmereflektierende Technologie",
+        "Rauchbarriereschutz",
+        "Individuelle Formate"
+      ]
     },
     "facadeSystems": {
       "title": "Fassadensysteme",
       "description": "Architektonische Materialien zur Verhinderung der Flammenausbreitung an Gebäudeaußenseiten.",
-      "features": ["Feuerfeste Paneele", "Brandabschnittsdesign", "Visuelle Transparenz"]
+      "features": [
+        "Feuerfeste Paneele",
+        "Brandabschnittsdesign",
+        "Visuelle Transparenz"
+      ]
     },
     "textileProtection": {
       "title": "Textiler Brandschutz",
       "description": "Nicht-invasive silikonbeschichtete Glasfaserbarrieren, die Flammen eindämmen und Wärme ohne Wasser oder Schaum reduzieren. Zertifizierte EV-Löschdecken-Technologie, wartungsfrei, wiederverwendbar und witterungsbeständig.",
-      "features": ["Zertifizierte EV-Löschdecken-Technologie", "Wartungsfrei & wiederverwendbar", "Witterungsbeständige Materialien"]
+      "features": [
+        "Zertifizierte EV-Löschdecken-Technologie",
+        "Wartungsfrei & wiederverwendbar",
+        "Witterungsbeständige Materialien"
+      ]
     }
   },
   "whyHbct": {
@@ -1348,22 +1364,42 @@
       "fireProtection": {
         "title": "Brandschutz",
         "description": "Fortschrittliche Brandschutzlösungen einschließlich Holzschutz, Schutzfolien, Fassadensysteme und zertifizierte textile Barrieren.",
-        "features": ["Holzschutzbehandlungen", "Schutzfolientechnologien", "Fassadenschutzsysteme", "Zertifizierte EV-Löschdecken-Technologie"]
+        "features": [
+          "Holzschutzbehandlungen",
+          "Schutzfolientechnologien",
+          "Fassadenschutzsysteme",
+          "Zertifizierte EV-Löschdecken-Technologie"
+        ]
       },
       "industrial": {
         "title": "Industrielle Wartung",
         "description": "Komplette Industriedienstleistungen einschließlich Hydraulik, Elektrik, Mechanik, Schweißen und 24/7-Schnellreaktions-Support.",
-        "features": ["Vorbeugende & vorausschauende Wartung", "Komplexe Maschinenverlagerung", "24/7-Schnellreaktions-Support", "Programmierung & Automatisierung"]
+        "features": [
+          "Vorbeugende & vorausschauende Wartung",
+          "Komplexe Maschinenverlagerung",
+          "24/7-Schnellreaktions-Support",
+          "Programmierung & Automatisierung"
+        ]
       },
       "smartBuilding": {
         "title": "Intelligente Gebäude",
         "description": "Smart-Home-Automatisierung, Solarintegration, Sicherheitssysteme und Energieüberwachung für moderne Gebäude.",
-        "features": ["Smart-Home-Automatisierung", "Solar (PV) Integration", "Sicherheit & Überwachung", "Energieüberwachungssysteme"]
+        "features": [
+          "Smart-Home-Automatisierung",
+          "Solar (PV) Integration",
+          "Sicherheit & Überwachung",
+          "Energieüberwachungssysteme"
+        ]
       },
       "itSolutions": {
         "title": "IT-Lösungen",
         "description": "Individuelle Softwareentwicklung, Cloud-Infrastruktur, KI-Automatisierung und Blockchain-Integrationsdienste.",
-        "features": ["Individuelle Softwareentwicklung", "Cloud & DevOps-Infrastruktur", "KI & Automatisierungssysteme", "Web3 & Blockchain-Integration"]
+        "features": [
+          "Individuelle Softwareentwicklung",
+          "Cloud & DevOps-Infrastruktur",
+          "KI & Automatisierungssysteme",
+          "Web3 & Blockchain-Integration"
+        ]
       }
     },
     "team": {
@@ -2342,10 +2378,105 @@
     "available": "Verfügbar",
     "locked": "Gesperrt",
     "total": "Gesamt",
-    "deposit": "Einzahlen",
-    "withdraw": "Auszahlen",
+    "deposit": {
+      "title": "HBCT einzahlen",
+      "subtitle": "Senden Sie HBCT-Token von Ihrem externen Wallet",
+      "tabs": {
+        "deposit": "Einzahlen",
+        "history": "Verlauf"
+      },
+      "backToWallet": "Zurück zum Wallet",
+      "notConfigured": {
+        "title": "Einzahlungen nicht verfügbar",
+        "description": "Das Einzahlungssystem ist noch nicht konfiguriert. Bitte kontaktieren Sie den Support."
+      },
+      "qrSection": {
+        "title": "HBCT Einzahlung",
+        "network": "BNB Smart Chain (BSC)",
+        "status": "Aktiv",
+        "scanInstruction": "QR-Code scannen oder Adresse unten kopieren",
+        "addressLabel": "Einzahlungsadresse",
+        "bscNetwork": "BSC-Netzwerk",
+        "copy": "Kopieren",
+        "copied": "Kopiert!",
+        "viewOnBscscan": "Auf BSCScan anzeigen"
+      },
+      "howTo": {
+        "title": "So zahlen Sie ein",
+        "step1": {
+          "title": "Einzahlungsadresse kopieren",
+          "description": "Klicken Sie oben auf die Kopierschaltfläche oder scannen Sie den QR-Code"
+        },
+        "step2": {
+          "title": "HBCT von Ihrem Wallet senden",
+          "description": "Verwenden Sie MetaMask, Trust Wallet oder ein BSC-kompatibles Wallet"
+        },
+        "step3": {
+          "title": "Auf Bestätigung warten",
+          "description": "{confirmations} Blockbestätigungen (~1-2 Minuten)"
+        },
+        "step4": {
+          "title": "Klicken Sie auf \"Nach Einzahlungen suchen\"",
+          "description": "Verwenden Sie die Schaltfläche unten, um nach Ihrer Einzahlung zu suchen"
+        }
+      },
+      "checkDeposits": {
+        "button": "Nach Einzahlungen suchen",
+        "linkWalletFirst": "Verknüpfen Sie zuerst ein Wallet, um nach Einzahlungen zu suchen",
+        "noWalletError": "Bitte verknüpfen Sie zuerst ein Wallet, um nach Einzahlungen zu suchen"
+      },
+      "linkedWallets": {
+        "title": "Ihre verknüpften Wallets",
+        "manage": "Verwalten",
+        "creditInfo": "Einzahlungen von diesen Wallets werden automatisch Ihrem Konto gutgeschrieben:",
+        "primary": "PRIMÄR",
+        "noWallets": {
+          "title": "Keine Wallets verknüpft",
+          "description": "Verknüpfen Sie ein Wallet, damit Einzahlungen automatisch Ihrem Konto zugeordnet werden"
+        },
+        "linkWallet": "Wallet verknüpfen"
+      },
+      "warning": {
+        "title": "Wichtig",
+        "onlyHbct": "Senden Sie nur HBCT-Token an diese Adresse",
+        "onlyBsc": "Verwenden Sie nur das BNB Smart Chain (BSC) Netzwerk",
+        "permanentLoss": "Das Senden anderer Token kann zu dauerhaftem Verlust führen"
+      }
+    },
+    "withdraw": {
+      "title": "HBCT auszahlen",
+      "subtitle": "Senden Sie HBCT-Token an Ihr externes Wallet",
+      "tabs": {
+        "newWithdrawal": "Neue Auszahlung",
+        "history": "Verlauf"
+      },
+      "backToWallet": "Zurück zum Wallet",
+      "successMessage": "Auszahlungsanfrage eingereicht! Überprüfen Sie Ihre E-Mail auf den Bestätigungscode."
+    },
     "transfer": "Übertragen",
-    "transactions": "Transaktionen",
+    "transactions": {
+      "title": "HBCT Transaktionsverlauf",
+      "transactionCount": "{count} Transaktion",
+      "transactionCountPlural": "{count} Transaktionen",
+      "filters": "Filter",
+      "clearAll": "Alle löschen",
+      "export": "Exportieren",
+      "status": "Status",
+      "type": "Typ",
+      "allStatuses": "Alle Status",
+      "allTypes": "Alle Typen",
+      "summary": {
+        "totalIn": "Gesamt Ein",
+        "totalOut": "Gesamt Aus",
+        "thisMonth": "Diesen Monat",
+        "tx": "Tx"
+      },
+      "empty": "Keine Transaktionen gefunden",
+      "emptyWithFilters": "Versuchen Sie, Ihre Filter anzupassen",
+      "emptyDesc": "Ihr HBCT-Transaktionsverlauf wird hier angezeigt",
+      "previous": "Zurück",
+      "next": "Weiter"
+    },
     "noTransactions": "Keine Transaktionen gefunden",
     "depositAddress": "Einzahlungsadresse",
     "copyAddress": "Adresse kopieren",
@@ -2432,218 +2563,120 @@
       "signMessage": "Nachricht signieren",
       "closingAutomatically": "Schließt automatisch..."
     },
-    "deposit": {
-      "title": "HBCT einzahlen",
-      "subtitle": "Senden Sie HBCT-Token von Ihrem externen Wallet",
-      "tabs": {
-        "deposit": "Einzahlen",
-        "history": "Verlauf"
-      },
-      "backToWallet": "Zurück zum Wallet",
-      "notConfigured": {
-        "title": "Einzahlungen nicht verfügbar",
-        "description": "Das Einzahlungssystem ist noch nicht konfiguriert. Bitte kontaktieren Sie den Support."
-      },
-      "qrSection": {
-        "title": "HBCT Einzahlung",
-        "network": "BNB Smart Chain (BSC)",
-        "status": "Aktiv",
-        "scanInstruction": "QR-Code scannen oder Adresse unten kopieren",
-        "addressLabel": "Einzahlungsadresse",
-        "bscNetwork": "BSC-Netzwerk",
-        "copy": "Kopieren",
-        "copied": "Kopiert!",
-        "viewOnBscscan": "Auf BSCScan anzeigen"
-      },
-      "howTo": {
-        "title": "So zahlen Sie ein",
-        "step1": {
-          "title": "Einzahlungsadresse kopieren",
-          "description": "Klicken Sie oben auf die Kopierschaltfläche oder scannen Sie den QR-Code"
-        },
-        "step2": {
-          "title": "HBCT von Ihrem Wallet senden",
-          "description": "Verwenden Sie MetaMask, Trust Wallet oder ein BSC-kompatibles Wallet"
-        },
-        "step3": {
-          "title": "Auf Bestätigung warten",
-          "description": "{confirmations} Blockbestätigungen (~1-2 Minuten)"
-        },
-        "step4": {
-          "title": "Klicken Sie auf \"Nach Einzahlungen suchen\"",
-          "description": "Verwenden Sie die Schaltfläche unten, um nach Ihrer Einzahlung zu suchen"
-        }
-      },
-      "checkDeposits": {
-        "button": "Nach Einzahlungen suchen",
-        "linkWalletFirst": "Verknüpfen Sie zuerst ein Wallet, um nach Einzahlungen zu suchen",
-        "noWalletError": "Bitte verknüpfen Sie zuerst ein Wallet, um nach Einzahlungen zu suchen"
-      },
-      "linkedWallets": {
-        "title": "Ihre verknüpften Wallets",
-        "manage": "Verwalten",
-        "creditInfo": "Einzahlungen von diesen Wallets werden automatisch Ihrem Konto gutgeschrieben:",
-        "primary": "PRIMÄR",
-        "noWallets": {
-          "title": "Keine Wallets verknüpft",
-          "description": "Verknüpfen Sie ein Wallet, damit Einzahlungen automatisch Ihrem Konto zugeordnet werden"
-        },
-        "linkWallet": "Wallet verknüpfen"
-      },
-      "warning": {
-        "title": "Wichtig",
-        "onlyHbct": "Senden Sie nur HBCT-Token an diese Adresse",
-        "onlyBsc": "Verwenden Sie nur das BNB Smart Chain (BSC) Netzwerk",
-        "permanentLoss": "Das Senden anderer Token kann zu dauerhaftem Verlust führen"
-      }
-    },
-    "withdraw": {
-      "title": "HBCT auszahlen",
-      "subtitle": "Senden Sie HBCT-Token an Ihr externes Wallet",
-      "tabs": {
-        "newWithdrawal": "Neue Auszahlung",
-        "history": "Verlauf"
-      },
-      "backToWallet": "Zurück zum Wallet",
-      "successMessage": "Auszahlungsanfrage eingereicht! Überprüfen Sie Ihre E-Mail auf den Bestätigungscode."
-    },
     "main": {
-        "title": "Mein Wallet",
-        "subtitle": "Verwalten Sie Ihre HBCT-Token",
-        "refresh": "Aktualisieren",
-        "history": "Verlauf",
-        "totalBalance": "Gesamtguthaben",
-        "available": "Verfügbar",
-        "reserved": "Reserviert",
+      "title": "Mein Wallet",
+      "subtitle": "Verwalten Sie Ihre HBCT-Token",
+      "refresh": "Aktualisieren",
+      "history": "Verlauf",
+      "totalBalance": "Gesamtguthaben",
+      "available": "Verfügbar",
+      "reserved": "Reserviert",
+      "locked": "Gesperrt",
+      "noChange": "Keine Änderung",
+      "thisMonth": "diesen Monat",
+      "quickActions": {
+        "send": "Senden",
+        "receive": "Empfangen",
+        "deposit": "Einzahlen",
+        "withdraw": "Auszahlen",
+        "buy": "Kaufen"
+      },
+      "pendingTransfers": {
+        "title": "{count} Ausstehende Überweisung",
+        "titlePlural": "{count} Ausstehende Überweisungen",
+        "reserved": "({amount} HBCT reserviert)",
+        "confirmOrCancel": "Bestätigen oder abbrechen, um reservierte Mittel freizugeben",
+        "view": "Anzeigen"
+      },
+      "limits": {
+        "title": "Überweisungslimits",
+        "daily": "Tageslimit",
+        "weekly": "Wochenlimit",
+        "left": "übrig",
+        "used": "verwendet",
+        "max": "max"
+      },
+      "summary": {
+        "title": "Diesen Monat",
+        "transactions": "Transaktionen",
+        "volume": "Volumen"
+      },
+      "activity": {
+        "title": "Letzte Aktivität",
+        "viewAll": "Alle anzeigen",
+        "empty": "Keine aktuelle Aktivität",
+        "emptyDesc": "Ihre Transaktionen werden hier angezeigt",
+        "justNow": "Gerade eben",
+        "mAgo": "vor {mins}m",
+        "hAgo": "vor {hours}h",
+        "dAgo": "vor {days}T"
+      },
+      "types": {
+        "deposit": "Einzahlung",
+        "withdrawal": "Auszahlung",
+        "sent": "Gesendet",
+        "received": "Empfangen",
+        "purchase": "Kauf",
+        "sale": "Verkauf",
         "locked": "Gesperrt",
-        "noChange": "Keine Änderung",
-        "thisMonth": "diesen Monat",
-        "quickActions": {
-          "send": "Senden",
-          "receive": "Empfangen",
-          "deposit": "Einzahlen",
-          "withdraw": "Auszahlen",
-          "buy": "Kaufen"
-        },
-        "pendingTransfers": {
-          "title": "{count} Ausstehende Überweisung",
-          "titlePlural": "{count} Ausstehende Überweisungen",
-          "reserved": "({amount} HBCT reserviert)",
-          "confirmOrCancel": "Bestätigen oder abbrechen, um reservierte Mittel freizugeben",
-          "view": "Anzeigen"
-        },
-        "limits": {
-          "title": "Überweisungslimits",
-          "daily": "Tageslimit",
-          "weekly": "Wochenlimit",
-          "left": "übrig",
-          "used": "verwendet",
-          "max": "max"
-        },
-        "summary": {
-          "title": "Diesen Monat",
-          "transactions": "Transaktionen",
-          "volume": "Volumen"
-        },
-        "activity": {
-          "title": "Letzte Aktivität",
-          "viewAll": "Alle anzeigen",
-          "empty": "Keine aktuelle Aktivität",
-          "emptyDesc": "Ihre Transaktionen werden hier angezeigt",
-          "justNow": "Gerade eben",
-          "mAgo": "vor {mins}m",
-          "hAgo": "vor {hours}h",
-          "dAgo": "vor {days}T"
-        },
-        "types": {
-          "deposit": "Einzahlung",
-          "withdrawal": "Auszahlung",
-          "sent": "Gesendet",
-          "received": "Empfangen",
-          "purchase": "Kauf",
-          "sale": "Verkauf",
-          "locked": "Gesperrt",
-          "unlocked": "Entsperrt",
-          "reward": "Belohnung",
-          "airdrop": "Airdrop",
-          "commission": "Provision",
-          "fee": "Gebühr",
-          "refund": "Rückerstattung"
-        },
-        "status": {
-          "completed": "Abgeschlossen",
-          "pending": "Ausstehend",
-          "cancelled": "Abgebrochen",
-          "expired": "Abgelaufen",
-          "failed": "Fehlgeschlagen",
-          "processing": "Wird verarbeitet"
-        }
+        "unlocked": "Entsperrt",
+        "reward": "Belohnung",
+        "airdrop": "Airdrop",
+        "commission": "Provision",
+        "fee": "Gebühr",
+        "refund": "Rückerstattung"
       },
-      "send": {
-        "title": "HBCT senden",
-        "subtitle": "Token an einen anderen Benutzer übertragen",
-        "success": {
-          "title": "Überweisung erfolgreich!",
-          "sentTo": "Gesendet an",
-          "amount": "Betrag",
-          "sendAnother": "Weitere senden",
-          "done": "Fertig"
-        },
-        "error": {
-          "title": "Überweisung fehlgeschlagen",
-          "tryAgain": "Erneut versuchen",
-          "backToWallet": "Zurück zum Wallet"
-        },
-        "failedToInitiate": "Überweisung konnte nicht initiiert werden",
-        "invalidCode": "Ungültiger Bestätigungscode",
-        "completed": "Überweisung erfolgreich abgeschlossen!"
-      },
-      "receive": {
-        "title": "HBCT empfangen",
-        "subtitle": "Teilen Sie Ihre Daten, um sofort bezahlt zu werden",
-        "backToWallet": "Zurück zum Wallet",
-        "yourUsername": "Ihr Benutzername",
-        "yourEmail": "Ihre E-Mail",
-        "setUsername": "Benutzername festlegen →",
-        "shareMyDetails": "Meine Daten teilen",
-        "copied": "Kopiert!",
-        "copy": "Kopieren",
-        "allMethods": {
-          "title": "Alle Empfangsmethoden",
-          "subtitle": "Der Absender kann eine davon verwenden, um Sie zu finden",
-          "username": "Benutzername",
-          "email": "E-Mail"
-        },
-        "howItWorks": {
-          "title": "So funktioniert es",
-          "step1": "Teilen Sie Ihren Benutzernamen oder Ihre E-Mail mit dem Absender",
-          "step2": "Er sucht nach Ihnen auf der Senden-Seite",
-          "step3": "Sofortige Überweisung — HBCT kommt in Sekunden an"
-        }
-      },
-      "transactions": {
-        "title": "HBCT Transaktionsverlauf",
-        "transactionCount": "{count} Transaktion",
-        "transactionCountPlural": "{count} Transaktionen",
-        "filters": "Filter",
-        "clearAll": "Alle löschen",
-        "export": "Exportieren",
-        "status": "Status",
-        "type": "Typ",
-        "allStatuses": "Alle Status",
-        "allTypes": "Alle Typen",
-        "summary": {
-          "totalIn": "Gesamt Ein",
-          "totalOut": "Gesamt Aus",
-          "thisMonth": "Diesen Monat",
-          "tx": "Tx"
-        },
-        "empty": "Keine Transaktionen gefunden",
-        "emptyWithFilters": "Versuchen Sie, Ihre Filter anzupassen",
-        "emptyDesc": "Ihr HBCT-Transaktionsverlauf wird hier angezeigt",
-        "previous": "Zurück",
-        "next": "Weiter"
+      "status": {
+        "completed": "Abgeschlossen",
+        "pending": "Ausstehend",
+        "cancelled": "Abgebrochen",
+        "expired": "Abgelaufen",
+        "failed": "Fehlgeschlagen",
+        "processing": "Wird verarbeitet"
       }
+    },
+    "send": {
+      "title": "HBCT senden",
+      "subtitle": "Token an einen anderen Benutzer übertragen",
+      "success": {
+        "title": "Überweisung erfolgreich!",
+        "sentTo": "Gesendet an",
+        "amount": "Betrag",
+        "sendAnother": "Weitere senden",
+        "done": "Fertig"
+      },
+      "error": {
+        "title": "Überweisung fehlgeschlagen",
+        "tryAgain": "Erneut versuchen",
+        "backToWallet": "Zurück zum Wallet"
+      },
+      "failedToInitiate": "Überweisung konnte nicht initiiert werden",
+      "invalidCode": "Ungültiger Bestätigungscode",
+      "completed": "Überweisung erfolgreich abgeschlossen!"
+    },
+    "receive": {
+      "title": "HBCT empfangen",
+      "subtitle": "Teilen Sie Ihre Daten, um sofort bezahlt zu werden",
+      "backToWallet": "Zurück zum Wallet",
+      "yourUsername": "Ihr Benutzername",
+      "yourEmail": "Ihre E-Mail",
+      "setUsername": "Benutzername festlegen →",
+      "shareMyDetails": "Meine Daten teilen",
+      "copied": "Kopiert!",
+      "copy": "Kopieren",
+      "allMethods": {
+        "title": "Alle Empfangsmethoden",
+        "subtitle": "Der Absender kann eine davon verwenden, um Sie zu finden",
+        "username": "Benutzername",
+        "email": "E-Mail"
+      },
+      "howItWorks": {
+        "title": "So funktioniert es",
+        "step1": "Teilen Sie Ihren Benutzernamen oder Ihre E-Mail mit dem Absender",
+        "step2": "Er sucht nach Ihnen auf der Senden-Seite",
+        "step3": "Sofortige Überweisung — HBCT kommt in Sekunden an"
+      }
+    }
   },
   "help": {
     "title": "Hilfe & Support",
@@ -2734,6 +2767,41 @@
       "privacy": "Datenschutzrichtlinie",
       "terms": "Nutzungsbedingungen",
       "home": "Startseite"
+    }
+  },
+  "cookies": {
+    "title": "Wir schätzen Ihre Privatsphäre",
+    "description": "Wir verwenden Cookies, um Ihr Browsing-Erlebnis zu verbessern, personalisierte Inhalte bereitzustellen und unseren Datenverkehr zu analysieren. Mit \"Alle akzeptieren\" stimmen Sie der Verwendung von Cookies zu.",
+    "learnMore": "Mehr erfahren",
+    "acceptAll": "Alle akzeptieren",
+    "rejectAll": "Alle ablehnen",
+    "customize": "Anpassen",
+    "savePreferences": "Einstellungen speichern",
+    "required": "Erforderlich",
+    "settings": {
+      "title": "Cookie-Einstellungen",
+      "description": "Verwalten Sie Ihre Cookie-Einstellungen. Sie können verschiedene Cookie-Typen unten aktivieren oder deaktivieren."
+    },
+    "categories": {
+      "essential": {
+        "title": "Essentielle Cookies",
+        "description": "Diese Cookies sind für das Funktionieren der Website notwendig und können nicht deaktiviert werden. Sie werden normalerweise nur als Reaktion auf Ihre Aktionen gesetzt, wie z.B. Anmeldung oder Ausfüllen von Formularen."
+      },
+      "analytics": {
+        "title": "Analyse-Cookies",
+        "description": "Diese Cookies ermöglichen es uns, Besuche und Verkehrsquellen zu zählen, damit wir die Leistung unserer Website messen und verbessern können. Sie helfen uns zu wissen, welche Seiten am beliebtesten sind."
+      },
+      "marketing": {
+        "title": "Marketing-Cookies",
+        "description": "Diese Cookies können über unsere Website von unseren Werbepartnern gesetzt werden. Sie können verwendet werden, um ein Profil Ihrer Interessen zu erstellen und Ihnen relevante Werbung auf anderen Websites zu zeigen."
+      },
+      "preferences": {
+        "title": "Präferenz-Cookies",
+        "description": "Diese Cookies ermöglichen der Website erweiterte Funktionalität und Personalisierung. Sie können von uns oder von Drittanbietern gesetzt werden, deren Dienste wir auf unseren Seiten hinzugefügt haben."
+      }
+    },
+    "footer": {
+      "manageCookies": "Cookies verwalten"
     }
   }
 }

@@ -14,8 +14,10 @@ import { Web3ModalProvider } from "@/providers/Web3ModalProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ReferralProvider } from "@/providers/ReferralProvider";
 import { InitialHintsProvider } from "@/providers/InitialHintsProvider";
+import { CookieConsentProvider } from "@/providers/CookieConsentProvider";
 import { Toaster } from "sonner";
 import { WalletConflictModal } from "@/components/wallet/WalletConflictModal";
+import { CookieBanner, CookieSettingsModal } from "@/components/cookies";
 import { SESSION_HINT_COOKIE, THEME_COOKIE } from "@/lib/cookies";
 
 const geistSans = Geist({
@@ -93,18 +95,22 @@ export default async function LocaleLayout({
                   <AuthProvider>
                     <Web3ModalProvider>
                       <ReAuthProvider>
-                        {children}
-                        <WalletConflictModal />
-                        <Toaster
-                          position="bottom-right"
-                          theme="system"
-                          richColors
-                          closeButton
-                          toastOptions={{
-                            duration: 4000,
-                            className: "premium-toast",
-                          }}
-                        />
+                        <CookieConsentProvider>
+                          {children}
+                          <WalletConflictModal />
+                          <CookieBanner />
+                          <CookieSettingsModal />
+                          <Toaster
+                            position="bottom-right"
+                            theme="system"
+                            richColors
+                            closeButton
+                            toastOptions={{
+                              duration: 4000,
+                              className: "premium-toast",
+                            }}
+                          />
+                        </CookieConsentProvider>
                       </ReAuthProvider>
                     </Web3ModalProvider>
                   </AuthProvider>

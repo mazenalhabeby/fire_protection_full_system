@@ -2,7 +2,9 @@
 
 import { Link, usePathname } from "@/i18n/navigation";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { useCookieConsent } from "@/providers/CookieConsentProvider";
 
 const footerLinks = [
   { name: "Buy HBCT", href: "/buy-tokens" },
@@ -64,6 +66,8 @@ const socials = [
 
 export function Footer({ className }: { className?: string }) {
   const pathname = usePathname();
+  const t = useTranslations("cookies");
+  const { openSettings } = useCookieConsent();
 
   // Only show anchor links on home page
   const isHomePage = pathname === "/" || pathname === "";
@@ -115,6 +119,12 @@ export function Footer({ className }: { className?: string }) {
                   {item.name}
                 </Link>
               ))}
+              <button
+                onClick={openSettings}
+                className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+              >
+                {t("footer.manageCookies")}
+              </button>
             </nav>
 
             {/* Right - Social icons */}

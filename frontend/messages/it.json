@@ -1116,22 +1116,38 @@
     "woodPreservation": {
       "title": "Conservazione del Legno",
       "description": "Rivestimenti speciali applicati agli elementi strutturali in legno per ridurre significativamente l'infiammabilità e prolungare la durata.",
-      "features": ["Rivestimenti ritardanti di carbonizzazione", "Impregnazione ignifuga", "Conforme NFPA & EN"]
+      "features": [
+        "Rivestimenti ritardanti di carbonizzazione",
+        "Impregnazione ignifuga",
+        "Conforme NFPA & EN"
+      ]
     },
     "filmProtection": {
       "title": "Protezione a Film",
       "description": "Pellicole protettive trasparenti per finestre, pareti e porte che rallentano la propagazione delle fiamme.",
-      "features": ["Tecnologia termoriflettente", "Protezione barriera al fumo", "Formati personalizzati"]
+      "features": [
+        "Tecnologia termoriflettente",
+        "Protezione barriera al fumo",
+        "Formati personalizzati"
+      ]
     },
     "facadeSystems": {
       "title": "Sistemi di Facciata",
       "description": "Materiali architettonici che prevengono la propagazione delle fiamme sugli esterni degli edifici.",
-      "features": ["Pannelli refrattari", "Design a compartimentazione", "Trasparenza visiva"]
+      "features": [
+        "Pannelli refrattari",
+        "Design a compartimentazione",
+        "Trasparenza visiva"
+      ]
     },
     "textileProtection": {
       "title": "Protezione Antincendio Tessile",
       "description": "Barriere non invasive in fibra di vetro rivestite di silicone che contengono le fiamme e riducono il calore senza acqua o schiuma. Tecnologia di coperta EV certificata, esente da manutenzione, riutilizzabile e resistente alle intemperie.",
-      "features": ["Tecnologia di coperta EV certificata", "Esente da manutenzione e riutilizzabile", "Materiali resistenti alle intemperie"]
+      "features": [
+        "Tecnologia di coperta EV certificata",
+        "Esente da manutenzione e riutilizzabile",
+        "Materiali resistenti alle intemperie"
+      ]
     }
   },
   "whyHbct": {
@@ -1324,22 +1340,42 @@
       "fireProtection": {
         "title": "Protezione Antincendio",
         "description": "Soluzioni avanzate di protezione antincendio tra cui conservazione del legno, pellicole protettive, sistemi di facciata e barriere tessili certificate.",
-        "features": ["Trattamenti di conservazione del legno", "Tecnologie di pellicole protettive", "Sistemi di schermatura facciata", "Tecnologia di coperta EV certificata"]
+        "features": [
+          "Trattamenti di conservazione del legno",
+          "Tecnologie di pellicole protettive",
+          "Sistemi di schermatura facciata",
+          "Tecnologia di coperta EV certificata"
+        ]
       },
       "industrial": {
         "title": "Manutenzione Industriale",
         "description": "Servizi industriali completi inclusi idraulica, elettrica, meccanica, saldatura e supporto rapido 24/7.",
-        "features": ["Manutenzione preventiva e predittiva", "Ricollocazione macchinari complessi", "Supporto rapido 24/7", "Programmazione e automazione"]
+        "features": [
+          "Manutenzione preventiva e predittiva",
+          "Ricollocazione macchinari complessi",
+          "Supporto rapido 24/7",
+          "Programmazione e automazione"
+        ]
       },
       "smartBuilding": {
         "title": "Edifici Intelligenti",
         "description": "Automazione domestica intelligente, integrazione solare, sistemi di sicurezza e monitoraggio energetico per edifici moderni.",
-        "features": ["Automazione domestica intelligente", "Integrazione solare (PV)", "Sicurezza e sorveglianza", "Sistemi di monitoraggio energetico"]
+        "features": [
+          "Automazione domestica intelligente",
+          "Integrazione solare (PV)",
+          "Sicurezza e sorveglianza",
+          "Sistemi di monitoraggio energetico"
+        ]
       },
       "itSolutions": {
         "title": "Soluzioni IT",
         "description": "Sviluppo software personalizzato, infrastruttura cloud, automazione AI e servizi di integrazione blockchain.",
-        "features": ["Sviluppo software personalizzato", "Infrastruttura Cloud e DevOps", "Sistemi AI e automazione", "Integrazione Web3 e blockchain"]
+        "features": [
+          "Sviluppo software personalizzato",
+          "Infrastruttura Cloud e DevOps",
+          "Sistemi AI e automazione",
+          "Integrazione Web3 e blockchain"
+        ]
       }
     },
     "team": {
@@ -2304,142 +2340,142 @@
       "successMessage": "Richiesta di prelievo inviata! Controlla la tua email per il codice di conferma."
     },
     "main": {
-        "title": "Il Mio Portafoglio",
-        "subtitle": "Gestisci i tuoi token HBCT",
-        "refresh": "Aggiorna",
-        "history": "Cronologia",
-        "totalBalance": "Saldo Totale",
-        "available": "Disponibile",
-        "reserved": "Riservato",
+      "title": "Il Mio Portafoglio",
+      "subtitle": "Gestisci i tuoi token HBCT",
+      "refresh": "Aggiorna",
+      "history": "Cronologia",
+      "totalBalance": "Saldo Totale",
+      "available": "Disponibile",
+      "reserved": "Riservato",
+      "locked": "Bloccato",
+      "noChange": "Nessun cambiamento",
+      "thisMonth": "questo mese",
+      "quickActions": {
+        "send": "Invia",
+        "receive": "Ricevi",
+        "deposit": "Deposita",
+        "withdraw": "Preleva",
+        "buy": "Acquista"
+      },
+      "pendingTransfers": {
+        "title": "{count} Trasferimento in Attesa",
+        "titlePlural": "{count} Trasferimenti in Attesa",
+        "reserved": "({amount} HBCT riservati)",
+        "confirmOrCancel": "Conferma o annulla per sbloccare i fondi riservati",
+        "view": "Visualizza"
+      },
+      "limits": {
+        "title": "Limiti di Trasferimento",
+        "daily": "Limite Giornaliero",
+        "weekly": "Limite Settimanale",
+        "left": "rimanente",
+        "used": "usato",
+        "max": "max"
+      },
+      "summary": {
+        "title": "Questo Mese",
+        "transactions": "Transazioni",
+        "volume": "Volume"
+      },
+      "activity": {
+        "title": "Attività Recente",
+        "viewAll": "Vedi Tutto",
+        "empty": "Nessuna attività recente",
+        "emptyDesc": "Le tue transazioni appariranno qui",
+        "justNow": "Proprio ora",
+        "mAgo": "{mins}m fa",
+        "hAgo": "{hours}h fa",
+        "dAgo": "{days}g fa"
+      },
+      "types": {
+        "deposit": "Deposito",
+        "withdrawal": "Prelievo",
+        "sent": "Inviato",
+        "received": "Ricevuto",
+        "purchase": "Acquisto",
+        "sale": "Vendita",
         "locked": "Bloccato",
-        "noChange": "Nessun cambiamento",
-        "thisMonth": "questo mese",
-        "quickActions": {
-          "send": "Invia",
-          "receive": "Ricevi",
-          "deposit": "Deposita",
-          "withdraw": "Preleva",
-          "buy": "Acquista"
-        },
-        "pendingTransfers": {
-          "title": "{count} Trasferimento in Attesa",
-          "titlePlural": "{count} Trasferimenti in Attesa",
-          "reserved": "({amount} HBCT riservati)",
-          "confirmOrCancel": "Conferma o annulla per sbloccare i fondi riservati",
-          "view": "Visualizza"
-        },
-        "limits": {
-          "title": "Limiti di Trasferimento",
-          "daily": "Limite Giornaliero",
-          "weekly": "Limite Settimanale",
-          "left": "rimanente",
-          "used": "usato",
-          "max": "max"
-        },
-        "summary": {
-          "title": "Questo Mese",
-          "transactions": "Transazioni",
-          "volume": "Volume"
-        },
-        "activity": {
-          "title": "Attività Recente",
-          "viewAll": "Vedi Tutto",
-          "empty": "Nessuna attività recente",
-          "emptyDesc": "Le tue transazioni appariranno qui",
-          "justNow": "Proprio ora",
-          "mAgo": "{mins}m fa",
-          "hAgo": "{hours}h fa",
-          "dAgo": "{days}g fa"
-        },
-        "types": {
-          "deposit": "Deposito",
-          "withdrawal": "Prelievo",
-          "sent": "Inviato",
-          "received": "Ricevuto",
-          "purchase": "Acquisto",
-          "sale": "Vendita",
-          "locked": "Bloccato",
-          "unlocked": "Sbloccato",
-          "reward": "Ricompensa",
-          "airdrop": "Airdrop",
-          "commission": "Commissione",
-          "fee": "Commissione",
-          "refund": "Rimborso"
-        },
-        "status": {
-          "completed": "Completato",
-          "pending": "In Attesa",
-          "cancelled": "Annullato",
-          "expired": "Scaduto",
-          "failed": "Fallito",
-          "processing": "In Elaborazione"
-        }
+        "unlocked": "Sbloccato",
+        "reward": "Ricompensa",
+        "airdrop": "Airdrop",
+        "commission": "Commissione",
+        "fee": "Commissione",
+        "refund": "Rimborso"
       },
-      "send": {
-        "title": "Invia HBCT",
-        "subtitle": "Trasferisci token a un altro utente",
-        "success": {
-          "title": "Trasferimento Riuscito!",
-          "sentTo": "Inviato a",
-          "amount": "Importo",
-          "sendAnother": "Invia un Altro",
-          "done": "Fatto"
-        },
-        "error": {
-          "title": "Trasferimento Fallito",
-          "tryAgain": "Riprova",
-          "backToWallet": "Torna al Portafoglio"
-        },
-        "failedToInitiate": "Impossibile avviare il trasferimento",
-        "invalidCode": "Codice di conferma non valido",
-        "completed": "Trasferimento completato con successo!"
-      },
-      "receive": {
-        "title": "Ricevi HBCT",
-        "subtitle": "Condividi i tuoi dati per essere pagato istantaneamente",
-        "backToWallet": "Torna al Portafoglio",
-        "yourUsername": "Il Tuo Nome Utente",
-        "yourEmail": "La Tua Email",
-        "setUsername": "Imposta nome utente →",
-        "shareMyDetails": "Condividi i Miei Dati",
-        "copied": "Copiato!",
-        "copy": "Copia",
-        "allMethods": {
-          "title": "Tutti i Metodi di Ricezione",
-          "subtitle": "Il mittente può usare uno di questi per trovarti",
-          "username": "Nome Utente",
-          "email": "Email"
-        },
-        "howItWorks": {
-          "title": "Come funziona",
-          "step1": "Condividi il tuo nome utente o email con il mittente",
-          "step2": "Ti cercano nella pagina Invia",
-          "step3": "Trasferimento istantaneo — gli HBCT arrivano in secondi"
-        }
-      },
-      "transactions": {
-        "title": "Cronologia Transazioni HBCT",
-        "transactionCount": "{count} transazione",
-        "transactionCountPlural": "{count} transazioni",
-        "filters": "Filtri",
-        "clearAll": "Cancella tutto",
-        "export": "Esporta",
-        "status": "Stato",
-        "type": "Tipo",
-        "allStatuses": "Tutti gli stati",
-        "allTypes": "Tutti i tipi",
-        "summary": {
-          "totalIn": "Totale In Entrata",
-          "totalOut": "Totale In Uscita",
-          "thisMonth": "Questo Mese",
-          "tx": "tx"
-        },
-        "empty": "Nessuna transazione trovata",
-        "emptyWithFilters": "Prova a modificare i filtri",
-        "emptyDesc": "La tua cronologia transazioni HBCT apparirà qui",
-        "previous": "Precedente",
-        "next": "Successivo"
+      "status": {
+        "completed": "Completato",
+        "pending": "In Attesa",
+        "cancelled": "Annullato",
+        "expired": "Scaduto",
+        "failed": "Fallito",
+        "processing": "In Elaborazione"
       }
+    },
+    "send": {
+      "title": "Invia HBCT",
+      "subtitle": "Trasferisci token a un altro utente",
+      "success": {
+        "title": "Trasferimento Riuscito!",
+        "sentTo": "Inviato a",
+        "amount": "Importo",
+        "sendAnother": "Invia un Altro",
+        "done": "Fatto"
+      },
+      "error": {
+        "title": "Trasferimento Fallito",
+        "tryAgain": "Riprova",
+        "backToWallet": "Torna al Portafoglio"
+      },
+      "failedToInitiate": "Impossibile avviare il trasferimento",
+      "invalidCode": "Codice di conferma non valido",
+      "completed": "Trasferimento completato con successo!"
+    },
+    "receive": {
+      "title": "Ricevi HBCT",
+      "subtitle": "Condividi i tuoi dati per essere pagato istantaneamente",
+      "backToWallet": "Torna al Portafoglio",
+      "yourUsername": "Il Tuo Nome Utente",
+      "yourEmail": "La Tua Email",
+      "setUsername": "Imposta nome utente →",
+      "shareMyDetails": "Condividi i Miei Dati",
+      "copied": "Copiato!",
+      "copy": "Copia",
+      "allMethods": {
+        "title": "Tutti i Metodi di Ricezione",
+        "subtitle": "Il mittente può usare uno di questi per trovarti",
+        "username": "Nome Utente",
+        "email": "Email"
+      },
+      "howItWorks": {
+        "title": "Come funziona",
+        "step1": "Condividi il tuo nome utente o email con il mittente",
+        "step2": "Ti cercano nella pagina Invia",
+        "step3": "Trasferimento istantaneo — gli HBCT arrivano in secondi"
+      }
+    },
+    "transactions": {
+      "title": "Cronologia Transazioni HBCT",
+      "transactionCount": "{count} transazione",
+      "transactionCountPlural": "{count} transazioni",
+      "filters": "Filtri",
+      "clearAll": "Cancella tutto",
+      "export": "Esporta",
+      "status": "Stato",
+      "type": "Tipo",
+      "allStatuses": "Tutti gli stati",
+      "allTypes": "Tutti i tipi",
+      "summary": {
+        "totalIn": "Totale In Entrata",
+        "totalOut": "Totale In Uscita",
+        "thisMonth": "Questo Mese",
+        "tx": "tx"
+      },
+      "empty": "Nessuna transazione trovata",
+      "emptyWithFilters": "Prova a modificare i filtri",
+      "emptyDesc": "La tua cronologia transazioni HBCT apparirà qui",
+      "previous": "Precedente",
+      "next": "Successivo"
+    }
   },
   "audit": {
     "badge": "Report di Audit di Sicurezza",
@@ -2611,6 +2647,41 @@
       "privacy": "Informativa Privacy",
       "terms": "Termini di Servizio",
       "home": "Home"
+    }
+  },
+  "cookies": {
+    "title": "Rispettiamo la Tua Privacy",
+    "description": "Utilizziamo i cookie per migliorare la tua esperienza di navigazione, offrire contenuti personalizzati e analizzare il nostro traffico. Cliccando su \"Accetta tutto\", acconsenti all'uso dei cookie.",
+    "learnMore": "Scopri di più",
+    "acceptAll": "Accetta tutto",
+    "rejectAll": "Rifiuta tutto",
+    "customize": "Personalizza",
+    "savePreferences": "Salva preferenze",
+    "required": "Obbligatorio",
+    "settings": {
+      "title": "Impostazioni Cookie",
+      "description": "Gestisci le tue preferenze sui cookie. Puoi attivare o disattivare diversi tipi di cookie qui sotto."
+    },
+    "categories": {
+      "essential": {
+        "title": "Cookie Essenziali",
+        "description": "Questi cookie sono necessari per il funzionamento del sito web e non possono essere disattivati. Di solito vengono impostati solo in risposta ad azioni da te effettuate, come l'accesso o la compilazione di moduli."
+      },
+      "analytics": {
+        "title": "Cookie Analitici",
+        "description": "Questi cookie ci permettono di contare le visite e le fonti di traffico per poter misurare e migliorare le prestazioni del nostro sito. Ci aiutano a sapere quali pagine sono le più e le meno popolari."
+      },
+      "marketing": {
+        "title": "Cookie di Marketing",
+        "description": "Questi cookie possono essere impostati attraverso il nostro sito dai nostri partner pubblicitari. Possono essere utilizzati per creare un profilo dei tuoi interessi e mostrarti annunci pertinenti su altri siti."
+      },
+      "preferences": {
+        "title": "Cookie di Preferenza",
+        "description": "Questi cookie consentono al sito web di fornire funzionalità avanzate e personalizzazione. Possono essere impostati da noi o da fornitori terzi i cui servizi abbiamo aggiunto alle nostre pagine."
+      }
+    },
+    "footer": {
+      "manageCookies": "Gestisci Cookie"
     }
   }
 }

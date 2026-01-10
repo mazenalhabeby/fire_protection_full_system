@@ -2684,5 +2684,40 @@
       "terms": "Terms of Service",
       "home": "Home"
     }
+  },
+  "cookies": {
+    "title": "We Value Your Privacy",
+    "description": "We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking \"Accept All\", you consent to our use of cookies.",
+    "learnMore": "Learn more",
+    "acceptAll": "Accept All",
+    "rejectAll": "Reject All",
+    "customize": "Customize",
+    "savePreferences": "Save Preferences",
+    "required": "Required",
+    "settings": {
+      "title": "Cookie Settings",
+      "description": "Manage your cookie preferences. You can enable or disable different types of cookies below."
+    },
+    "categories": {
+      "essential": {
+        "title": "Essential Cookies",
+        "description": "These cookies are necessary for the website to function and cannot be switched off. They are usually only set in response to actions made by you such as logging in or filling in forms."
+      },
+      "analytics": {
+        "title": "Analytics Cookies",
+        "description": "These cookies allow us to count visits and traffic sources so we can measure and improve the performance of our site. They help us know which pages are the most and least popular."
+      },
+      "marketing": {
+        "title": "Marketing Cookies",
+        "description": "These cookies may be set through our site by our advertising partners. They may be used to build a profile of your interests and show you relevant adverts on other sites."
+      },
+      "preferences": {
+        "title": "Preference Cookies",
+        "description": "These cookies enable the website to provide enhanced functionality and personalization. They may be set by us or by third party providers whose services we have added to our pages."
+      }
+    },
+    "footer": {
+      "manageCookies": "Manage Cookies"
+    }
   }
 }
