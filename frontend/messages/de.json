@@ -2715,5 +2715,25 @@
       "emailUs": "Schreiben Sie uns",
       "viewFaq": "FAQ ansehen"
     }
+  },
+  "dataDeletion": {
+    "badge": "Datenschutz",
+    "title": "Anleitung zur Datenlöschung",
+    "introduction": "Wenn Sie sich mit Facebook bei HBC Fire Protection angemeldet haben und Ihre Daten löschen lassen möchten, folgen Sie bitte den nachstehenden Anweisungen.",
+    "instructions": {
+      "title": "So beantragen Sie die Datenlöschung",
+      "step1": "Senden Sie eine E-Mail an:",
+      "step2": "Verwenden Sie den Betreff:",
+      "step3": "Geben Sie Ihre Facebook-E-Mail-Adresse in der Nachricht an."
+    },
+    "confirmation": {
+      "title": "Bearbeitungszeit",
+      "description": "Wir werden Ihr Konto und alle zugehörigen Daten innerhalb von 30 Tagen nach Erhalt Ihrer Anfrage löschen."
+    },
+    "links": {
+      "privacy": "Datenschutzrichtlinie",
+      "terms": "Nutzungsbedingungen",
+      "home": "Startseite"
+    }
   }
 }

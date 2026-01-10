@@ -12,7 +12,15 @@
     "support": "Support",
     "roles": "Rollen",
     "settings": "Einstellungen",
-    "backToApp": "Zurück zur App"
+    "backToApp": "Zurück zur App",
+    "menu": "Menü",
+    "theme": "Design",
+    "lightMode": "Hell",
+    "darkMode": "Dunkel",
+    "systemMode": "Systemeinstellung",
+    "language": "Sprache",
+    "administrator": "Administrator",
+    "user": "Benutzer"
   },
   "auth": {
     "login": "Anmelden",
@@ -58,7 +66,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "subtitle": "Übersicht Ihrer Plattform-Statistiken",
+    "subtitle": "Echtzeit-Plattformanalysen",
     "stats": {
       "totalUsers": "Benutzer Gesamt",
       "activeUsers": "Aktive Benutzer",
@@ -67,10 +75,55 @@
       "pendingApprovals": "Ausstehende Genehmigungen",
       "openTickets": "Offene Tickets",
       "totalVolume": "Gesamtvolumen",
-      "totalRevenue": "Gesamtumsatz"
+      "totalRevenue": "Gesamtumsatz",
+      "tokensSold": "Verkaufte Token",
+      "tokensLocked": "Gesperrte Token",
+      "pendingWithdrawals": "Ausstehende Auszahlungen",
+      "pendingDeposits": "Ausstehende Einzahlungen",
+      "affiliatePayouts": "Partner-Auszahlungen",
+      "registered": "{count} registriert",
+      "purchases": "{count} Käufe",
+      "ofSold": "{percent}% der verkauften",
+      "awaitingApproval": "Wartet auf Genehmigung",
+      "awaitingConfirmation": "Wartet auf Bestätigung",
+      "needAttention": "Benötigt Aufmerksamkeit",
+      "totalPaid": "Gesamt ausgezahlt"
     },
     "recentActivity": "Letzte Aktivität",
-    "quickActions": "Schnellaktionen"
+    "latestTransactions": "Neueste Transaktionen",
+    "noRecentTransactions": "Keine aktuellen Transaktionen",
+    "quickActions": "Schnellaktionen",
+    "lockStatus": {
+      "title": "Sperr-Status",
+      "subtitle": "Token-Sperren Übersicht",
+      "hbctLocked": "HBCT gesperrt",
+      "noData": "Keine Sperrdaten verfügbar",
+      "locks": "Sperren",
+      "amount": "Betrag"
+    },
+    "topAffiliates": {
+      "title": "Top Partner",
+      "noAffiliates": "Noch keine Partner"
+    },
+    "transactions": {
+      "tokenPurchase": "Token-Kauf",
+      "dexPurchase": "DEX-Kauf",
+      "transferSent": "Transfer Gesendet",
+      "transferReceived": "Transfer Empfangen",
+      "tokenLock": "Token-Sperre",
+      "tokenUnlock": "Token-Entsperrung",
+      "reward": "Belohnung",
+      "airdrop": "Airdrop",
+      "affiliateBonus": "Partner-Bonus",
+      "deposit": "Einzahlung",
+      "withdrawal": "Auszahlung"
+    },
+    "time": {
+      "justNow": "Gerade eben",
+      "minutesAgo": "vor {minutes}m",
+      "hoursAgo": "vor {hours}h",
+      "daysAgo": "vor {days}d"
+    }
   },
   "deposits": {
     "title": "Einzahlungsverwaltung",

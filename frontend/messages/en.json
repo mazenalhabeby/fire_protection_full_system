@@ -2664,5 +2664,25 @@
       "privacy": "Privacy Policy",
       "home": "Home"
     }
+  },
+  "dataDeletion": {
+    "badge": "Data Privacy",
+    "title": "Data Deletion Instructions",
+    "introduction": "If you signed in to HBC Fire Protection using Facebook and want your data deleted, please follow the instructions below.",
+    "instructions": {
+      "title": "How to Request Data Deletion",
+      "step1": "Send an email to:",
+      "step2": "Use the subject:",
+      "step3": "Include your Facebook email address in the message."
+    },
+    "confirmation": {
+      "title": "Processing Time",
+      "description": "We will delete your account and all related data within 30 days of receiving your request."
+    },
+    "links": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "home": "Home"
+    }
   }
 }

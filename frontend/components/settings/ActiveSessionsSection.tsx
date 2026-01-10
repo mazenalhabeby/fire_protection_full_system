@@ -87,7 +87,7 @@ const maskIpAddress = (ip: string | null, showFull: boolean = false) => {
 };
 
 // Format time ago
-const getTimeAgo = (dateString: string, t: (key: string, values?: Record<string, unknown>) => string) => {
+const getTimeAgo = (dateString: string, t: (key: string, values?: Record<string, string | number | Date>) => string) => {
   const date = new Date(dateString);
   const now = new Date();
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
@@ -485,7 +485,7 @@ interface SessionCardProps {
   onUntrust?: () => void;
   isTrusting?: boolean;
   showFullIp?: boolean;
-  t: (key: string, values?: Record<string, unknown>) => string;
+  t: (key: string, values?: Record<string, string | number | Date>) => string;
 }
 
 function SessionCard({

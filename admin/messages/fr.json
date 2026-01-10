@@ -12,7 +12,15 @@
     "support": "Support",
     "roles": "Rôles",
     "settings": "Paramètres",
-    "backToApp": "Retour à l'App"
+    "backToApp": "Retour à l'App",
+    "menu": "Menu",
+    "theme": "Thème",
+    "lightMode": "Mode clair",
+    "darkMode": "Mode sombre",
+    "systemMode": "Préférence système",
+    "language": "Langue",
+    "administrator": "Administrateur",
+    "user": "Utilisateur"
   },
   "auth": {
     "login": "Connexion",
@@ -58,7 +66,7 @@
   },
   "dashboard": {
     "title": "Tableau de Bord",
-    "subtitle": "Aperçu des statistiques de votre plateforme",
+    "subtitle": "Analyses en temps réel de la plateforme",
     "stats": {
       "totalUsers": "Total Utilisateurs",
       "activeUsers": "Utilisateurs Actifs",
@@ -67,10 +75,55 @@
       "pendingApprovals": "Approbations en Attente",
       "openTickets": "Tickets Ouverts",
       "totalVolume": "Volume Total",
-      "totalRevenue": "Revenu Total"
+      "totalRevenue": "Revenu Total",
+      "tokensSold": "Tokens Vendus",
+      "tokensLocked": "Tokens Verrouillés",
+      "pendingWithdrawals": "Retraits en Attente",
+      "pendingDeposits": "Dépôts en Attente",
+      "affiliatePayouts": "Paiements Affiliés",
+      "registered": "{count} inscrits",
+      "purchases": "{count} achats",
+      "ofSold": "{percent}% des vendus",
+      "awaitingApproval": "En attente d'approbation",
+      "awaitingConfirmation": "En attente de confirmation",
+      "needAttention": "Nécessite attention",
+      "totalPaid": "Total payé"
     },
     "recentActivity": "Activité Récente",
-    "quickActions": "Actions Rapides"
+    "latestTransactions": "Dernières transactions",
+    "noRecentTransactions": "Aucune transaction récente",
+    "quickActions": "Actions Rapides",
+    "lockStatus": {
+      "title": "État des Verrouillages",
+      "subtitle": "Répartition des verrouillages de tokens",
+      "hbctLocked": "HBCT verrouillés",
+      "noData": "Aucune donnée de verrouillage",
+      "locks": "Verrouillages",
+      "amount": "Montant"
+    },
+    "topAffiliates": {
+      "title": "Top Affiliés",
+      "noAffiliates": "Pas encore d'affiliés"
+    },
+    "transactions": {
+      "tokenPurchase": "Achat de Tokens",
+      "dexPurchase": "Achat DEX",
+      "transferSent": "Transfert Envoyé",
+      "transferReceived": "Transfert Reçu",
+      "tokenLock": "Verrouillage Token",
+      "tokenUnlock": "Déverrouillage Token",
+      "reward": "Récompense",
+      "airdrop": "Airdrop",
+      "affiliateBonus": "Bonus Affilié",
+      "deposit": "Dépôt",
+      "withdrawal": "Retrait"
+    },
+    "time": {
+      "justNow": "À l'instant",
+      "minutesAgo": "il y a {minutes}m",
+      "hoursAgo": "il y a {hours}h",
+      "daysAgo": "il y a {days}j"
+    }
   },
   "deposits": {
     "title": "Gestion des Dépôts",

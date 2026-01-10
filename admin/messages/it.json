@@ -12,7 +12,15 @@
     "support": "Supporto",
     "roles": "Ruoli",
     "settings": "Impostazioni",
-    "backToApp": "Torna all'App"
+    "backToApp": "Torna all'App",
+    "menu": "Menu",
+    "theme": "Tema",
+    "lightMode": "Modalità chiara",
+    "darkMode": "Modalità scura",
+    "systemMode": "Preferenza di sistema",
+    "language": "Lingua",
+    "administrator": "Amministratore",
+    "user": "Utente"
   },
   "auth": {
     "login": "Accedi",
@@ -58,7 +66,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "subtitle": "Panoramica delle statistiche della piattaforma",
+    "subtitle": "Analisi in tempo reale della piattaforma",
     "stats": {
       "totalUsers": "Utenti Totali",
       "activeUsers": "Utenti Attivi",
@@ -67,10 +75,55 @@
       "pendingApprovals": "Approvazioni in Attesa",
       "openTickets": "Ticket Aperti",
       "totalVolume": "Volume Totale",
-      "totalRevenue": "Ricavi Totali"
+      "totalRevenue": "Ricavi Totali",
+      "tokensSold": "Token Venduti",
+      "tokensLocked": "Token Bloccati",
+      "pendingWithdrawals": "Prelievi in Attesa",
+      "pendingDeposits": "Depositi in Attesa",
+      "affiliatePayouts": "Pagamenti Affiliati",
+      "registered": "{count} registrati",
+      "purchases": "{count} acquisti",
+      "ofSold": "{percent}% dei venduti",
+      "awaitingApproval": "In attesa di approvazione",
+      "awaitingConfirmation": "In attesa di conferma",
+      "needAttention": "Richiede attenzione",
+      "totalPaid": "Totale pagato"
     },
     "recentActivity": "Attività Recente",
-    "quickActions": "Azioni Rapide"
+    "latestTransactions": "Ultime transazioni",
+    "noRecentTransactions": "Nessuna transazione recente",
+    "quickActions": "Azioni Rapide",
+    "lockStatus": {
+      "title": "Stato Blocchi",
+      "subtitle": "Ripartizione blocchi token",
+      "hbctLocked": "HBCT bloccati",
+      "noData": "Nessun dato di blocco",
+      "locks": "Blocchi",
+      "amount": "Importo"
+    },
+    "topAffiliates": {
+      "title": "Top Affiliati",
+      "noAffiliates": "Ancora nessun affiliato"
+    },
+    "transactions": {
+      "tokenPurchase": "Acquisto Token",
+      "dexPurchase": "Acquisto DEX",
+      "transferSent": "Trasferimento Inviato",
+      "transferReceived": "Trasferimento Ricevuto",
+      "tokenLock": "Blocco Token",
+      "tokenUnlock": "Sblocco Token",
+      "reward": "Ricompensa",
+      "airdrop": "Airdrop",
+      "affiliateBonus": "Bonus Affiliato",
+      "deposit": "Deposito",
+      "withdrawal": "Prelievo"
+    },
+    "time": {
+      "justNow": "Proprio ora",
+      "minutesAgo": "{minutes}m fa",
+      "hoursAgo": "{hours}h fa",
+      "daysAgo": "{days}g fa"
+    }
   },
   "deposits": {
     "title": "Gestione Depositi",

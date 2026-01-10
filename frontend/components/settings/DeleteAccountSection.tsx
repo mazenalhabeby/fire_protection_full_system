@@ -550,7 +550,7 @@ export function DeleteAccountSection({ user }: DeleteAccountSectionProps) {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  {t("step4.typeEmailToConfirm", { email: user?.email })}
+                  {t("step4.typeEmailToConfirm", { email: user?.email ?? "" })}
                 </p>
 
                 {/* Final Warning */}

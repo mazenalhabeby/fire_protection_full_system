@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
   useAdminDeposits,
   useUnmappedDeposits,
@@ -51,6 +52,8 @@ import { formatAddress, formatCurrency, formatDate } from "@/lib/utils";
 import type { OnchainDeposit, OnchainDepositStatus, User } from "@/types";
 
 export default function AdminDepositsPage() {
+  const t = useTranslations("deposits");
+  const tc = useTranslations("common");
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<OnchainDepositStatus | "">("");
   const [showUnmapped, setShowUnmapped] = useState(false);
@@ -186,8 +189,8 @@ export default function AdminDepositsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Deposit Management</h1>
-          <p className="text-sm text-gray-500">Monitor and manage on-chain deposits</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("title")}</h1>
+          <p className="text-sm text-gray-500">{t("subtitle")}</p>
         </div>
         <button
           onClick={handleRefresh}
@@ -200,34 +203,34 @@ export default function AdminDepositsPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <StatCard
-          label="Total Deposits"
+          label={t("stats.totalDeposits")}
           value={stats?.totalDeposits || 0}
           icon={<ArrowDownLeft className="h-5 w-5" />}
         />
         <StatCard
-          label="Total Amount (HBCT)"
+          label={t("stats.totalAmount")}
           value={parseFloat(stats?.totalAmount || "0").toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           icon={<ArrowDownLeft className="h-5 w-5" />}
           variant="success"
         />
         <StatCard
-          label="Pending"
+          label={t("stats.pending")}
           value={stats?.pendingCount || 0}
           icon={<Clock className="h-5 w-5" />}
         />
         <StatCard
-          label="Credited"
+          label={t("stats.credited")}
           value={stats?.creditedCount || 0}
           icon={<CheckCircle2 className="h-5 w-5" />}
         />
         <StatCard
-          label="Locked (24h)"
+          label={t("stats.locked24h")}
           value={lockedCount}
           icon={<Lock className="h-5 w-5" />}
           variant={lockedCount > 0 ? "warning" : "default"}
         />
         <StatCard
-          label="Unmapped"
+          label={t("stats.unmapped")}
           value={stats?.unmappedCount || 0}
           icon={<AlertCircle className="h-5 w-5" />}
           variant={stats?.unmappedCount ? "warning" : "default"}
@@ -244,12 +247,12 @@ export default function AdminDepositsPage() {
                 listenerStatus?.isRunning ? "bg-emerald-500 animate-pulse" : "bg-gray-400"
               )} />
               <span className="text-sm font-medium text-gray-900 dark:text-white">
-                Deposit Listener: {listenerStatus?.isRunning ? "Running" : "Stopped"}
+                {t("listener.title")}: {listenerStatus?.isRunning ? t("listener.running") : t("listener.stopped")}
               </span>
             </div>
             {listenerStatus?.isRunning && (
               <span className="text-sm text-gray-500">
-                Polling every {(listenerStatus.pollingInterval / 1000).toFixed(0)}s
+                {t("listener.pollingEvery", { seconds: (listenerStatus.pollingInterval / 1000).toFixed(0) })}
               </span>
             )}
           </div>
@@ -262,7 +265,7 @@ export default function AdminDepositsPage() {
               {triggerProcessing.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Process Now"
+                t("listener.processNow")
               )}
             </button>
             {listenerStatus?.isRunning ? (
@@ -272,7 +275,7 @@ export default function AdminDepositsPage() {
                 className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/30 transition-colors disabled:opacity-50"
               >
                 <Pause className="h-4 w-4" />
-                Stop
+                {t("listener.stop")}
               </button>
             ) : (
               <button
@@ -281,7 +284,7 @@ export default function AdminDepositsPage() {
                 className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 transition-colors disabled:opacity-50"
               >
                 <Play className="h-4 w-4" />
-                Start
+                {t("listener.start")}
               </button>
             )}
           </div>
@@ -292,10 +295,10 @@ export default function AdminDepositsPage() {
       <div className="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-            Transaction Lookup & Historical Scan
+            {t("lookup.title")}
           </h3>
           <p className="text-xs text-gray-500">
-            Use when a user reports a missing deposit
+            {t("lookup.subtitle")}
           </p>
         </div>
 
@@ -306,7 +309,7 @@ export default function AdminDepositsPage() {
               type="text"
               value={txHashInput}
               onChange={(e) => setTxHashInput(e.target.value)}
-              placeholder="Enter transaction hash (0x...)"
+              placeholder={t("lookup.placeholder")}
               className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
             {txHashInput && (
@@ -328,7 +331,7 @@ export default function AdminDepositsPage() {
             ) : (
               <Search className="h-4 w-4" />
             )}
-            Lookup
+            {t("lookup.button")}
           </button>
         </div>
 
@@ -344,7 +347,7 @@ export default function AdminDepositsPage() {
             ) : (
               <Clock className="h-4 w-4" />
             )}
-            Quick Scan (24h)
+            {t("lookup.quickScan")}
           </button>
           <button
             onClick={handleHistoricalScan}
@@ -356,7 +359,7 @@ export default function AdminDepositsPage() {
             ) : (
               <RefreshCw className="h-4 w-4" />
             )}
-            Full Scan (7 days)
+            {t("lookup.fullScan")}
           </button>
         </div>
 
@@ -366,16 +369,16 @@ export default function AdminDepositsPage() {
             <div className="flex items-center gap-3">
               <Loader2 className="h-6 w-6 animate-spin text-brand-500" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {quickScan.isPending ? "Scanning last 24 hours..." : "Scanning last 7 days..."}
+                {quickScan.isPending ? t("lookup.scanning24h") : t("lookup.scanning7d")}
               </span>
             </div>
             <p className="text-xs text-gray-500 text-center">
               {historicalScan.isPending
-                ? "This may take several minutes. Please wait..."
-                : "Please wait while we check the blockchain..."}
+                ? t("lookup.mayTakeSeveralMinutes")
+                : t("lookup.pleaseWaitBlockchain")}
             </p>
             <p className="text-xs text-amber-600 dark:text-amber-400">
-              Note: Scan runs on the server and cannot be stopped once started.
+              {t("lookup.scanCannotBeStopped")}
             </p>
           </div>
         )}
@@ -418,7 +421,7 @@ export default function AdminDepositsPage() {
                 : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
             )}
           >
-            All Deposits
+            {t("filters.allDeposits")}
           </button>
           <button
             onClick={() => { setShowLocked(true); setShowUnmapped(false); setPage(1); }}
@@ -430,7 +433,7 @@ export default function AdminDepositsPage() {
             )}
           >
             <Lock className="h-4 w-4" />
-            Locked ({lockedCount})
+            {t("filters.locked")} ({lockedCount})
           </button>
           <button
             onClick={() => { setShowUnmapped(true); setShowLocked(false); setPage(1); }}
@@ -441,7 +444,7 @@ export default function AdminDepositsPage() {
                 : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
             )}
           >
-            Unmapped ({stats?.unmappedCount || 0})
+            {t("filters.unmapped")} ({stats?.unmappedCount || 0})
           </button>
         </div>
         {!showUnmapped && !showLocked && (
@@ -450,13 +453,13 @@ export default function AdminDepositsPage() {
             onChange={(e) => { setStatusFilter(e.target.value as OnchainDepositStatus | ""); setPage(1); }}
             className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm"
           >
-            <option value="">All Status</option>
-            <option value="PENDING">Pending</option>
-            <option value="CONFIRMED">Confirmed</option>
-            <option value="CREDITED">Credited</option>
-            <option value="LOCKED">Locked</option>
-            <option value="FAILED">Failed</option>
-            <option value="UNMAPPED">Unmapped</option>
+            <option value="">{tc("allStatus")}</option>
+            <option value="PENDING">{t("status.pending")}</option>
+            <option value="CONFIRMED">{t("status.confirmed")}</option>
+            <option value="CREDITED">{t("status.credited")}</option>
+            <option value="LOCKED">{t("status.locked")}</option>
+            <option value="FAILED">{t("status.failed")}</option>
+            <option value="UNMAPPED">{t("status.unmapped")}</option>
           </select>
         )}
       </div>
@@ -466,21 +469,21 @@ export default function AdminDepositsPage() {
         {!deposits?.length ? (
           <div className="p-8 text-center">
             <ArrowDownLeft className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-500">No deposits found</p>
+            <p className="text-gray-500">{t("table.noDeposits")}</p>
           </div>
         ) : (
           <div className="overflow-x-auto overflow-y-visible">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TX Hash</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">From</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Confirmations</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("table.txHash")}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("table.from")}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("table.amount")}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("table.user")}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("table.status")}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("table.confirmations")}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("table.date")}</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t("table.actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-800">

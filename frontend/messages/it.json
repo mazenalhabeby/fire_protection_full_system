@@ -2592,5 +2592,25 @@
       "privacy": "Informativa Privacy",
       "home": "Home"
     }
+  },
+  "dataDeletion": {
+    "badge": "Privacy dei Dati",
+    "title": "Istruzioni per l'Eliminazione dei Dati",
+    "introduction": "Se hai effettuato l'accesso a HBC Fire Protection utilizzando Facebook e desideri che i tuoi dati vengano eliminati, segui le istruzioni riportate di seguito.",
+    "instructions": {
+      "title": "Come Richiedere l'Eliminazione dei Dati",
+      "step1": "Invia un'e-mail a:",
+      "step2": "Usa l'oggetto:",
+      "step3": "Includi il tuo indirizzo e-mail di Facebook nel messaggio."
+    },
+    "confirmation": {
+      "title": "Tempo di Elaborazione",
+      "description": "Elimineremo il tuo account e tutti i dati correlati entro 30 giorni dalla ricezione della tua richiesta."
+    },
+    "links": {
+      "privacy": "Informativa Privacy",
+      "terms": "Termini di Servizio",
+      "home": "Home"
+    }
   }
 }

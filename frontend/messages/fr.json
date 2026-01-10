@@ -2728,5 +2728,25 @@
       "security": "Sécurité du compte",
       "affiliate": "Rejoindre l'affiliation"
     }
+  },
+  "dataDeletion": {
+    "badge": "Confidentialité des Données",
+    "title": "Instructions de Suppression des Données",
+    "introduction": "Si vous vous êtes connecté à HBC Fire Protection via Facebook et souhaitez que vos données soient supprimées, veuillez suivre les instructions ci-dessous.",
+    "instructions": {
+      "title": "Comment Demander la Suppression des Données",
+      "step1": "Envoyez un e-mail à :",
+      "step2": "Utilisez l'objet :",
+      "step3": "Incluez votre adresse e-mail Facebook dans le message."
+    },
+    "confirmation": {
+      "title": "Délai de Traitement",
+      "description": "Nous supprimerons votre compte et toutes les données associées dans les 30 jours suivant la réception de votre demande."
+    },
+    "links": {
+      "privacy": "Politique de Confidentialité",
+      "terms": "Conditions d'Utilisation",
+      "home": "Accueil"
+    }
   }
 }
