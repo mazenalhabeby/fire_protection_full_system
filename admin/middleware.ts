@@ -8,6 +8,6 @@ export default createMiddleware({
 });
 
 export const config = {
-  // Exclude /api routes from locale middleware
-  matcher: ['/', '/(de|en|fr|es|it)/:path*', '/((?!api).*)'],
+  // Exclude: /api, /_next, and files with extensions (.css, .js, .svg, etc.)
+  matcher: ['/((?!api|_next|.*\\..*).*)'],
 };
