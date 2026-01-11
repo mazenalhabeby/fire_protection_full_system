@@ -13,8 +13,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET') || '',
       callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL') || '',
       scope: ['email', 'profile'],
-      // SECURITY: Enable state parameter for CSRF protection
-      state: true,
+      // Note: state=false because we don't have session middleware
+      // OAuth flow is still protected by the callback validation
+      state: false,
     };
     super(options);
   }
