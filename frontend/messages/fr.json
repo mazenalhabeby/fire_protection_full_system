@@ -1262,7 +1262,7 @@
   "projectTimeline": {
     "label": "Feuille de Route",
     "title": "Chronologie du Projet",
-    "subtitle": "Notre feuille de route stratégique pour révolutionner la protection incendie grâce à la technologie blockchain.",
+    "subtitle": "Quatre étapes stratégiques pour construire le premier écosystème intégré au monde où ingénierie, protection incendie, IA et blockchain se rejoignent.",
     "phases": {
       "phase1": {
         "phase": "Phase 1",
@@ -1281,18 +1281,23 @@
       },
       "phase4": {
         "phase": "Phase 4",
-        "title": "Technologie & Certification",
-        "description": "Tests indépendants de résistance au feu 5h+. Registre de certification on-chain. Vérification produit liée aux rapports de test. Vérification de certificat par QR code."
+        "title": "Marketplace HBCT",
+        "description": "Marketplace blockchain pour produits de protection incendie et équipements de sécurité. Paiements via HBCT, crypto et cartes bancaires. Ventes de produits et frais de transaction. Listing et vérification des partenaires. Première utilité réelle pour le token HBCT."
       },
       "phase5": {
         "phase": "Phase 5",
-        "title": "Marketplace Protection Incendie",
-        "description": "Lancement du marketplace décentralisé pour produits de protection incendie. Systèmes d'extinction premium et équipements de sécurité. Intégration des fabricants vérifiés. Paiements sécurisés en tokens HBCT avec séquestre. Vérification des certifications produits. Suivi des garanties on-chain."
+        "title": "Services Protection Incendie",
+        "description": "Installation de systèmes de protection incendie certifiés. Services d'inspection, tests et maintenance. Contrats de service à long terme. Forfaits premium alimentés par HBCT. Accords de maintenance pluriannuels. Utilité réelle dans les opérations d'ingénierie."
       },
       "phase6": {
         "phase": "Phase 6",
-        "title": "Expansion & Croissance",
-        "description": "Partenariats avec fabricants mondiaux. Systèmes de protection incendie industriels. Nœuds de vérification décentralisés. Application mobile pour scanner les certificats. Expansion cross-chain."
+        "title": "Certification Blockchain",
+        "description": "Certificats NFT pour produits, bâtiments et services. Identité numérique pour chaque bâtiment (immuable et traçable). Technologie Digital Twin avec suivi complet du cycle de vie. Conformité et documentation on-chain. Vérification sécurisée pour gouvernements, assureurs et régulateurs."
+      },
+      "phase7": {
+        "phase": "Phase 7",
+        "title": "FPaaS Propulsé par l'IA",
+        "description": "Plateforme Fire-Protection-as-a-Service. Surveillance IA sécurité incendie 24/7. Maintenance prédictive et scoring de risque. Assistant IA conformité pour rapports et inspections. Intégration capteurs IoT. Abonnements mensuels payables en HBCT. Modèle de revenus récurrents stable."
       }
     }
   },

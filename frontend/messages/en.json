@@ -1247,7 +1247,7 @@
   "projectTimeline": {
     "label": "Roadmap",
     "title": "Project Timeline",
-    "subtitle": "Our strategic roadmap to revolutionize fire protection through blockchain technology.",
+    "subtitle": "Four strategic stages to build the world's first integrated ecosystem where engineering, fire protection, AI, and blockchain come together.",
     "phases": {
       "phase1": {
         "phase": "Phase 1",
@@ -1266,18 +1266,23 @@
       },
       "phase4": {
         "phase": "Phase 4",
-        "title": "Technology & Certification",
-        "description": "Independent 5h+ fire-resistance tests. On-chain certification registry. Product verification linked to test reports. QR code certificate verification."
+        "title": "HBCT Marketplace",
+        "description": "Blockchain-enabled marketplace for fire-protection products and specialized safety equipment. Payments via HBCT, crypto, and credit cards. Product sales and transaction fees. Partner listing and verification. First real-world utility for HBCT token."
       },
       "phase5": {
         "phase": "Phase 5",
-        "title": "Fire Protection Marketplace",
-        "description": "Launch decentralized marketplace for fire protection products. Premium fire suppression systems and safety equipment. Verified manufacturer onboarding. Secure HBCT token payments with escrow. Product certification verification. Warranty tracking on-chain."
+        "title": "Fire-Protection Services",
+        "description": "Installation of certified fire-protection systems. Inspection, testing, and maintenance services. Long-term service contracts. HBCT-powered premium service packages. Multi-year maintenance agreements. Real utility inside engineering operations."
       },
       "phase6": {
         "phase": "Phase 6",
-        "title": "Expansion & Growth",
-        "description": "Global manufacturer partnerships. Industrial-grade fire protection systems. Decentralized verification nodes. Mobile app for certificate scanning. Cross-chain expansion."
+        "title": "Blockchain Certification",
+        "description": "NFT-based certificates for products, buildings, and services. Digital Identity for every building (immutable and traceable). Digital Twin technology with full lifecycle tracking. On-chain compliance and documentation. Secure verification for governments, insurers, and regulators."
+      },
+      "phase7": {
+        "phase": "Phase 7",
+        "title": "AI-Powered FPaaS",
+        "description": "Fire-Protection-as-a-Service platform. AI fire-safety monitoring 24/7. Predictive maintenance and risk scoring. AI compliance assistant for reports and inspections. IoT sensor integration. Monthly subscriptions paid with HBCT. Stable recurring revenue model."
       }
     }
   },

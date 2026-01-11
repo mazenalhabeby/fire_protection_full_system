@@ -1262,7 +1262,7 @@
   "projectTimeline": {
     "label": "Roadmap",
     "title": "Projektzeitplan",
-    "subtitle": "Unsere strategische Roadmap zur Revolutionierung des Brandschutzes durch Blockchain-Technologie.",
+    "subtitle": "Vier strategische Stufen zum Aufbau des weltweit ersten integrierten Ökosystems, in dem Engineering, Brandschutz, KI und Blockchain zusammenkommen.",
     "phases": {
       "phase1": {
         "phase": "Phase 1",
@@ -1281,18 +1281,23 @@
       },
       "phase4": {
         "phase": "Phase 4",
-        "title": "Technologie & Zertifizierung",
-        "description": "Unabhängige 5h+ Feuerbeständigkeitstests. On-chain-Zertifizierungsregister. Produktverifizierung mit Testberichten verknüpft. QR-Code-Zertifikatsverifizierung."
+        "title": "HBCT-Marktplatz",
+        "description": "Blockchain-fähiger Marktplatz für Brandschutzprodukte und Sicherheitsausrüstung. Zahlungen über HBCT, Krypto und Kreditkarten. Produktverkauf und Transaktionsgebühren. Partner-Listing und Verifizierung. Erste reale Anwendung für HBCT-Token."
       },
       "phase5": {
         "phase": "Phase 5",
-        "title": "Brandschutz-Marktplatz",
-        "description": "Start des dezentralen Marktplatzes für Brandschutzprodukte. Premium-Löschsysteme und Sicherheitsausrüstung. Verifizierte Hersteller-Onboarding. Sichere HBCT-Token-Zahlungen mit Treuhand. Produktzertifizierungsverifizierung. Garantieverfolgung on-chain."
+        "title": "Brandschutz-Dienstleistungen",
+        "description": "Installation zertifizierter Brandschutzsysteme. Inspektion, Prüfung und Wartungsdienste. Langfristige Serviceverträge. HBCT-betriebene Premium-Servicepakete. Mehrjährige Wartungsvereinbarungen. Echte Anwendung in Engineering-Operationen."
       },
       "phase6": {
         "phase": "Phase 6",
-        "title": "Expansion & Wachstum",
-        "description": "Globale Herstellerpartnerschaften. Industrielle Brandschutzsysteme. Dezentrale Verifizierungsknoten. Mobile App zum Scannen von Zertifikaten. Cross-Chain-Expansion."
+        "title": "Blockchain-Zertifizierung",
+        "description": "NFT-basierte Zertifikate für Produkte, Gebäude und Dienstleistungen. Digitale Identität für jedes Gebäude (unveränderlich und nachverfolgbar). Digital-Twin-Technologie mit vollständiger Lebenszyklus-Verfolgung. On-Chain-Compliance und Dokumentation. Sichere Verifizierung für Regierungen, Versicherer und Regulierungsbehörden."
+      },
+      "phase7": {
+        "phase": "Phase 7",
+        "title": "KI-gestütztes FPaaS",
+        "description": "Fire-Protection-as-a-Service-Plattform. KI-Brandschutzüberwachung 24/7. Vorausschauende Wartung und Risikobewertung. KI-Compliance-Assistent für Berichte und Inspektionen. IoT-Sensorintegration. Monatliche Abonnements mit HBCT bezahlbar. Stabiles wiederkehrendes Umsatzmodell."
       }
     }
   },
