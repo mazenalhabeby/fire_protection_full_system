@@ -600,14 +600,22 @@ export class NotificationsService {
   ) {
     const locationText = location ? ` from ${location}` : '';
 
+    // Check user preferences before sending email
+    const preferences = await this.getOrCreatePreferences(userId);
+    const securityChannel = preferences.securityChannel;
+    const shouldSendEmail =
+      preferences.emailEnabled &&
+      (securityChannel === NotificationChannel.EMAIL ||
+        securityChannel === NotificationChannel.BOTH);
+
     // Get user email for security alert
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { email: true },
     });
 
-    // Send security alert email with proper formatting
-    if (user?.email) {
+    // Send security alert email only if preferences allow
+    if (shouldSendEmail && user?.email) {
       await this.emailService.sendSecurityAlert(user.email, 'new_login', {
         deviceName,
         location,
@@ -615,7 +623,7 @@ export class NotificationsService {
       });
     }
 
-    // Create in-app notification (skip generic email since we sent security alert above)
+    // Create in-app notification (skip generic email since we handle it above)
     return this.create(
       {
         userId,
@@ -626,7 +634,7 @@ export class NotificationsService {
         actionUrl: '/settings?tab=security',
       },
       true, // broadcast
-      true, // skipEmail - we already sent the security alert email
+      true, // skipEmail - we handle email above based on preferences
     );
   }
 
@@ -692,7 +700,15 @@ export class NotificationsService {
    * Notify user that 2FA has been enabled
    */
   async notifyTwoFactorEnabled(userId: string) {
-    // Get user email for direct email notification
+    // Check user preferences before sending email
+    const preferences = await this.getOrCreatePreferences(userId);
+    const securityChannel = preferences.securityChannel;
+    const shouldSendEmail =
+      preferences.emailEnabled &&
+      (securityChannel === NotificationChannel.EMAIL ||
+        securityChannel === NotificationChannel.BOTH);
+
+    // Get user email for email notification
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { email: true },
@@ -707,8 +723,8 @@ export class NotificationsService {
       actionUrl: '/settings?tab=security',
     });
 
-    // Send email directly (bypassing preferences for security events)
-    if (user?.email) {
+    // Send email only if preferences allow
+    if (shouldSendEmail && user?.email) {
       await this.emailService.sendTwoFactorEnabledEmail(user.email);
     }
   }
@@ -717,7 +733,15 @@ export class NotificationsService {
    * Notify user that 2FA has been disabled
    */
   async notifyTwoFactorDisabled(userId: string) {
-    // Get user email for direct email notification
+    // Check user preferences before sending email
+    const preferences = await this.getOrCreatePreferences(userId);
+    const securityChannel = preferences.securityChannel;
+    const shouldSendEmail =
+      preferences.emailEnabled &&
+      (securityChannel === NotificationChannel.EMAIL ||
+        securityChannel === NotificationChannel.BOTH);
+
+    // Get user email for email notification
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { email: true },
@@ -732,8 +756,8 @@ export class NotificationsService {
       actionUrl: '/settings?tab=security',
     });
 
-    // Send email directly (bypassing preferences for security events)
-    if (user?.email) {
+    // Send email only if preferences allow
+    if (shouldSendEmail && user?.email) {
       await this.emailService.sendTwoFactorDisabledEmail(user.email);
     }
   }
@@ -742,7 +766,15 @@ export class NotificationsService {
    * Notify user that a recovery code was used
    */
   async notifyRecoveryCodeUsed(userId: string, remainingCodes: number) {
-    // Get user email for direct email notification
+    // Check user preferences before sending email
+    const preferences = await this.getOrCreatePreferences(userId);
+    const securityChannel = preferences.securityChannel;
+    const shouldSendEmail =
+      preferences.emailEnabled &&
+      (securityChannel === NotificationChannel.EMAIL ||
+        securityChannel === NotificationChannel.BOTH);
+
+    // Get user email for email notification
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { email: true },
@@ -757,8 +789,8 @@ export class NotificationsService {
       actionUrl: '/settings?tab=security',
     });
 
-    // Send email directly (bypassing preferences for security events)
-    if (user?.email) {
+    // Send email only if preferences allow
+    if (shouldSendEmail && user?.email) {
       await this.emailService.sendRecoveryCodeUsedEmail(user.email, remainingCodes);
     }
   }
@@ -767,7 +799,15 @@ export class NotificationsService {
    * Notify user that their account was locked due to failed 2FA attempts
    */
   async notifyTwoFactorLocked(userId: string, lockDurationMinutes: number) {
-    // Get user email for direct email notification
+    // Check user preferences before sending email
+    const preferences = await this.getOrCreatePreferences(userId);
+    const securityChannel = preferences.securityChannel;
+    const shouldSendEmail =
+      preferences.emailEnabled &&
+      (securityChannel === NotificationChannel.EMAIL ||
+        securityChannel === NotificationChannel.BOTH);
+
+    // Get user email for email notification
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { email: true },
@@ -782,8 +822,8 @@ export class NotificationsService {
       actionUrl: '/settings?tab=security',
     });
 
-    // Send email directly (bypassing preferences for security events)
-    if (user?.email) {
+    // Send email only if preferences allow
+    if (shouldSendEmail && user?.email) {
       await this.emailService.sendTwoFactorLockedEmail(user.email, lockDurationMinutes);
     }
   }
@@ -792,7 +832,15 @@ export class NotificationsService {
    * Notify user that recovery codes were regenerated
    */
   async notifyRecoveryCodesRegenerated(userId: string) {
-    // Get user email for direct email notification
+    // Check user preferences before sending email
+    const preferences = await this.getOrCreatePreferences(userId);
+    const securityChannel = preferences.securityChannel;
+    const shouldSendEmail =
+      preferences.emailEnabled &&
+      (securityChannel === NotificationChannel.EMAIL ||
+        securityChannel === NotificationChannel.BOTH);
+
+    // Get user email for email notification
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { email: true },
@@ -807,8 +855,8 @@ export class NotificationsService {
       actionUrl: '/settings?tab=security',
     });
 
-    // For regeneration, we can use the enabled email template as a confirmation
-    if (user?.email) {
+    // Send email only if preferences allow
+    if (shouldSendEmail && user?.email) {
       await this.emailService.sendNotificationEmail(
         user.email,
         NotificationType.SECURITY,
