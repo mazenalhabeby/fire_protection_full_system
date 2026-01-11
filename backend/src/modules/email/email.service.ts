@@ -4,7 +4,7 @@ import * as nodemailer from 'nodemailer';
 import * as crypto from 'crypto';
 
 // Logo URL - hosted on GitHub for better email client compatibility
-const LOGO_URL = 'https://raw.githubusercontent.com/mazenalhabeby/fire_protection_full_system/0f6e332a49962e66e6a0e19981ccd04ecd7535f1/shared/assets/images/logo-white.svg';
+const LOGO_URL = 'https://raw.githubusercontent.com/mazenalhabeby/fire_protection_full_system/refs/heads/main/shared/assets/images/logo.png';
 
 export interface EmailOptions {
   to: string;
