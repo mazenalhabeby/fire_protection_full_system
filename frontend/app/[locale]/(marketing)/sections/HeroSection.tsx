@@ -102,7 +102,7 @@ export function HeroSection({ className }: HeroSectionProps) {
             <ArrowRight className="w-5 h-5 text-brand-400 transition-transform duration-300 group-hover:translate-x-1" />
           </GlassButton>
 
-          <GlassButton href="https://hbc-1.gitbook.io/hbc-fire-protection/" target="_blank" rel="noopener noreferrer" variant="secondary">
+          <GlassButton href="https://hbc-1.gitbook.io/fire-protection-hbct/" target="_blank" rel="noopener noreferrer" variant="secondary">
             <FileText className="w-5 h-5 text-white/60 group-hover:text-white/80 transition-colors" />
             <span className="font-bebas-neue text-xl tracking-wider uppercase text-white/80 group-hover:text-white transition-colors">
               {t("ctaWhitepaper")}

@@ -12,7 +12,7 @@ const productLinks = [
   { name: "Roadmap", href: "/#timeline" },
   {
     name: "White Paper",
-    href: "https://hbc-1.gitbook.io/hbc-fire-protection/",
+    href: "https://hbc-1.gitbook.io/fire-protection-hbct/",
     external: true,
   },
 ];

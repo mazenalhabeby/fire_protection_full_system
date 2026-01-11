@@ -12,7 +12,7 @@
 
 <br />
 
-[Website](https://fire-protection.tech/en) · [Documentation](https://hbc-1.gitbook.io/hbc-fire-protection/) · [Twitter](https://x.com/HBCT911) · [Telegram](https://t.me/hbct911)
+[Website](https://fire-protection.tech/en) · [Documentation](https://hbc-1.gitbook.io/fire-protection-hbct/) · [Twitter](https://x.com/HBCT911) · [Telegram](https://t.me/hbct911)
 
 <br />
 
@@ -367,7 +367,7 @@ See [LICENSE](LICENSE) for details.
 
 **Building the world's first integrated ecosystem where engineering, fire protection, AI, and blockchain come together — creating a token with real utility and long-term value.**
 
-[Website](https://fire-protection.tech/en) · [Documentation](https://hbc-1.gitbook.io/hbc-fire-protection/) · [Twitter](https://x.com/HBCT911) · [Telegram](https://t.me/hbct911) · [GitHub](https://github.com/mazenalhabeby/fire_protection_full_system)
+[Website](https://fire-protection.tech/en) · [Documentation](https://hbc-1.gitbook.io/fire-protection-hbct/) · [Twitter](https://x.com/HBCT911) · [Telegram](https://t.me/hbct911) · [GitHub](https://github.com/mazenalhabeby/fire_protection_full_system)
 
 <br />
 

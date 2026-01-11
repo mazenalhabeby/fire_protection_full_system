@@ -258,7 +258,7 @@ export function JoinRevolutionSection({
 
           {/* Secondary CTA */}
           <Link
-            href="https://hbc-1.gitbook.io/hbc-fire-protection/"
+            href="https://hbc-1.gitbook.io/fire-protection-hbct/"
             target="_blank"
             rel="noopener noreferrer"
             className="group relative inline-flex items-center justify-center"
