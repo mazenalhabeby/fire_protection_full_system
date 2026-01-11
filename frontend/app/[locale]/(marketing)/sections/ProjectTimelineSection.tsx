@@ -12,6 +12,7 @@ interface TimelineItemProps {
   index: number;
   isVisible: boolean;
   position: "left" | "right";
+  isCompleted?: boolean;
 }
 
 function TimelineItem({
@@ -21,6 +22,7 @@ function TimelineItem({
   index,
   isVisible,
   position,
+  isCompleted,
 }: TimelineItemProps) {
   return (
     <div
@@ -45,16 +47,29 @@ function TimelineItem({
           {/* Phase badge */}
           <div
             className={cn(
-              "inline-flex items-center gap-2 mb-4",
-              position === "left" ? "md:flex-row-reverse" : ""
+              "flex items-center gap-2 mb-4 flex-wrap",
+              position === "left" ? "md:flex-row-reverse md:justify-end" : ""
             )}
           >
-            <span className="w-10 h-10 rounded-xl bg-brand-500 text-white font-bebas-neue text-xl flex items-center justify-center shadow-lg shadow-brand-500/25">
-              {index + 1}
+            <span className={cn(
+              "w-10 h-10 rounded-xl text-white font-bebas-neue text-xl flex items-center justify-center shadow-lg",
+              isCompleted
+                ? "bg-green-500 shadow-green-500/25"
+                : "bg-brand-500 shadow-brand-500/25"
+            )}>
+              {isCompleted ? "✓" : index + 1}
             </span>
-            <span className="text-brand-500 font-medium text-sm tracking-wide uppercase">
+            <span className={cn(
+              "font-medium text-sm tracking-wide uppercase",
+              isCompleted ? "text-green-500" : "text-brand-500"
+            )}>
               {phase}
             </span>
+            {isCompleted && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Completed
+              </span>
+            )}
           </div>
 
           {/* Title */}
@@ -62,18 +77,53 @@ function TimelineItem({
             {title}
           </h3>
 
-          {/* Description */}
-          <p className="text-gray-500 leading-relaxed text-sm lg:text-base">
-            {description}
-          </p>
+          {/* Description as bullet points */}
+          <ul className="text-gray-500 leading-relaxed text-sm lg:text-base space-y-2">
+            {description.split(". ").filter(Boolean).map((point, i) => {
+              // Phase 3 (index 2) has first 3 items completed
+              const isItemCompleted = isCompleted || (index === 2 && i < 3);
+              return (
+                <li
+                  key={i}
+                  className={cn(
+                    "flex items-start gap-2",
+                    position === "left" ? "md:flex-row-reverse" : ""
+                  )}
+                >
+                  <span className={cn(
+                    "mt-1",
+                    isItemCompleted ? "text-green-500" : "text-brand-500"
+                  )}>•</span>
+                  <span className={isItemCompleted ? "line-through decoration-green-500/50" : ""}>
+                    {point.replace(/\.$/, "")}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
 
           {/* Connector dot */}
           <div
             className={cn(
-              "hidden md:block absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-brand-500 border-4 border-white shadow-lg",
+              "hidden md:flex absolute top-1/2 -translate-y-1/2 items-center justify-center",
               position === "left" ? "-right-8" : "-left-8"
             )}
-          />
+          >
+            {/* Outer glow ring */}
+            <div className={cn(
+              "absolute w-6 h-6 rounded-full animate-ping",
+              isCompleted ? "bg-green-500/20" : "bg-brand-500/20"
+            )} style={{ animationDuration: '2s' }} />
+            {/* Middle ring */}
+            <div className="absolute w-5 h-5 rounded-full bg-white shadow-lg" />
+            {/* Inner dot */}
+            <div className={cn(
+              "relative w-3 h-3 rounded-full",
+              isCompleted
+                ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"
+                : "bg-brand-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+            )} />
+          </div>
         </div>
       </div>
     </div>
@@ -237,7 +287,19 @@ export function ProjectTimelineSection({
                 <stop offset="50%" stopColor="#fb923c" />
                 <stop offset="100%" stopColor="#fdba74" />
               </linearGradient>
+              <linearGradient id="completedGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#22c55e" />
+                <stop offset="50%" stopColor="#4ade80" />
+                <stop offset="100%" stopColor="#86efac" />
+              </linearGradient>
               <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <filter id="glowGreen" x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                 <feMerge>
                   <feMergeNode in="coloredBlur"/>
@@ -295,23 +357,48 @@ export function ProjectTimelineSection({
                   willChange: 'transform',
                 }}
               >
-                {/* Outer pulsing ring */}
+                {/* Outer glow */}
+                <circle
+                  cx="50"
+                  cy="0"
+                  r="16"
+                  fill="url(#pathGradient)"
+                  opacity="0.15"
+                />
+                {/* Pulsing ring */}
                 <circle
                   cx="50"
                   cy="0"
                   r="12"
-                  fill="#f97316"
-                  opacity="0.3"
+                  fill="none"
+                  stroke="#f97316"
+                  strokeWidth="2"
+                  opacity="0.4"
                   className="animate-ping"
-                  style={{ transformOrigin: '50px 0', animationDuration: '1.5s' }}
+                  style={{ transformOrigin: '50px 0', animationDuration: '2s' }}
                 />
-                {/* Main dot */}
+                {/* White outer ring */}
                 <circle
                   cx="50"
                   cy="0"
-                  r="8"
-                  fill="#f97316"
+                  r="10"
+                  fill="white"
                   filter="url(#glowDot)"
+                />
+                {/* Orange inner circle */}
+                <circle
+                  cx="50"
+                  cy="0"
+                  r="7"
+                  fill="url(#pathGradient)"
+                />
+                {/* Center highlight */}
+                <circle
+                  cx="48"
+                  cy="-2"
+                  r="2"
+                  fill="white"
+                  opacity="0.6"
                 />
               </g>
             )}
@@ -340,6 +427,7 @@ export function ProjectTimelineSection({
                 index={index}
                 isVisible={isInView}
                 position={index % 2 === 0 ? "left" : "right"}
+                isCompleted={index < 2}
               />
             ))}
           </div>

@@ -8,6 +8,8 @@ interface GlassButtonProps {
   variant?: "primary" | "secondary";
   children: React.ReactNode;
   className?: string;
+  target?: string;
+  rel?: string;
 }
 
 const variantStyles = {
@@ -30,12 +32,16 @@ export function GlassButton({
   variant = "primary",
   children,
   className,
+  target,
+  rel,
 }: GlassButtonProps) {
   const styles = variantStyles[variant];
 
   return (
     <Link
       href={href}
+      target={target}
+      rel={rel}
       className={cn(
         "glass-blur",
         "group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-slate-950/40 border",

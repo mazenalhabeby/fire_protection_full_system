@@ -1267,32 +1267,32 @@
       "phase1": {
         "phase": "Phase 1",
         "title": "Fondation",
-        "description": "Finalisation du livre blanc, tokenomics et architecture des smart contracts. Lancement du site web et du système de marque. Début de la prévente du token HBCT."
+        "description": "Site web et système de marque lancés. Livre blanc et tokenomics finalisés. Architecture smart contract conçue. Plateforme de prévente HBCT en ligne. Authentification utilisateur et système wallet. Support multilingue."
       },
       "phase2": {
         "phase": "Phase 2",
-        "title": "Technologie & Certification",
-        "description": "Tests indépendants de résistance au feu 5h+ avec hachages de rapports sur la blockchain. Registre de certification v1 reliant les produits aux rapports vérifiés."
+        "title": "Infrastructure Plateforme",
+        "description": "Système de dépôt crypto et fiat. Système de retrait avec approbation admin. Verrouillage de tokens avec bonus. Programme d'affiliation. Tableau de bord utilisateur avec suivi de portefeuille. Système de tickets support."
       },
       "phase3": {
         "phase": "Phase 3",
-        "title": "Utilité & Écosystème",
-        "description": "Permettre l'achat de produits avec des tokens HBCT. Lancement des récompenses partenaires et des tableaux de bord de vérification."
+        "title": "Lancement Token & Liquidité",
+        "description": "Déploiement du token HBCT sur BSC mainnet. Implémentation des calendriers de vesting. Pool de liquidité DEX sur PancakeSwap. Distribution publique de tokens. Préparation des listings CEX."
       },
       "phase4": {
         "phase": "Phase 4",
-        "title": "Lancement du Token & Gouvernance",
-        "description": "Déploiement de HBCT avec acquisition et distribution publique. Établissement de la liquidité DEX et préparation des listings CEX."
+        "title": "Technologie & Certification",
+        "description": "Tests indépendants de résistance au feu 5h+. Registre de certification on-chain. Vérification produit liée aux rapports de test. Vérification de certificat par QR code."
       },
       "phase5": {
         "phase": "Phase 5",
-        "title": "Expansion & Partenariats",
-        "description": "Partenariats mondiaux avec les fabricants. Suivi des garanties sur blockchain et marketplace de certification."
+        "title": "Utilité & Écosystème",
+        "description": "Achat de produits HBC avec tokens HBCT. Programme de récompenses partenaires. Marketplace de certification. Suivi des garanties on-chain."
       },
       "phase6": {
         "phase": "Phase 6",
-        "title": "Durabilité & Croissance",
-        "description": "Nœuds de vérification décentralisés. Application mobile pour scanner les certificats et garanties."
+        "title": "Expansion & Croissance",
+        "description": "Partenariats avec fabricants mondiaux. Nœuds de vérification décentralisés. Application mobile pour scanner les certificats. Expansion cross-chain."
       }
     }
   },
@@ -1900,8 +1900,8 @@
     "badge": "Document Juridique",
     "title": "Conditions d'Utilisation",
     "lastUpdated": "Dernière Mise à Jour",
-    "updateDate": "27 décembre 2024",
-    "introduction": "Bienvenue sur HBCT (HBC Fire Protection Token). Ces Conditions d'Utilisation régissent votre utilisation de notre plateforme, y compris notre site web, services de tokens, marketplace et toutes les fonctionnalités associées. En accédant ou en utilisant nos services, vous acceptez d'être lié par ces conditions. Veuillez les lire attentivement.",
+    "updateDate": "11 janvier 2025",
+    "introduction": "Bienvenue sur HBCT (HBC Fire Protection Token), exploité par HBC Engineering. Ces Conditions d'Utilisation régissent votre utilisation de notre plateforme sur hbc-token.com, y compris notre site web, prévente de tokens, services de portefeuille, fonctions de verrouillage, programme d'affiliation, marketplace et toutes les fonctionnalités associées. En accédant ou en utilisant nos services, vous acceptez d'être lié par ces conditions. Veuillez les lire attentivement.",
     "tableOfContents": "Table des Matières",
     "sections": {
       "acceptance": {
@@ -1967,8 +1967,8 @@
     "badge": "Votre Vie Privée Compte",
     "title": "Politique de Confidentialité",
     "lastUpdated": "Dernière Mise à Jour",
-    "updateDate": "27 décembre 2024",
-    "introduction": "Chez HBC Engineering, nous nous engageons à protéger votre vie privée et à assurer la sécurité de vos informations personnelles. Cette Politique de Confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous utilisez la plateforme HBCT. Veuillez lire attentivement cette politique pour comprendre nos pratiques concernant vos données personnelles.",
+    "updateDate": "11 janvier 2025",
+    "introduction": "Chez HBC Engineering, nous nous engageons à protéger votre vie privée et à assurer la sécurité de vos informations personnelles. Cette Politique de Confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous utilisez la plateforme HBCT sur hbc-token.com. Cette politique s'applique aux utilisateurs de toutes les juridictions, y compris l'Union Européenne (RGPD), le Royaume-Uni, la Californie (CCPA) et autres régions avec des lois sur la protection des données. Veuillez lire attentivement cette politique pour comprendre nos pratiques concernant vos données personnelles.",
     "tableOfContents": "Table des Matières",
     "dataOverview": "Types de Données que Nous Collectons",
     "dataTypes": {

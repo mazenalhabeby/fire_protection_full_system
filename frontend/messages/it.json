@@ -1243,32 +1243,32 @@
       "phase1": {
         "phase": "Fase 1",
         "title": "Fondamenta",
-        "description": "Finalizzazione whitepaper, tokenomics e architettura smart contract. Lancio sito web e sistema brand. Inizio prevendita token HBCT."
+        "description": "Sito web e sistema brand lanciati. Whitepaper e tokenomics finalizzati. Architettura smart contract progettata. Piattaforma prevendita HBCT attiva. Autenticazione utente e sistema wallet. Supporto multilingue."
       },
       "phase2": {
         "phase": "Fase 2",
-        "title": "Tecnologia e Certificazione",
-        "description": "Test indipendenti di resistenza al fuoco 5h+ con hash dei report on-chain. Registro Certificazioni v1 che collega i prodotti ai report verificati."
+        "title": "Infrastruttura Piattaforma",
+        "description": "Sistema depositi per crypto e fiat. Sistema prelievi con approvazione admin. Blocco token con bonus. Programma affiliazione. Dashboard utente con tracking portafoglio. Sistema ticket supporto."
       },
       "phase3": {
         "phase": "Fase 3",
-        "title": "Utilità ed Ecosistema",
-        "description": "Abilitazione acquisto prodotti con token HBCT. Lancio ricompense partner e dashboard di verifica."
+        "title": "Lancio Token e Liquidità",
+        "description": "Deploy token HBCT su BSC mainnet. Implementazione calendari vesting. Pool liquidità DEX su PancakeSwap. Distribuzione pubblica token. Preparazione listing CEX."
       },
       "phase4": {
         "phase": "Fase 4",
-        "title": "Lancio Token e Governance",
-        "description": "Deploy di HBCT con vesting e distribuzione pubblica. Stabilimento liquidità DEX e preparazione listing CEX."
+        "title": "Tecnologia e Certificazione",
+        "description": "Test indipendenti resistenza al fuoco 5h+. Registro certificazioni on-chain. Verifica prodotto collegata ai report di test. Verifica certificato tramite QR code."
       },
       "phase5": {
         "phase": "Fase 5",
-        "title": "Espansione e Partnership",
-        "description": "Partnership con produttori globali. Tracciamento garanzie on-chain e marketplace certificazioni."
+        "title": "Utilità ed Ecosistema",
+        "description": "Acquisto prodotti HBC con token HBCT. Programma ricompense partner. Marketplace certificazioni. Tracciamento garanzie on-chain."
       },
       "phase6": {
         "phase": "Fase 6",
-        "title": "Sostenibilità e Crescita",
-        "description": "Nodi di verifica decentralizzati. App mobile per scansione certificati e garanzie."
+        "title": "Espansione e Crescita",
+        "description": "Partnership con produttori globali. Nodi di verifica decentralizzati. App mobile per scansione certificati. Espansione cross-chain."
       }
     }
   },
@@ -1876,8 +1876,8 @@
     "badge": "Documento Legale",
     "title": "Termini di Servizio",
     "lastUpdated": "Ultimo Aggiornamento",
-    "updateDate": "27 dicembre 2024",
-    "introduction": "Benvenuto su HBCT (HBC Fire Protection Token). Questi Termini di Servizio regolano l'utilizzo della nostra piattaforma, incluso il nostro sito web, i servizi token, il marketplace e tutte le funzionalità correlate. Accedendo o utilizzando i nostri servizi, accetti di essere vincolato da questi termini. Si prega di leggerli attentamente.",
+    "updateDate": "11 gennaio 2025",
+    "introduction": "Benvenuto su HBCT (HBC Fire Protection Token), gestito da HBC Engineering. Questi Termini di Servizio regolano l'utilizzo della nostra piattaforma su hbc-token.com, incluso il nostro sito web, prevendita token, servizi wallet, funzioni di blocco, programma affiliazione, marketplace e tutte le funzionalità correlate. Accedendo o utilizzando i nostri servizi, accetti di essere vincolato da questi termini. Si prega di leggerli attentamente.",
     "tableOfContents": "Indice",
     "sections": {
       "acceptance": {
@@ -1943,8 +1943,8 @@
     "badge": "La Tua Privacy è Importante",
     "title": "Informativa sulla Privacy",
     "lastUpdated": "Ultimo Aggiornamento",
-    "updateDate": "27 dicembre 2024",
-    "introduction": "In HBC Engineering, ci impegniamo a proteggere la tua privacy e garantire la sicurezza delle tue informazioni personali. Questa Informativa sulla Privacy spiega come raccogliamo, utilizziamo, divulghiamo e proteggiamo le tue informazioni quando utilizzi la piattaforma HBCT. Ti preghiamo di leggere attentamente questa informativa per comprendere le nostre pratiche riguardo ai tuoi dati personali.",
+    "updateDate": "11 gennaio 2025",
+    "introduction": "In HBC Engineering, ci impegniamo a proteggere la tua privacy e garantire la sicurezza delle tue informazioni personali. Questa Informativa sulla Privacy spiega come raccogliamo, utilizziamo, divulghiamo e proteggiamo le tue informazioni quando utilizzi la piattaforma HBCT su hbc-token.com. Questa informativa si applica agli utenti di tutte le giurisdizioni, inclusa l'Unione Europea (GDPR), Regno Unito, California (CCPA) e altre regioni con leggi sulla protezione dei dati. Ti preghiamo di leggere attentamente questa informativa per comprendere le nostre pratiche riguardo ai tuoi dati personali.",
     "tableOfContents": "Indice",
     "dataOverview": "Tipi di Dati che Raccogliamo",
     "dataTypes": {

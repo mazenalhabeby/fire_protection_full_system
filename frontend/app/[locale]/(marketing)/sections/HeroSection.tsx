@@ -94,15 +94,15 @@ export function HeroSection({ className }: HeroSectionProps) {
 
         {/* Action Buttons - Centered in the middle of the section */}
         <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in-up animation-delay-400 w-full">
-          <GlassButton href="/buy" variant="primary">
+          <GlassButton href="/buy-tokens" variant="primary">
             <span className="font-bebas-neue text-xl tracking-wider uppercase">
               <span className="text-brand-400">HBCT</span>
-              <span className="text-white"> {t("ctaToken")}</span>
+              <span className="text-white"> Token</span>
             </span>
             <ArrowRight className="w-5 h-5 text-brand-400 transition-transform duration-300 group-hover:translate-x-1" />
           </GlassButton>
 
-          <GlassButton href="/whitepaper" variant="secondary">
+          <GlassButton href="https://hbc-1.gitbook.io/hbc-fire-protection/" target="_blank" rel="noopener noreferrer" variant="secondary">
             <FileText className="w-5 h-5 text-white/60 group-hover:text-white/80 transition-colors" />
             <span className="font-bebas-neue text-xl tracking-wider uppercase text-white/80 group-hover:text-white transition-colors">
               {t("ctaWhitepaper")}

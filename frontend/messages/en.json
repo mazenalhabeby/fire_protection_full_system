@@ -1252,32 +1252,32 @@
       "phase1": {
         "phase": "Phase 1",
         "title": "Foundation",
-        "description": "Finalize whitepaper, tokenomics, and smart contract architecture. Launch website and brand system. Begin HBCT token presale."
+        "description": "Website and brand system launched. Whitepaper and tokenomics finalized. Smart contract architecture designed. HBCT token presale platform live. User authentication and wallet system. Multi-language support."
       },
       "phase2": {
         "phase": "Phase 2",
-        "title": "Technology & Certification",
-        "description": "Independent 5h+ fire-resistance tests with report hashes on-chain. Certification Registry v1 linking products to verified reports."
+        "title": "Platform Infrastructure",
+        "description": "Deposit system for crypto and fiat. Withdrawal system with admin approval. Token locking mechanism with bonus rewards. Affiliate referral program. User dashboard with portfolio tracking. Support ticket system."
       },
       "phase3": {
         "phase": "Phase 3",
-        "title": "Utility & Ecosystem",
-        "description": "Enable purchasing products with HBCT tokens. Launch partner rewards and verification dashboards."
+        "title": "Token Launch & Liquidity",
+        "description": "Deploy HBCT token on BSC mainnet. Vesting schedules implementation. DEX liquidity pool on PancakeSwap. Public token distribution. CEX listing preparations."
       },
       "phase4": {
         "phase": "Phase 4",
-        "title": "Token Launch & Governance",
-        "description": "Deploy HBCT with vesting and public distribution. Establish DEX liquidity and prepare CEX listings."
+        "title": "Technology & Certification",
+        "description": "Independent 5h+ fire-resistance tests. On-chain certification registry. Product verification linked to test reports. QR code certificate verification."
       },
       "phase5": {
         "phase": "Phase 5",
-        "title": "Expansion & Partnerships",
-        "description": "Global manufacturer partnerships. On-chain warranty tracking and certification marketplace."
+        "title": "Utility & Ecosystem",
+        "description": "Purchase HBC products with HBCT tokens. Partner rewards program. Certification marketplace. Warranty tracking on-chain."
       },
       "phase6": {
         "phase": "Phase 6",
-        "title": "Sustainability & Growth",
-        "description": "Decentralized verification nodes. Mobile app for scanning certificates and warranties."
+        "title": "Expansion & Growth",
+        "description": "Global manufacturer partnerships. Decentralized verification nodes. Mobile app for certificate scanning. Cross-chain expansion."
       }
     }
   },
@@ -1865,8 +1865,8 @@
     "badge": "Legal Document",
     "title": "Terms of Service",
     "lastUpdated": "Last Updated",
-    "updateDate": "December 27, 2024",
-    "introduction": "Welcome to HBCT (HBC Fire Protection Token). These Terms of Service govern your use of our platform, including our website, token services, marketplace, and all related features. By accessing or using our services, you agree to be bound by these terms. Please read them carefully.",
+    "updateDate": "January 11, 2025",
+    "introduction": "Welcome to HBCT (HBC Fire Protection Token), operated by HBC Engineering. These Terms of Service govern your use of our platform at hbc-token.com, including our website, token presale, wallet services, locking features, affiliate program, marketplace, and all related features. By accessing or using our services, you agree to be bound by these terms. Please read them carefully.",
     "tableOfContents": "Table of Contents",
     "sections": {
       "acceptance": {
@@ -1932,8 +1932,8 @@
     "badge": "Your Privacy Matters",
     "title": "Privacy Policy",
     "lastUpdated": "Last Updated",
-    "updateDate": "December 27, 2024",
-    "introduction": "At HBC Engineering, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use the HBCT platform. Please read this policy carefully to understand our practices regarding your personal data.",
+    "updateDate": "January 11, 2025",
+    "introduction": "At HBC Engineering, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use the HBCT platform at hbc-token.com. This policy applies to users in all jurisdictions, including the European Union (GDPR), United Kingdom, California (CCPA), and other regions with data protection laws. Please read this policy carefully to understand our practices regarding your personal data.",
     "tableOfContents": "Table of Contents",
     "dataOverview": "Types of Data We Collect",
     "dataTypes": {
@@ -1961,11 +1961,11 @@
       },
       "cookies": {
         "title": "Cookies & Tracking Technologies",
-        "content": "We use cookies and similar technologies to:\n\n• Keep you logged in and remember your preferences\n• Analyze traffic and usage patterns\n• Improve platform performance and security\n• Deliver personalized content and features\n\nTypes of cookies we use:\n\n• Essential cookies: Required for platform functionality\n• Analytics cookies: Help us understand how users interact with our platform\n• Preference cookies: Remember your settings and choices\n\nYou can control cookies through your browser settings, but some features may not function properly if cookies are disabled."
+        "content": "We use cookies and similar technologies to enhance your experience. Here are the specific cookies we use:\n\nESSENTIAL COOKIES (Required):\n• Session cookie: Maintains your login session (expires on browser close)\n• CSRF token: Protects against cross-site request forgery (session duration)\n• Language preference: Stores your selected language (1 year)\n• Theme preference: Stores light/dark mode setting (1 year)\n\nFUNCTIONAL COOKIES:\n• Wallet connection: Remembers your connected wallet (session duration)\n• User preferences: Stores dashboard and display settings (1 year)\n\nANALYTICS COOKIES:\n• We may use privacy-focused analytics to understand platform usage\n• No third-party advertising or tracking cookies are used\n\nMANAGING COOKIES:\nYou can control cookies through your browser settings. EU/UK users will see a cookie consent banner on first visit. Essential cookies cannot be disabled as they are required for the platform to function. To opt out of analytics, you can use your browser's Do Not Track feature or contact us at privacy@hbc-engineering.com."
       },
       "sharing": {
-        "title": "Information Sharing",
-        "content": "We may share your information with:\n\n• Service providers who assist in operating our platform\n• Payment processors for transaction processing\n• Identity verification services for KYC compliance\n• Law enforcement when required by law or legal process\n• Professional advisors (lawyers, auditors, consultants)\n• Business partners with your consent\n\nWe do not sell your personal information to third parties for marketing purposes.\n\nIn the event of a merger, acquisition, or sale of assets, your information may be transferred to the acquiring entity."
+        "title": "Information Sharing & Third-Party Services",
+        "content": "We work with trusted third-party service providers to operate our platform:\n\nAUTHENTICATION SERVICES:\n• Google OAuth: For social login (governed by Google's Privacy Policy)\n• Facebook OAuth: For social login (governed by Meta's Privacy Policy)\n• WalletConnect/Reown: For cryptocurrency wallet connections\n\nINFRASTRUCTURE:\n• Cloud hosting providers for secure data storage\n• Email service providers for transactional emails\n• CDN providers for content delivery\n\nBLOCKCHAIN:\n• BNB Smart Chain (BSC) network for token transactions\n• PancakeSwap for DEX liquidity (public blockchain interactions)\n\nWe may also share information with:\n• Law enforcement when required by law or legal process\n• Professional advisors (lawyers, auditors, consultants)\n• Regulatory authorities for compliance purposes\n\nIMPORTANT: We do NOT sell your personal information to third parties. We do NOT use third-party advertising networks. All service providers are bound by data processing agreements."
       },
       "security": {
         "title": "Data Security",
@@ -1977,11 +1977,11 @@
       },
       "rights": {
         "title": "Your Privacy Rights",
-        "content": "Depending on your location, you may have the following rights:\n\n• Access: Request a copy of your personal data\n• Rectification: Correct inaccurate or incomplete data\n• Erasure: Request deletion of your data (with limitations)\n• Portability: Receive your data in a portable format\n• Restriction: Limit how we process your data\n• Objection: Object to certain processing activities\n• Withdraw consent: Revoke previously given consent\n\nTo exercise these rights, please contact us at privacy@hbc-engineering.com. We will respond within 30 days."
+        "content": "Your rights depend on your location:\n\nFOR EU/UK RESIDENTS (GDPR):\n• Right of Access: Request a copy of your personal data\n• Right to Rectification: Correct inaccurate or incomplete data\n• Right to Erasure: Request deletion of your data (\"right to be forgotten\")\n• Right to Data Portability: Receive your data in a machine-readable format\n• Right to Restrict Processing: Limit how we process your data\n• Right to Object: Object to processing based on legitimate interests\n• Right to Withdraw Consent: Revoke consent at any time\n• Right to Lodge a Complaint: File with your local supervisory authority\n\nFOR CALIFORNIA RESIDENTS (CCPA):\n• Right to Know: What personal information we collect and how it's used\n• Right to Delete: Request deletion of your personal information\n• Right to Opt-Out: We do not sell personal information\n• Right to Non-Discrimination: Equal service regardless of privacy choices\n\nTO EXERCISE YOUR RIGHTS:\nEmail: privacy@hbc-engineering.com\nResponse time: Within 30 days (GDPR) or 45 days (CCPA)\nVerification: We may need to verify your identity before processing requests\n\nNote: Some data cannot be deleted due to legal retention requirements (e.g., financial records, blockchain transactions)."
       },
       "international": {
         "title": "International Data Transfers",
-        "content": "Your information may be transferred to and processed in countries other than your own, including the United States where our servers are located.\n\nWe ensure appropriate safeguards for international transfers:\n\n• Standard contractual clauses approved by regulatory authorities\n• Data processing agreements with service providers\n• Compliance with applicable data protection frameworks\n\nBy using our platform, you consent to the transfer of your information to countries that may have different data protection laws than your jurisdiction."
+        "content": "Your information may be transferred to and processed in countries other than your own:\n\nWHERE DATA IS PROCESSED:\n• United States: Primary servers and infrastructure\n• European Union: For EU user data where applicable\n• Other jurisdictions: Through our service providers\n\nSAFEGUARDS FOR EU/UK DATA:\n• Standard Contractual Clauses (SCCs) approved by the European Commission\n• Data Processing Agreements with all service providers\n• Technical and organizational security measures\n• Regular compliance assessments\n\nLEGAL BASIS FOR TRANSFERS:\n• Your explicit consent when you create an account\n• Necessity for contract performance (providing our services)\n• Compliance with legal obligations\n\nFor questions about international transfers, contact: privacy@hbc-engineering.com"
       },
       "children": {
         "title": "Children's Privacy",
@@ -2003,8 +2003,8 @@
     },
     "contact": {
       "title": "Contact Our Privacy Team",
-      "description": "If you have any questions about this Privacy Policy or our data practices, please contact our Data Protection Officer.",
-      "address": "260 Peachtree Street, Atlanta, GA 30303, USA"
+      "description": "If you have any questions about this Privacy Policy, want to exercise your privacy rights, or have concerns about our data practices, please contact us.",
+      "address": "HBC Engineering, 260 Peachtree Street, Atlanta, GA 30303, USA"
     },
     "links": {
       "terms": "Terms of Service",
