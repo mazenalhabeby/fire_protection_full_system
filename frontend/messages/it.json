@@ -1262,13 +1262,13 @@
       },
       "phase5": {
         "phase": "Fase 5",
-        "title": "Utilità ed Ecosistema",
-        "description": "Acquisto prodotti HBC con token HBCT. Programma ricompense partner. Marketplace certificazioni. Tracciamento garanzie on-chain."
+        "title": "Marketplace Protezione Antincendio",
+        "description": "Lancio del marketplace decentralizzato per prodotti antincendio. Sistemi di estinzione premium e attrezzature di sicurezza. Onboarding produttori verificati. Pagamenti sicuri con token HBCT e deposito a garanzia. Verifica certificazione prodotti. Tracciamento garanzie on-chain."
       },
       "phase6": {
         "phase": "Fase 6",
         "title": "Espansione e Crescita",
-        "description": "Partnership con produttori globali. Nodi di verifica decentralizzati. App mobile per scansione certificati. Espansione cross-chain."
+        "description": "Partnership con produttori globali. Sistemi antincendio industriali. Nodi di verifica decentralizzati. App mobile per scansione certificati. Espansione cross-chain."
       }
     }
   },

@@ -1271,13 +1271,13 @@
       },
       "phase5": {
         "phase": "Phase 5",
-        "title": "Utility & Ecosystem",
-        "description": "Purchase HBC products with HBCT tokens. Partner rewards program. Certification marketplace. Warranty tracking on-chain."
+        "title": "Fire Protection Marketplace",
+        "description": "Launch decentralized marketplace for fire protection products. Premium fire suppression systems and safety equipment. Verified manufacturer onboarding. Secure HBCT token payments with escrow. Product certification verification. Warranty tracking on-chain."
       },
       "phase6": {
         "phase": "Phase 6",
         "title": "Expansion & Growth",
-        "description": "Global manufacturer partnerships. Decentralized verification nodes. Mobile app for certificate scanning. Cross-chain expansion."
+        "description": "Global manufacturer partnerships. Industrial-grade fire protection systems. Decentralized verification nodes. Mobile app for certificate scanning. Cross-chain expansion."
       }
     }
   },
