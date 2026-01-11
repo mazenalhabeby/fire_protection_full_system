@@ -12,7 +12,7 @@
 
 <br />
 
-[Website](https://hbctoken.com) · [Documentation](https://hbc-1.gitbook.io/hbc-fire-protection/) · [Twitter](https://x.com/HBCT911) · [Telegram](https://t.me/hbct911)
+[Website](https://fire-protection.tech/en) · [Documentation](https://hbc-1.gitbook.io/hbc-fire-protection/) · [Twitter](https://x.com/HBCT911) · [Telegram](https://t.me/hbct911)
 
 <br />
 
@@ -340,10 +340,10 @@ See [LICENSE](LICENSE) for details.
 
 **Built with modern technologies for the future of fire protection**
 
-[Website](https://hbctoken.com) · [Documentation](https://hbc-1.gitbook.io/hbc-fire-protection/) · [Twitter](https://x.com/HBCT911) · [Telegram](https://t.me/hbct911) · [GitHub](https://github.com/mazenalhabeby/fire_protection_full_system)
+[Website](https://fire-protection.tech/en) · [Documentation](https://hbc-1.gitbook.io/hbc-fire-protection/) · [Twitter](https://x.com/HBCT911) · [Telegram](https://t.me/hbct911) · [GitHub](https://github.com/mazenalhabeby/fire_protection_full_system)
 
 <br />
 
-Copyright © 2025 HBC Engineering. All rights reserved.
+Copyright © 2024-Present HBC Engineering. All rights reserved.
 
 </div>
