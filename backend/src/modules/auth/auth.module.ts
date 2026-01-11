@@ -15,7 +15,6 @@ import {
   JwtRefreshStrategy,
   LocalStrategy,
   GoogleStrategy,
-  FacebookStrategy,
 } from './strategies';
 import { EmailModule } from '../email/email.module';
 import { WalletModule } from '../wallet/wallet.module';
@@ -51,7 +50,6 @@ import { ACCESS_TOKEN_EXPIRY } from '../../config/cookie.config';
     JwtRefreshStrategy,
     LocalStrategy,
     GoogleStrategy,
-    FacebookStrategy,
   ],
   controllers: [AuthController],
   exports: [AuthService, TokenService, SessionService, OAuthService, WalletManagementService, TwoFactorService],

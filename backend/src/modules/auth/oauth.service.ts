@@ -5,7 +5,7 @@ import { SessionService } from './session.service';
 import { Request } from 'express';
 
 export interface OAuthProfile {
-  provider: 'GOOGLE' | 'FACEBOOK';
+  provider: 'GOOGLE';
   providerAccountId: string;
   email?: string;
   firstName?: string;
@@ -132,7 +132,7 @@ export class OAuthService {
     );
 
     // Determine auth method from provider
-    const authMethod = profile.provider.toLowerCase() as 'google' | 'facebook';
+    const authMethod = profile.provider.toLowerCase() as 'google';
 
     const { session, securityAlert } = await this.sessionService.createSession(
       user.id,
@@ -227,7 +227,7 @@ export class OAuthService {
     );
 
     // Determine auth method from provider
-    const authMethod = profile.provider.toLowerCase() as 'google' | 'facebook';
+    const authMethod = profile.provider.toLowerCase() as 'google';
 
     const { session } = await this.sessionService.createSession(
       user.id,

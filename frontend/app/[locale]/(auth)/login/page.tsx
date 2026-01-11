@@ -360,17 +360,6 @@ export default function LoginPage() {
     window.location.href = `${backendUrl}/auth/google`;
   };
 
-  const handleFacebookLogin = () => {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!backendUrl) {
-      toast.error(t("apiNotConfigured"));
-      return;
-    }
-    setSocialLoading("facebook");
-    // Redirect to backend Facebook OAuth endpoint
-    window.location.href = `${backendUrl}/auth/facebook`;
-  };
-
   const handleWalletLogin = async () => {
     // If already connected, proceed with login
     if (isConnected && address) {
@@ -699,37 +688,6 @@ export default function LoginPage() {
                   <GoogleIcon className="w-5 h-5" />
                 )}
                 <span>{t("continueWithGoogle")}</span>
-              </button>
-
-              {/* Facebook Button */}
-              <button
-                type="button"
-                onClick={handleFacebookLogin}
-                disabled={socialLoading !== null}
-                className={cn(
-                  "group relative w-full h-12 rounded-xl overflow-hidden",
-                  "flex items-center justify-center gap-3",
-                  "font-medium text-white",
-                  "bg-[#1877F2]",
-                  "shadow-sm shadow-[#1877F2]/20",
-                  "transition-all duration-300 ease-out",
-                  "hover:bg-[#166FE5]",
-                  "hover:shadow-lg hover:shadow-[#1877F2]/30",
-                  "hover:-translate-y-0.5 active:translate-y-0",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1877F2] focus-visible:ring-offset-2",
-                  "disabled:opacity-60 disabled:cursor-not-allowed"
-                )}
-              >
-                {/* Shine overlay on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                {socialLoading === "facebook" ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                  </svg>
-                )}
-                <span className="relative">{t("continueWithFacebook")}</span>
               </button>
 
               {/* Web3 Wallet Button */}

@@ -55,7 +55,7 @@ import {
   CheckWalletSwitchDto,
 } from './dto/wallet-management.dto';
 import { Public, CurrentUser } from '../../common/decorators';
-import { JwtAuthGuard, JwtRefreshGuard, GoogleAuthGuard, FacebookAuthGuard } from './guards';
+import { JwtAuthGuard, JwtRefreshGuard, GoogleAuthGuard } from './guards';
 import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,
@@ -568,50 +568,6 @@ export class AuthController {
       return res.redirect(redirectUrl);
     } catch (error) {
       this.logger.error(`Google OAuth error: ${error}`);
-      return res.redirect(`${this.frontendUrl}/login?error=oauth_failed`);
-    }
-  }
-
-  @Public()
-  @Get('facebook')
-  @UseGuards(FacebookAuthGuard)
-  @ApiOperation({ summary: 'Initiate Facebook OAuth login' })
-  @ApiResponse({ status: 302, description: 'Redirects to Facebook OAuth' })
-  async facebookAuth() {
-    // Guard handles the redirect to Facebook
-  }
-
-  @Public()
-  @Get('facebook/callback')
-  @UseGuards(FacebookAuthGuard)
-  @ApiOperation({ summary: 'Facebook OAuth callback' })
-  @ApiResponse({ status: 302, description: 'Redirects to frontend with auth result' })
-  async facebookCallback(
-    @Req() req: express.Request,
-    @Res() res: express.Response,
-  ) {
-    try {
-      const profile = req.user as OAuthProfile;
-
-      if (!profile) {
-        this.logger.warn('Facebook OAuth: No profile returned');
-        return res.redirect(`${this.frontendUrl}/login?error=oauth_failed`);
-      }
-
-      const result = await this.oauthService.handleOAuthLogin(profile, req);
-
-      // Set auth cookies
-      this.setAuthCookies(res, result.accessToken, result.refreshToken);
-
-      // Redirect to frontend
-      const redirectUrl = result.isNewUser
-        ? `${this.frontendUrl}/dashboard?welcome=true`
-        : `${this.frontendUrl}/dashboard`;
-
-      this.logger.log(`Facebook OAuth success: ${result.user.id}`);
-      return res.redirect(redirectUrl);
-    } catch (error) {
-      this.logger.error(`Facebook OAuth error: ${error}`);
       return res.redirect(`${this.frontendUrl}/login?error=oauth_failed`);
     }
   }

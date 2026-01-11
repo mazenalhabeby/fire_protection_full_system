@@ -121,7 +121,6 @@ enum AuthProvider {
   CREDENTIALS
   WALLET
   GOOGLE
-  FACEBOOK
 }
 
 // ============================================

@@ -32,8 +32,7 @@
     "passwordTooShort": "La password deve contenere almeno 8 caratteri",
     "forgotPassword": "Password dimenticata?",
     "continueWithGoogle": "Continua con Google",
-    "continueWithFacebook": "Continua con Facebook",
-    "connectWallet": "Connetti Wallet",
+        "connectWallet": "Connetti Wallet",
     "orContinueWith": "oppure continua con email"
   },
   "dashboard": {
