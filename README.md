@@ -2,7 +2,7 @@
 
 # HBCT Fire Protection Platform
 
-### Blockchain-Powered Fire Safety Certification & Token Management System
+### The Premier Blockchain Marketplace for Fire Protection Products & Systems
 
 [![Built on BSC](https://img.shields.io/badge/Built%20on-BNB%20Smart%20Chain-F0B90B?style=for-the-badge&logo=binance)](https://www.bnbchain.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js)](https://nextjs.org/)
@@ -24,7 +24,9 @@
 
 ## Overview
 
-HBCT Fire Protection Platform is a comprehensive Web3 token management system that revolutionizes fire protection certification through blockchain technology. Built with enterprise-grade security and scalability, the platform enables transparent verification, token operations, and decentralized governance.
+HBCT Fire Protection Platform is a comprehensive Web3 ecosystem that revolutionizes the fire protection industry through blockchain technology. The platform combines a **decentralized marketplace** for premium fire protection products and systems with transparent certification verification and token-based governance.
+
+Our marketplace connects certified manufacturers with buyers worldwide, ensuring every fire protection product—from advanced suppression systems to industrial safety equipment—meets the highest security and quality standards, verified immutably on the blockchain.
 
 <br />
 
@@ -79,9 +81,14 @@ HBCT Fire Protection Platform is a comprehensive Web3 token management system th
 - **Token Locking** - Staking mechanism with tiered bonus rewards
 - **Complete Audit Trail** - Transaction history and compliance logging
 
+### Fire Protection Marketplace
+- **Certified Products** - Premium fire suppression systems, detectors, and safety equipment
+- **Verified Manufacturers** - Blockchain-verified seller credentials and certifications
+- **Secure Transactions** - HBCT token payments with escrow protection
+- **Global Distribution** - Connect with certified suppliers worldwide
+
 ### Platform Capabilities
 - **User Dashboard** - Portfolio overview with analytics
-- **Marketplace** - Product and service listings
 - **Airdrop Management** - Campaign creation and distribution
 - **Affiliate System** - Referral tracking and rewards
 - **Admin Panel** - User management and system controls
