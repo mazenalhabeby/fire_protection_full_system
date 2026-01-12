@@ -34,20 +34,28 @@ import { PremiumButton } from "@/components/ui/premium-button";
 import { useRouter } from "@/i18n/navigation";
 import { useWallet } from "@/hooks/useWallet";
 import { WalletConnectModal } from "@/components/wallet/WalletConnectModal";
-import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, usePublicClient, useSendTransaction, useWalletClient } from "wagmi";
-import { parseEther, parseUnits } from "viem";
+import { useAccount, useBalance, useWaitForTransactionReceipt, useSwitchChain, usePublicClient, useSendTransaction } from "wagmi";
+import { useAppKitProvider } from "@reown/appkit/react";
+import { parseEther, parseUnits, encodeFunctionData } from "viem";
+import type { EIP1193Provider } from "viem";
 import { TransactionResultModal, TransactionResultData } from "@/components/ui/transaction-result-modal";
 import { bsc } from "wagmi/chains";
 
-// BSC Mainnet token addresses
-const BSC_USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955" as `0x${string}`; // BSC-USD (USDT)
-const BSC_USDC_ADDRESS = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d" as `0x${string}`; // USD Coin (USDC)
+// =============================================================================
+// CONSTANTS
+// =============================================================================
 
-// Deposit wallet address from env
+/** BSC Mainnet token addresses */
+const TOKEN_ADDRESSES = {
+  USDT: "0x55d398326f99059fF775485246999027B3197955" as `0x${string}`,
+  USDC: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d" as `0x${string}`,
+} as const;
+
+/** Deposit wallet address from environment */
 const DEPOSIT_WALLET_ADDRESS = (process.env.NEXT_PUBLIC_DEPOSIT_WALLET_ADDRESS || "") as `0x${string}`;
 
-// ERC-20 ABI for transfer function
-const ERC20_ABI = [
+/** ERC-20 transfer ABI */
+const ERC20_TRANSFER_ABI = [
   {
     name: "transfer",
     type: "function",
@@ -59,8 +67,63 @@ const ERC20_ABI = [
   },
 ] as const;
 
+// =============================================================================
+// TYPES
+// =============================================================================
+
 type DeliveryMethod = "OFF_CHAIN" | "ON_CHAIN";
 type PaymentCurrency = "BNB" | "USDT" | "USDC";
+
+/** WalletConnect-compatible transaction parameters */
+interface WalletConnectTxParams {
+  from: string;
+  to: string;
+  data: string;
+  value: string;
+  chainId: string;
+}
+
+// =============================================================================
+// UTILITIES
+// =============================================================================
+
+/**
+ * Converts a number to hex string with 0x prefix
+ */
+const toHexString = (value: bigint): string => `0x${value.toString(16)}`;
+
+/**
+ * Converts chainId to hex format for WalletConnect
+ */
+const chainIdToHex = (chainId: number): string => `0x${chainId.toString(16)}`;
+
+/**
+ * Builds WalletConnect-compatible transaction parameters
+ * Includes all required fields for maximum wallet compatibility (Trust Wallet, etc.)
+ */
+const buildWalletConnectTxParams = ({
+  from,
+  to,
+  value,
+  data,
+  chainId,
+}: {
+  from: string;
+  to: string;
+  value: bigint;
+  data: string;
+  chainId: number;
+}): WalletConnectTxParams => ({
+  from,
+  to,
+  data,
+  value: toHexString(value),
+  chainId: chainIdToHex(chainId),
+});
+
+// =============================================================================
+// COMPONENT
+// =============================================================================
 
 export default function BuyTokensPage() {
   const t = useTranslations("tokenSales");
@@ -91,14 +154,14 @@ export default function BuyTokensPage() {
   const isWalletConnected = Boolean(connectedAddress);
   const { switchChainAsync } = useSwitchChain();
 
-  // Get public client for reading blockchain data (doesn't require wallet)
+  // Get public client for reading blockchain data
   const publicClient = usePublicClient();
 
-  // Use wagmi's sendTransaction hook - best practice for WalletConnect compatibility
+  // Transaction hooks
   const { sendTransactionAsync } = useSendTransaction();
 
-  // Get wallet client for additional verification
-  const { data: walletClient, isError: walletClientError } = useWalletClient();
+  // AppKit provider for WalletConnect fallback
+  const { walletProvider: appKitProvider } = useAppKitProvider<EIP1193Provider>('eip155');
 
   // Check if on BSC Mainnet
   const isOnBsc = chainId === bsc.id;
@@ -119,18 +182,17 @@ export default function BuyTokensPage() {
 
   const { data: usdtBalance, isLoading: usdtLoading } = useBalance({
     address: connectedAddress,
-    token: BSC_USDT_ADDRESS,
+    token: TOKEN_ADDRESSES.USDT,
   });
 
   const { data: usdcBalance, isLoading: usdcLoading } = useBalance({
     address: connectedAddress,
-    token: BSC_USDC_ADDRESS,
+    token: TOKEN_ADDRESSES.USDC,
   });
 
   const balancesLoading = bnbLoading || usdtLoading || usdcLoading;
 
   // Web3 transaction hooks
-  const { writeContractAsync } = useWriteContract();
   const [pendingTxHash, setPendingTxHash] = useState<`0x${string}` | undefined>();
   const [txState, setTxState] = useState<'idle' | 'sending' | 'confirming' | 'processing' | 'success'>('idle');
 
@@ -280,21 +342,9 @@ export default function BuyTokensPage() {
       return;
     }
 
-    // Check if wallet client is available (important for WalletConnect)
-    if (!walletClient && isWalletConnect) {
-      toast.error("Wallet connection not ready. Please wait a moment or reconnect your wallet.", {
-        description: "Make sure your wallet app is open and connected.",
-      });
-      return;
-    }
-
-    if (walletClientError) {
-      toast.error("Unable to connect to your wallet. Please try reconnecting.");
-      return;
-    }
-
-    // Ensure user is on BSC network
-    if (!isOnBsc) {
+    // Ensure user is on BSC network (for non-WalletConnect connections)
+    // WalletConnect chain switching is handled during transaction
+    if (!isOnBsc && !isWalletConnect) {
       try {
         toast.info("Switching to BSC Mainnet...");
         await switchChainAsync({ chainId: bsc.id });
@@ -337,27 +387,56 @@ export default function BuyTokensPage() {
       // Set sending state
       setTxState('sending');
 
-      if (paymentCurrency === "BNB") {
-        // Send native BNB
-        txHash = await sendTransactionAsync({
-          to: DEPOSIT_WALLET_ADDRESS,
-          value: parseEther(paymentAmount),
-          chainId: bsc.id,
-        });
-      } else {
-        // Send ERC-20 token (USDT/USDC)
-        const tokenAddress = paymentCurrency === "USDT" ? BSC_USDT_ADDRESS : BSC_USDC_ADDRESS;
-        // USDT and USDC on BSC have 18 decimals
-        const amount = parseUnits(paymentAmount, 18);
+      // Prepare transaction parameters
+      const isNativeTransfer = paymentCurrency === "BNB";
+      const tokenAddress = TOKEN_ADDRESSES[paymentCurrency as keyof typeof TOKEN_ADDRESSES];
+      const targetAddress = isNativeTransfer ? DEPOSIT_WALLET_ADDRESS : tokenAddress;
+      const txValue = isNativeTransfer ? parseEther(paymentAmount) : BigInt(0);
+      const txData = isNativeTransfer
+        ? "0x" // Required for WalletConnect compatibility with Trust Wallet
+        : encodeFunctionData({
+            abi: ERC20_TRANSFER_ABI,
+            functionName: "transfer",
+            args: [DEPOSIT_WALLET_ADDRESS, parseUnits(paymentAmount, 18)],
+          });
 
-        txHash = await writeContractAsync({
-          address: tokenAddress,
-          abi: ERC20_ABI,
-          functionName: "transfer",
-          args: [DEPOSIT_WALLET_ADDRESS, amount],
-          chainId: bsc.id,
-        });
-      }
+      // Build WalletConnect-compatible params (used as fallback)
+      const wcTxParams = buildWalletConnectTxParams({
+        from: connectedAddress as string,
+        to: targetAddress,
+        value: txValue,
+        data: txData,
+        chainId: chainId || bsc.id, // Use connected chainId or default to BSC
+      });
+
+      /**
+       * Send transaction with fallback methods for maximum wallet compatibility
+       * Order: wagmi (handles most cases) → AppKit provider (WalletConnect fallback)
+       */
+      const sendTransaction = async (): Promise<`0x${string}`> => {
+        // Method 1: wagmi's sendTransactionAsync (works with most wallets)
+        try {
+          return await sendTransactionAsync({
+            to: targetAddress,
+            value: txValue,
+            data: txData as `0x${string}`,
+          });
+        } catch (wagmiError: any) {
+          console.warn('wagmi transaction failed, trying fallback:', wagmiError?.message);
+
+          // Method 2: Direct AppKit provider request (WalletConnect fallback)
+          if (appKitProvider) {
+            return await (appKitProvider as any).request({
+              method: 'eth_sendTransaction',
+              params: [wcTxParams],
+            }) as `0x${string}`;
+          }
+
+          throw wagmiError;
+        }
+      };
+
+      txHash = await sendTransaction();
 
       // Transaction sent - now waiting for confirmations
       setTxState('confirming');
@@ -455,18 +534,12 @@ export default function BuyTokensPage() {
           errorCode = "USER_REJECTED";
           errorDetails = "The transaction was not completed because it was cancelled in your wallet.";
           suggestion = "You can try again when you're ready to proceed.";
-        } else if (errorMsg.includes("unknown method") || errorMsg.includes("unsupported method") || errorMsg.includes("method not found") || errorMsg.includes("not supported") || errorMsg.includes("unknown rpc")) {
-          errorTitle = "Wallet Incompatibility";
+        } else if (errorMsg.includes("unknown method") || errorMsg.includes("unsupported method") || errorMsg.includes("method not found") || errorMsg.includes("not supported") || errorMsg.includes("unknown rpc") || errorMsg.includes("unknown request")) {
+          errorTitle = "Wallet Connection Issue";
           errorCode = "UNSUPPORTED_METHOD";
-          if (isWalletConnect) {
-            errorMessage = "Your wallet doesn't support BSC transactions via WalletConnect";
-            errorDetails = "Some mobile wallets have limited support for BSC network transactions when connected via WalletConnect.";
-            suggestion = "Please use MetaMask or Coinbase Wallet browser extension, or try Trust Wallet mobile app for better compatibility.";
-          } else {
-            errorMessage = "Your wallet doesn't support this transaction type";
-            errorDetails = "The connected wallet may not fully support all required transaction methods.";
-            suggestion = "Try using MetaMask or Coinbase Wallet browser extension instead.";
-          }
+          errorMessage = "Your wallet encountered an issue processing the transaction";
+          errorDetails = "The transaction request could not be completed by your wallet.";
+          suggestion = "Please try reconnecting your wallet and ensure you're on the BSC network.";
         } else if (errorMsg.includes("insufficient funds") || errorMsg.includes("insufficient balance")) {
           errorTitle = "Insufficient Balance";
           errorCode = "INSUFFICIENT_FUNDS";
