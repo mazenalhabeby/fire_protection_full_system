@@ -126,7 +126,7 @@
     "processing": "Procesando...",
     "purchaseSuccess": "¡Compra exitosa!",
     "purchaseError": "La compra falló. Por favor, inténtalo de nuevo.",
-    "minPurchase": "Compra mínima: $10",
+    "minPurchase": "Compra mínima: $100",
     "maxPurchase": "Compra máxima: $100,000"
   },
   "locking": {

@@ -369,6 +369,11 @@ export default function BuyTokensPage() {
         amountUsd = amountUsd * parseFloat(priceData.bnbPriceUsd);
       }
 
+      if (amountUsd < parseFloat(limitsData.minPurchaseUsd)) {
+        toast.error(`Minimum purchase is $${limitsData.minPurchaseUsd}`);
+        return;
+      }
+
       if (amountUsd > parseFloat(limitsData.maxPurchaseUsd)) {
         toast.error(`Maximum purchase per transaction is $${limitsData.maxPurchaseUsd}`);
         return;
@@ -1158,7 +1163,7 @@ export default function BuyTokensPage() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-500">{tBuy("limits.perTransaction")}</span>
                     <span className="font-medium text-gray-900 dark:text-white">
-                      {tBuy("limits.upTo")} ${limitsData.maxPurchaseUsd}
+                      ${limitsData.minPurchaseUsd} - ${limitsData.maxPurchaseUsd}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">

@@ -116,6 +116,15 @@ export class WithdrawalsController {
     );
   }
 
+  @Get('limits')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get withdrawal limits and fees' })
+  @ApiResponse({ status: 200, description: 'Returns withdrawal limits' })
+  async getWithdrawalLimits() {
+    return this.withdrawalsService.getWithdrawalLimits();
+  }
+
   // ============================================
   // ADMIN ENDPOINTS
   // ============================================

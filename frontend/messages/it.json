@@ -102,7 +102,7 @@
     "processing": "Elaborazione...",
     "purchaseSuccess": "Acquisto effettuato con successo!",
     "purchaseError": "Acquisto fallito. Riprova.",
-    "minPurchase": "Acquisto minimo: $10",
+    "minPurchase": "Acquisto minimo: $100",
     "maxPurchase": "Acquisto massimo: $100.000"
   },
   "locking": {

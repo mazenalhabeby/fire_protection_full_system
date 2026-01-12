@@ -126,7 +126,7 @@
     "processing": "Verarbeitung...",
     "purchaseSuccess": "Kauf erfolgreich!",
     "purchaseError": "Kauf fehlgeschlagen. Bitte versuchen Sie es erneut.",
-    "minPurchase": "Mindestkauf: 10 $",
+    "minPurchase": "Mindestkauf: 100 $",
     "maxPurchase": "Maximalkauf: 100.000 $"
   },
   "locking": {

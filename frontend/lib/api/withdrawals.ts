@@ -8,6 +8,7 @@ import type {
   WithdrawalStats,
   HotWalletStatus,
   WithdrawalProcessorStatus,
+  WithdrawalLimits,
 } from '@/types/withdrawals';
 
 export const withdrawalsApi = {
@@ -53,6 +54,13 @@ export const withdrawalsApi = {
     limit?: number;
   }): Promise<WithdrawalListResponse> => {
     return api.get<WithdrawalListResponse>('/withdrawals/me', params);
+  },
+
+  /**
+   * Get withdrawal limits and fees
+   */
+  getLimits: (): Promise<WithdrawalLimits> => {
+    return api.get<WithdrawalLimits>('/withdrawals/limits');
   },
 
   // ============================================

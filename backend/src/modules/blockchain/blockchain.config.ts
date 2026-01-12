@@ -69,7 +69,7 @@ export class BlockchainConfigService {
       // Withdrawal configuration
       withdrawalPrivateKey: this.configService.get<string>('WITHDRAWAL_PRIVATE_KEY', ''),
       withdrawalWalletAddress: this.configService.get<string>('WITHDRAWAL_WALLET_ADDRESS', ''),
-      minWithdrawAmount: this.configService.get<string>('MIN_WITHDRAW_AMOUNT', '100'),
+      minWithdrawAmount: this.configService.get<string>('MIN_WITHDRAW_AMOUNT', '5000'),
       maxWithdrawAmount: this.configService.get<string>('MAX_WITHDRAW_AMOUNT', '100000'),
       withdrawFeePercent: parseFloat(this.configService.get<string>('WITHDRAW_FEE_PERCENT', '0.1')),
       withdrawFlatFee: this.configService.get<string>('WITHDRAW_FLAT_FEE', '0'),

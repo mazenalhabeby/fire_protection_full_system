@@ -164,6 +164,21 @@ export function useMyWithdrawals(params?: { page?: number; limit?: number }) {
 }
 
 /**
+ * Fetch withdrawal limits and fees
+ */
+export function useWithdrawalLimits() {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: [...withdrawalKeys.all, 'limits'],
+    queryFn: () => withdrawalsApi.getLimits(),
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000, // Fresh for 5 minutes
+    gcTime: 30 * 60 * 1000, // Cache for 30 minutes
+  });
+}
+
+/**
  * Request a new withdrawal with optimistic update
  */
 export function useRequestWithdrawal() {

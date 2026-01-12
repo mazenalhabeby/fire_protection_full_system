@@ -1656,7 +1656,7 @@ model PurchaseLimits {
   userId            String   @unique
 
   // Per-transaction limits (in USD)
-  minPurchaseUsd    Decimal  @default(10) @db.Decimal(18, 2)
+  minPurchaseUsd    Decimal  @default(100) @db.Decimal(18, 2)
   maxPurchaseUsd    Decimal  @default(10000) @db.Decimal(18, 2)
 
   // Daily limits (in USD)

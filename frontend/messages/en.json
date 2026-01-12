@@ -126,7 +126,7 @@
     "processing": "Processing...",
     "purchaseSuccess": "Purchase successful!",
     "purchaseError": "Purchase failed. Please try again.",
-    "minPurchase": "Minimum purchase: $10",
+    "minPurchase": "Minimum purchase: $100",
     "maxPurchase": "Maximum purchase: $100,000"
   },
   "locking": {

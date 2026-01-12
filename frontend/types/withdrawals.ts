@@ -101,3 +101,11 @@ export interface RequestWithdrawalParams {
   amount: string;
   walletId: string;
 }
+
+export interface WithdrawalLimits {
+  minAmount: string;
+  maxAmount: string;
+  feePercent: string;
+  flatFee: string;
+  approvalThreshold: string;
+}

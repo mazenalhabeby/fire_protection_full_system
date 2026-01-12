@@ -67,7 +67,7 @@ const mockFAQCategories: FAQCategory[] = [
         id: "2-3",
         question: "Is there a minimum purchase amount?",
         answer:
-          "The minimum purchase amount is 100 HBCT tokens. There's no maximum limit, though large purchases may require additional verification for security purposes.",
+          "The minimum purchase amount is $100 USD. There's no maximum limit, though large purchases may require additional verification for security purposes.",
       },
     ],
   },

@@ -74,6 +74,19 @@ export class WithdrawalsService {
   ) {}
 
   /**
+   * Get withdrawal limits and fees
+   */
+  getWithdrawalLimits() {
+    return {
+      minAmount: this.blockchainConfig.minWithdrawAmount,
+      maxAmount: this.blockchainConfig.maxWithdrawAmount,
+      feePercent: this.blockchainConfig.withdrawFeePercent.toString(),
+      flatFee: this.blockchainConfig.withdrawFlatFee,
+      approvalThreshold: this.blockchainConfig.withdrawalApprovalThreshold,
+    };
+  }
+
+  /**
    * Request a withdrawal
    * SECURITY: Only allows withdrawals to verified linked wallets
    */

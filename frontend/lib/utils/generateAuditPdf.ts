@@ -398,7 +398,7 @@ export function generateAuditPdf(data: AuditReportData = { reportDate: "December
     startY: yPos,
     head: [["Parameter", "Value"]],
     body: [
-      ["Minimum Withdrawal", "100 HBCT"],
+      ["Minimum Withdrawal", "5,000 HBCT"],
       ["Maximum Withdrawal", "100,000 HBCT"],
       ["Withdrawal Fee", "0.1%"],
       ["Admin Approval Threshold", "10,000 HBCT"],

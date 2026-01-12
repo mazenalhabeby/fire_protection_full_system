@@ -126,7 +126,7 @@
     "processing": "Traitement...",
     "purchaseSuccess": "Achat réussi !",
     "purchaseError": "Échec de l'achat. Veuillez réessayer.",
-    "minPurchase": "Achat minimum : 10 $",
+    "minPurchase": "Achat minimum : 100 $",
     "maxPurchase": "Achat maximum : 100 000 $"
   },
   "locking": {

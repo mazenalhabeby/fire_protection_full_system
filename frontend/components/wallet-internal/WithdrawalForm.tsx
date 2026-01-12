@@ -15,7 +15,7 @@ import {
   Lock,
 } from "lucide-react";
 import { useWalletBalances } from "@/hooks/useWalletData";
-import { useRequestWithdrawal } from "@/hooks/useWithdrawals";
+import { useRequestWithdrawal, useWithdrawalLimits } from "@/hooks/useWithdrawals";
 import { authApi, type LinkedWallet } from "@/lib/api/auth";
 import { CurrencyIcon } from "./CurrencyIcon";
 import { PremiumButton } from "@/components/ui/premium-button";
@@ -29,6 +29,7 @@ interface WithdrawalFormProps {
 export function WithdrawalForm({ onSuccess, onCancel }: WithdrawalFormProps) {
   const router = useRouter();
   const { data: balancesData } = useWalletBalances();
+  const { data: limitsData } = useWithdrawalLimits();
   const requestWithdrawal = useRequestWithdrawal();
 
   // State
@@ -46,15 +47,15 @@ export function WithdrawalForm({ onSuccess, onCancel }: WithdrawalFormProps) {
   // Consider balances less than 0.0001 as effectively 0 (floating point dust)
   const availableBalance = rawBalance < 0.0001 ? 0 : Math.floor(rawBalance * 10000) / 10000;
 
-  // Fee calculation (0.1%)
+  // Get limits from API (with fallbacks)
+  const minAmount = parseFloat(limitsData?.minAmount || "5000");
+  const maxAmount = parseFloat(limitsData?.maxAmount || "100000");
+  const feePercent = parseFloat(limitsData?.feePercent || "0.1") / 100; // Convert from percentage
+
+  // Fee calculation
   const withdrawAmount = parseFloat(amount) || 0;
-  const feePercent = 0.001;
   const estimatedFee = withdrawAmount * feePercent;
   const netAmount = Math.max(0, withdrawAmount - estimatedFee);
-
-  // Limits
-  const minAmount = 100;
-  const maxAmount = 100000;
 
   // Load linked wallets on mount
   useEffect(() => {
