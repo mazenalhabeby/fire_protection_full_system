@@ -36,7 +36,7 @@ export { airdropsApi } from './airdrops';
 export { marketplaceApi } from './marketplace';
 export { affiliatesApi } from './affiliates';
 export { adminApi } from './admin';
-export type { Role, Permission, PermissionGroup, AdminUserDetails, DeletedUser, DeletionLog } from './admin';
+export type { Role, Permission, PermissionGroup, AdminUserDetails, DeletedUser, DeletionLog, UserWallet } from './admin';
 export { supportApi } from './support';
 export { walletApi } from './wallet';
 export { depositsApi } from './deposits';
