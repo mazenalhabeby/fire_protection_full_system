@@ -27,6 +27,7 @@ import {
   AdminPurchaseQueryDto,
   CreateAffiliateTierDto,
   UpdateAffiliateTierDto,
+  AdminWalletQueryDto,
 } from './dto';
 
 @Injectable()
@@ -1793,6 +1794,405 @@ export class AdminService {
         total,
         totalPages: Math.ceil(total / limit),
       },
+    };
+  }
+
+  // ============ WALLET MANAGEMENT ============
+
+  /**
+   * Get all user wallets with filtering options
+   */
+  async getWallets(query: AdminWalletQueryDto) {
+    const { page = 1, limit = 20, search, filter = 'all', userId } = query;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.UserWalletWhereInput = {};
+
+    // Filter by user ID if provided
+    if (userId) {
+      where.userId = userId;
+    }
+
+    // Search by wallet address or user email/name
+    if (search) {
+      where.OR = [
+        { walletAddress: { contains: search.toLowerCase(), mode: 'insensitive' } },
+        { label: { contains: search, mode: 'insensitive' } },
+        { user: { email: { contains: search, mode: 'insensitive' } } },
+        { user: { firstName: { contains: search, mode: 'insensitive' } } },
+        { user: { lastName: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [wallets, total] = await Promise.all([
+      this.prisma.userWallet.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              username: true,
+              isDeleted: true,
+            },
+          },
+        },
+      }),
+      this.prisma.userWallet.count({ where }),
+    ]);
+
+    return {
+      wallets: wallets.map((wallet) => ({
+        id: wallet.id,
+        walletAddress: wallet.walletAddress,
+        label: wallet.label,
+        isPrimary: wallet.isPrimary,
+        verifiedAt: wallet.verifiedAt,
+        lastUsedAt: wallet.lastUsedAt,
+        linkedIp: wallet.linkedIp,
+        linkedDevice: wallet.linkedDevice,
+        createdAt: wallet.createdAt,
+        user: wallet.user ? {
+          id: wallet.user.id,
+          email: wallet.user.email,
+          firstName: wallet.user.firstName,
+          lastName: wallet.user.lastName,
+          username: wallet.user.username,
+          isDeleted: wallet.user.isDeleted,
+        } : null,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  /**
+   * Get wallet statistics
+   */
+  async getWalletStats() {
+    const [
+      totalWallets,
+      primaryWallets,
+      recentlyUsedWallets,
+      walletsPerUser,
+    ] = await Promise.all([
+      // Total connected wallets
+      this.prisma.userWallet.count(),
+      // Primary wallets count
+      this.prisma.userWallet.count({ where: { isPrimary: true } }),
+      // Wallets used in last 30 days
+      this.prisma.userWallet.count({
+        where: {
+          lastUsedAt: {
+            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          },
+        },
+      }),
+      // Users with multiple wallets
+      this.prisma.userWallet.groupBy({
+        by: ['userId'],
+        _count: true,
+      }),
+    ]);
+
+    // Calculate users with multiple wallets
+    const usersWithMultipleWallets = walletsPerUser.filter(u => u._count > 1).length;
+    const uniqueUsers = walletsPerUser.length;
+
+    return {
+      totalWallets,
+      primaryWallets,
+      recentlyUsedWallets,
+      uniqueUsers,
+      usersWithMultipleWallets,
+      averageWalletsPerUser: uniqueUsers > 0
+        ? (totalWallets / uniqueUsers).toFixed(2)
+        : '0',
+    };
+  }
+
+  /**
+   * Get a specific wallet by ID
+   */
+  async getWalletById(walletId: string) {
+    const wallet = await this.prisma.userWallet.findUnique({
+      where: { id: walletId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            username: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+
+    // Get withdrawal history for this wallet address
+    const withdrawals = await this.prisma.withdrawal.findMany({
+      where: { toAddress: wallet.walletAddress },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        amount: true,
+        status: true,
+        txHash: true,
+        createdAt: true,
+      },
+    });
+
+    return {
+      id: wallet.id,
+      walletAddress: wallet.walletAddress,
+      label: wallet.label,
+      isPrimary: wallet.isPrimary,
+      verifiedAt: wallet.verifiedAt,
+      lastUsedAt: wallet.lastUsedAt,
+      linkedIp: wallet.linkedIp,
+      linkedDevice: wallet.linkedDevice,
+      createdAt: wallet.createdAt,
+      user: wallet.user,
+      recentWithdrawals: withdrawals.map(w => ({
+        id: w.id,
+        amount: w.amount.toString(),
+        status: w.status,
+        txHash: w.txHash,
+        createdAt: w.createdAt,
+      })),
+    };
+  }
+
+  /**
+   * Update a wallet (label, isPrimary)
+   */
+  async updateWallet(walletId: string, data: { label?: string; isPrimary?: boolean }) {
+    const wallet = await this.prisma.userWallet.findUnique({
+      where: { id: walletId },
+    });
+
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+
+    // If setting as primary, unset other primary wallets for this user
+    if (data.isPrimary === true) {
+      await this.prisma.userWallet.updateMany({
+        where: {
+          userId: wallet.userId,
+          id: { not: walletId },
+          isPrimary: true,
+        },
+        data: { isPrimary: false },
+      });
+    }
+
+    const updated = await this.prisma.userWallet.update({
+      where: { id: walletId },
+      data: {
+        label: data.label,
+        isPrimary: data.isPrimary,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    return {
+      id: updated.id,
+      walletAddress: updated.walletAddress,
+      label: updated.label,
+      isPrimary: updated.isPrimary,
+      user: updated.user,
+      message: 'Wallet updated successfully',
+    };
+  }
+
+  /**
+   * Delete a wallet
+   */
+  async deleteWallet(walletId: string) {
+    const wallet = await this.prisma.userWallet.findUnique({
+      where: { id: walletId },
+      include: {
+        user: {
+          select: { id: true, email: true },
+        },
+      },
+    });
+
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+
+    // Check for pending withdrawals to this address
+    const pendingWithdrawals = await this.prisma.withdrawal.count({
+      where: {
+        toAddress: wallet.walletAddress,
+        status: {
+          in: ['PENDING_CONFIRMATION', 'PENDING_APPROVAL', 'APPROVED', 'PROCESSING'],
+        },
+      },
+    });
+
+    if (pendingWithdrawals > 0) {
+      throw new BadRequestException(
+        `Cannot delete wallet with ${pendingWithdrawals} pending withdrawal(s). Cancel or complete them first.`
+      );
+    }
+
+    await this.prisma.userWallet.delete({
+      where: { id: walletId },
+    });
+
+    // If this was primary, set another wallet as primary
+    if (wallet.isPrimary) {
+      const anotherWallet = await this.prisma.userWallet.findFirst({
+        where: { userId: wallet.userId },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      if (anotherWallet) {
+        await this.prisma.userWallet.update({
+          where: { id: anotherWallet.id },
+          data: { isPrimary: true },
+        });
+      }
+    }
+
+    return {
+      message: 'Wallet deleted successfully',
+      walletAddress: wallet.walletAddress,
+      userId: wallet.userId,
+      userEmail: wallet.user?.email,
+    };
+  }
+
+  /**
+   * Transfer wallet to another user
+   */
+  async transferWallet(walletId: string, newUserId: string) {
+    const wallet = await this.prisma.userWallet.findUnique({
+      where: { id: walletId },
+    });
+
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+
+    const newUser = await this.prisma.user.findUnique({
+      where: { id: newUserId },
+      select: { id: true, email: true, firstName: true, lastName: true },
+    });
+
+    if (!newUser) {
+      throw new NotFoundException('Target user not found');
+    }
+
+    // Check if new user already has this wallet address
+    const existingWallet = await this.prisma.userWallet.findFirst({
+      where: {
+        userId: newUserId,
+        walletAddress: wallet.walletAddress,
+      },
+    });
+
+    if (existingWallet) {
+      throw new BadRequestException('User already has this wallet address linked');
+    }
+
+    // Check for pending withdrawals
+    const pendingWithdrawals = await this.prisma.withdrawal.count({
+      where: {
+        toAddress: wallet.walletAddress,
+        userId: wallet.userId,
+        status: {
+          in: ['PENDING_CONFIRMATION', 'PENDING_APPROVAL', 'APPROVED', 'PROCESSING'],
+        },
+      },
+    });
+
+    if (pendingWithdrawals > 0) {
+      throw new BadRequestException(
+        `Cannot transfer wallet with ${pendingWithdrawals} pending withdrawal(s)`
+      );
+    }
+
+    const updated = await this.prisma.userWallet.update({
+      where: { id: walletId },
+      data: {
+        userId: newUserId,
+        isPrimary: false, // Reset primary status when transferring
+      },
+    });
+
+    return {
+      message: 'Wallet transferred successfully',
+      walletId: updated.id,
+      walletAddress: updated.walletAddress,
+      newUser: {
+        id: newUser.id,
+        email: newUser.email,
+        name: `${newUser.firstName || ''} ${newUser.lastName || ''}`.trim() || null,
+      },
+    };
+  }
+
+  /**
+   * Get all wallets for a specific user
+   */
+  async getUserWallets(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, firstName: true, lastName: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const wallets = await this.prisma.userWallet.findMany({
+      where: { userId },
+      orderBy: [
+        { isPrimary: 'desc' },
+        { createdAt: 'asc' },
+      ],
+    });
+
+    return {
+      user,
+      wallets: wallets.map(w => ({
+        id: w.id,
+        walletAddress: w.walletAddress,
+        label: w.label,
+        isPrimary: w.isPrimary,
+        verifiedAt: w.verifiedAt,
+        lastUsedAt: w.lastUsedAt,
+        createdAt: w.createdAt,
+      })),
     };
   }
 }

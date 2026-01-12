@@ -24,6 +24,7 @@ import {
   Moon,
   Monitor,
   HeadphonesIcon,
+  Wallet,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/components/ui";
@@ -87,6 +88,13 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       url: "/users",
       icon: Users,
       color: "blue",
+      permission: "users.view",
+    },
+    {
+      title: t("wallets"),
+      url: "/wallets",
+      icon: Wallet,
+      color: "teal",
       permission: "users.view",
     },
     {
@@ -196,6 +204,13 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       activeBg: "bg-cyan-500",
       activeText: "text-white",
       glow: "shadow-cyan-500/25",
+    },
+    teal: {
+      bg: "bg-teal-500/10",
+      text: "text-teal-500",
+      activeBg: "bg-teal-500",
+      activeText: "text-white",
+      glow: "shadow-teal-500/25",
     },
     rose: {
       bg: "bg-rose-500/10",

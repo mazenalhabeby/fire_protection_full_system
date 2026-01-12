@@ -321,6 +321,20 @@ export class UpdateAffiliateTierDto {
   isActive?: boolean;
 }
 
+// ============ WALLET QUERIES ============
+
+export class AdminWalletQueryDto extends SearchablePaginationDto {
+  @ApiPropertyOptional({ description: 'Filter by connection status: connected, orphan, all' })
+  @IsOptional()
+  @IsString()
+  filter?: 'connected' | 'orphan' | 'all';
+
+  @ApiPropertyOptional({ description: 'Filter by specific user ID' })
+  @IsOptional()
+  @IsString()
+  userId?: string;
+}
+
 // ============ ACCOUNT DELETION DTOs ============
 
 export class DeleteUserDto {

@@ -36,6 +36,8 @@ const getPageKey = (pathname: string): string => {
       return "dashboard";
     case "/users":
       return "users";
+    case "/wallets":
+      return "wallets";
     case "/affiliates":
       return "affiliates";
     case "/purchases":

@@ -271,4 +271,76 @@ export const adminApi = {
   }> => {
     return api.patch('/admin/token-config', data);
   },
+
+  // Wallets
+  getWallets: (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    filter?: 'connected' | 'orphan' | 'all';
+    userId?: string;
+  }): Promise<{
+    wallets: {
+      id: string;
+      walletAddress: string;
+      label: string | null;
+      isPrimary: boolean;
+      verifiedAt: string;
+      lastUsedAt: string | null;
+      linkedIp: string | null;
+      linkedDevice: string | null;
+      createdAt: string;
+      user: {
+        id: string;
+        email: string | null;
+        firstName: string | null;
+        lastName: string | null;
+        username: string | null;
+        isDeleted: boolean;
+      } | null;
+    }[];
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  }> => {
+    return api.get('/admin/wallets', params);
+  },
+
+  getWalletStats: (): Promise<{
+    totalWallets: number;
+    primaryWallets: number;
+    recentlyUsedWallets: number;
+    uniqueUsers: number;
+    usersWithMultipleWallets: number;
+    averageWalletsPerUser: string;
+  }> => {
+    return api.get('/admin/wallets/stats');
+  },
+
+  getWalletById: (walletId: string): Promise<{
+    id: string;
+    walletAddress: string;
+    label: string | null;
+    isPrimary: boolean;
+    verifiedAt: string;
+    lastUsedAt: string | null;
+    linkedIp: string | null;
+    linkedDevice: string | null;
+    createdAt: string;
+    user: {
+      id: string;
+      email: string | null;
+      firstName: string | null;
+      lastName: string | null;
+      username: string | null;
+      createdAt: string;
+    } | null;
+    recentWithdrawals: {
+      id: string;
+      amount: string;
+      status: string;
+      txHash: string | null;
+      createdAt: string;
+    }[];
+  }> => {
+    return api.get(`/admin/wallets/${walletId}`);
+  },
 };

@@ -478,6 +478,80 @@ export const adminApi = {
   }): Promise<BuybackExecutionsResponse> => {
     return api.get<BuybackExecutionsResponse>('/admin/buyback/executions', params);
   },
+
+  // ============ USER WALLETS ============
+
+  getWallets: (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    userId?: string;
+  }): Promise<WalletsResponse> => {
+    return api.get<WalletsResponse>('/admin/wallets', params);
+  },
+
+  getWalletStats: (): Promise<WalletStats> => {
+    return api.get<WalletStats>('/admin/wallets/stats');
+  },
+
+  getWalletById: (walletId: string): Promise<WalletDetails> => {
+    return api.get<WalletDetails>(`/admin/wallets/${walletId}`);
+  },
+
+  updateWallet: (walletId: string, data: {
+    label?: string;
+    isPrimary?: boolean;
+  }): Promise<{
+    id: string;
+    walletAddress: string;
+    label: string | null;
+    isPrimary: boolean;
+    message: string;
+  }> => {
+    return api.patch(`/admin/wallets/${walletId}`, data);
+  },
+
+  deleteWallet: (walletId: string): Promise<{
+    message: string;
+    walletAddress: string;
+    userId: string;
+    userEmail: string | null;
+  }> => {
+    return api.delete(`/admin/wallets/${walletId}`);
+  },
+
+  transferWallet: (walletId: string, newUserId: string): Promise<{
+    message: string;
+    walletId: string;
+    walletAddress: string;
+    newUser: {
+      id: string;
+      email: string | null;
+      name: string | null;
+    };
+  }> => {
+    return api.post(`/admin/wallets/${walletId}/transfer`, { newUserId });
+  },
+
+  getUserWallets: (userId: string): Promise<{
+    user: {
+      id: string;
+      email: string | null;
+      firstName: string | null;
+      lastName: string | null;
+    };
+    wallets: {
+      id: string;
+      walletAddress: string;
+      label: string | null;
+      isPrimary: boolean;
+      verifiedAt: string;
+      lastUsedAt: string | null;
+      createdAt: string;
+    }[];
+  }> => {
+    return api.get(`/admin/users/${userId}/wallets`);
+  },
 };
 
 // Buyback types
@@ -734,4 +808,54 @@ export interface DeletedUser {
   gracePeriodEndsAt: string | null;
   retentionExpiresAt: string | null;
   deletionLog: DeletionLog | null;
+}
+
+// Wallet types
+export interface UserWallet {
+  id: string;
+  walletAddress: string;
+  label: string | null;
+  isPrimary: boolean;
+  verifiedAt: string;
+  lastUsedAt: string | null;
+  linkedIp: string | null;
+  linkedDevice: string | null;
+  createdAt: string;
+  user: {
+    id: string;
+    email: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    username: string | null;
+    isDeleted: boolean;
+  } | null;
+}
+
+export interface WalletsResponse {
+  wallets: UserWallet[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface WalletStats {
+  totalWallets: number;
+  primaryWallets: number;
+  recentlyUsedWallets: number;
+  uniqueUsers: number;
+  usersWithMultipleWallets: number;
+  averageWalletsPerUser: string;
+}
+
+export interface WalletDetails extends UserWallet {
+  recentWithdrawals: {
+    id: string;
+    amount: string;
+    status: string;
+    txHash: string | null;
+    createdAt: string;
+  }[];
 }

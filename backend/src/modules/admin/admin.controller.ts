@@ -44,6 +44,7 @@ import {
   UpdateAffiliateTierDto,
   DeleteUserDto,
   DeletedUsersQueryDto,
+  AdminWalletQueryDto,
 } from './dto';
 
 @ApiTags('Admin')
@@ -417,5 +418,62 @@ export class AdminController {
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 20,
     });
+  }
+
+  // ============ WALLET MANAGEMENT ============
+
+  @Get('wallets')
+  @RequirePermissions('users.view')
+  @ApiOperation({ summary: 'Get all connected user wallets' })
+  async getWallets(@Query() query: AdminWalletQueryDto) {
+    return this.adminService.getWallets(query);
+  }
+
+  @Get('wallets/stats')
+  @RequirePermissions('users.view')
+  @ApiOperation({ summary: 'Get wallet statistics' })
+  async getWalletStats() {
+    return this.adminService.getWalletStats();
+  }
+
+  @Get('wallets/:id')
+  @RequirePermissions('users.view')
+  @ApiOperation({ summary: 'Get wallet details by ID' })
+  async getWalletById(@Param('id') id: string) {
+    return this.adminService.getWalletById(id);
+  }
+
+  @Patch('wallets/:id')
+  @RequirePermissions('users.edit')
+  @ApiOperation({ summary: 'Update wallet (label, primary status)' })
+  async updateWallet(
+    @Param('id') id: string,
+    @Body() body: { label?: string; isPrimary?: boolean },
+  ) {
+    return this.adminService.updateWallet(id, body);
+  }
+
+  @Delete('wallets/:id')
+  @RequirePermissions('users.delete')
+  @ApiOperation({ summary: 'Delete a wallet' })
+  async deleteWallet(@Param('id') id: string) {
+    return this.adminService.deleteWallet(id);
+  }
+
+  @Post('wallets/:id/transfer')
+  @RequirePermissions('users.edit')
+  @ApiOperation({ summary: 'Transfer wallet to another user' })
+  async transferWallet(
+    @Param('id') id: string,
+    @Body() body: { newUserId: string },
+  ) {
+    return this.adminService.transferWallet(id, body.newUserId);
+  }
+
+  @Get('users/:userId/wallets')
+  @RequirePermissions('users.view')
+  @ApiOperation({ summary: 'Get all wallets for a specific user' })
+  async getUserWallets(@Param('userId') userId: string) {
+    return this.adminService.getUserWallets(userId);
   }
 }
